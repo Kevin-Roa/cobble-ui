@@ -1,0 +1,1043 @@
+/*
+ * Cobble UI base styles.
+ *
+ * Everything lives in the `cobble` cascade layer and uses `:where()` so every
+ * rule has zero specificity: any class, CSS module, utility framework or
+ * inline style you add wins without `!important`.
+ *
+ * Lengths are expressed in GUI units: `calc(n * var(--cobble-px))`.
+ *
+ * NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
+ */
+
+@layer cobble {
+  :where(.cobble-root) {
+    display: contents;
+    --cobble-px: calc(var(--cobble-scale, 2) * 1px);
+  }
+
+  :where(.cobble-portal) {
+    display: contents;
+  }
+
+  /* ---------------------------------------------------------------- sprites */
+
+  :where(.cobble-sprite) {
+    display: block;
+    position: absolute;
+    left: calc(var(--cobble-x, 0) * var(--cobble-px));
+    top: calc(var(--cobble-y, 0) * var(--cobble-px));
+    width: calc(var(--cobble-sprite-width) * var(--cobble-px));
+    height: calc(var(--cobble-sprite-height) * var(--cobble-px));
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  :where(.cobble-tiled-texture) {
+    display: block;
+    background-repeat: repeat;
+    background-size: calc(var(--cobble-tile-width) * var(--cobble-px))
+      calc(var(--cobble-tile-height) * var(--cobble-px));
+    background-position: calc(var(--cobble-tile-x, 0) * var(--cobble-px))
+      calc(var(--cobble-tile-y, 0) * var(--cobble-px));
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------------------------- text */
+
+  :where(.cobble-text) {
+    font-family: var(--cobble-font-family), monospace;
+    font-size: calc(12 * var(--cobble-px));
+    line-height: calc(9 * var(--cobble-px));
+    color: var(--cobble-text-color, inherit);
+    font-synthesis: none;
+    font-kerning: none;
+    font-variant-ligatures: none;
+    letter-spacing: 0;
+    word-spacing: 0;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+  }
+
+  :where(.cobble-text[data-shadow]) {
+    text-shadow: var(--cobble-px) var(--cobble-px) 0
+      var(
+        --cobble-text-shadow-color,
+        rgb(from currentColor calc(r * 0.25) calc(g * 0.25) calc(b * 0.25))
+      );
+  }
+
+  :where(.cobble-text:not([data-shadow])) {
+    text-shadow: none;
+  }
+
+  :where(.cobble-text[data-bold]) {
+    font-weight: 700;
+  }
+
+  :where(.cobble-text[data-italic]) {
+    font-style: italic;
+  }
+
+  /* Underline: rows 8–9 of the 9-unit line (one unit under the baseline). */
+  :where(.cobble-text[data-underlined]) {
+    text-decoration-line: underline;
+    text-decoration-thickness: var(--cobble-px);
+    text-underline-offset: var(--cobble-px);
+    text-decoration-skip-ink: none;
+  }
+
+  /*
+   * Strikethrough: rows 3.5–4.5. Drawn as an underline with a negative offset so
+   * it can be placed exactly and is painted between the shadow and the glyphs,
+   * like the game draws text effects.
+   */
+  :where(.cobble-text[data-strikethrough]:not([data-underlined])),
+  :where(.cobble-text-strike) {
+    text-decoration-line: underline;
+    text-decoration-thickness: var(--cobble-px);
+    text-underline-offset: calc(-3.5 * var(--cobble-px));
+    text-decoration-skip-ink: none;
+  }
+
+  :where(.cobble-scrolling-text) {
+    position: absolute;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  :where(.cobble-scrolling-text-line) {
+    position: absolute;
+    white-space: pre;
+  }
+
+  /* ---------------------------------------------------------------- widgets */
+
+  :where(.cobble-button, .cobble-slider, .cobble-text-field, .cobble-tab) {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    outline: none;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-button, .cobble-tab) {
+    cursor: pointer;
+  }
+
+  :where(
+    .cobble-button[data-disabled],
+    .cobble-slider[data-disabled],
+    .cobble-tab[data-disabled],
+    .cobble-checkbox[data-disabled]
+  ) {
+    cursor: not-allowed;
+    --cobble-text-color: #a0a0a0;
+    --cobble-text-shadow-color: #282828;
+  }
+
+  :where(.cobble-button-label, .cobble-slider-label, .cobble-tab-label) {
+    color: var(--cobble-text-color);
+  }
+
+  /* Slider */
+  :where(.cobble-slider) {
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  :where(.cobble-slider[data-dragging]) {
+    cursor: ew-resize;
+  }
+
+  /* Checkbox */
+  :where(.cobble-checkbox) {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: calc(4 * var(--cobble-px));
+    box-sizing: border-box;
+    min-height: calc(17 * var(--cobble-px));
+    vertical-align: top;
+    max-width: calc(var(--cobble-max-width, 100000) * var(--cobble-px));
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-checkbox[data-disabled]) {
+    cursor: not-allowed;
+    --cobble-text-color: #a0a0a0;
+    --cobble-text-shadow-color: #282828;
+  }
+
+  :where(.cobble-checkbox-box) {
+    position: relative;
+    display: block;
+    flex: none;
+    width: calc(17 * var(--cobble-px));
+    height: calc(17 * var(--cobble-px));
+    outline: none;
+  }
+
+  :where(.cobble-checkbox-label) {
+    display: block;
+    margin-top: calc(var(--cobble-checkbox-label-top, 4) * var(--cobble-px));
+    max-height: calc(18 * var(--cobble-px));
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    color: var(--cobble-text-color);
+  }
+
+  /* Text field */
+  :where(.cobble-text-field) {
+    cursor: text;
+    isolation: isolate;
+  }
+
+  :where(.cobble-text-field[data-disabled], .cobble-text-field[data-readonly]) {
+    cursor: not-allowed;
+  }
+
+  :where(.cobble-text-field-input) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    font: inherit;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  :where(.cobble-text-field-display) {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  :where(.cobble-text-field-text, .cobble-text-field-hint) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    white-space: pre;
+  }
+
+  :where(.cobble-text-field-selection) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(var(--cobble-w) * var(--cobble-px));
+    height: calc(var(--cobble-h) * var(--cobble-px));
+    background: #0000ff;
+    mix-blend-mode: plus-lighter;
+  }
+
+  :where(.cobble-text-field-cursor) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: var(--cobble-px);
+    height: calc(10 * var(--cobble-px));
+    background: var(--cobble-cursor-color, #e0e0e0);
+  }
+
+  /* ---------------------------------------------------------------- tooltip */
+
+  :where(.cobble-tooltip-positioner) {
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  :where(.cobble-tooltip) {
+    position: fixed;
+    left: calc(var(--cobble-x, 0) * var(--cobble-px));
+    top: calc(var(--cobble-y, 0) * var(--cobble-px));
+  }
+
+  :where(.cobble-tooltip-panel) {
+    position: relative;
+    box-sizing: border-box;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    pointer-events: none;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-tooltip-content) {
+    position: absolute;
+    /* Lines are 10 units apart; shift by half a unit so the baseline stays on row 7. */
+    left: calc(12 * var(--cobble-px));
+    top: calc(11.5 * var(--cobble-px));
+    width: max-content;
+    max-width: calc(var(--cobble-max-width, 100000) * var(--cobble-px));
+    line-height: calc(10 * var(--cobble-px));
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+    color: var(--cobble-text-color);
+  }
+
+  :where(
+    .cobble-tooltip-panel[data-space-after-first-line] .cobble-tooltip-content > :first-child
+  ) {
+    display: block;
+    margin-bottom: calc(2 * var(--cobble-px));
+  }
+
+  /* ------------------------------------------------------------------- tabs */
+
+  :where(.cobble-tabs) {
+    display: block;
+  }
+
+  :where(.cobble-tab-list) {
+    position: relative;
+    display: block;
+    width: var(--cobble-tab-list-width, 100%);
+    height: calc(24 * var(--cobble-px));
+  }
+
+  :where(.cobble-tab-list-separator) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(22 * var(--cobble-px));
+    width: calc(var(--cobble-w) * var(--cobble-px));
+    height: calc(2 * var(--cobble-px));
+  }
+
+  :where(.cobble-tab-list-tabs) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: 0;
+    display: flex;
+    white-space: nowrap;
+  }
+
+  :where(.cobble-tab-fill) {
+    position: absolute;
+    left: calc(2 * var(--cobble-px));
+    top: calc(2 * var(--cobble-px));
+    width: calc(var(--cobble-w) * var(--cobble-px));
+    height: calc(22 * var(--cobble-px));
+  }
+
+  :where(.cobble-tab-underline) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(22 * var(--cobble-px));
+    width: calc(var(--cobble-w) * var(--cobble-px));
+    height: var(--cobble-px);
+    background: var(--cobble-text-color);
+  }
+
+  /* ------------------------------------------------------------ scroll area */
+
+  :where(.cobble-scroll-area) {
+    position: relative;
+    box-sizing: border-box;
+    min-height: 0;
+  }
+
+  :where(.cobble-scroll-area-viewport) {
+    position: absolute;
+    inset: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    outline: none;
+    overscroll-behavior: contain;
+  }
+
+  :where(.cobble-scroll-area-viewport)::-webkit-scrollbar {
+    display: none;
+  }
+
+  :where(.cobble-scroll-area-scrollbar) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: 0;
+    width: calc(6 * var(--cobble-px));
+    height: calc(var(--cobble-h) * var(--cobble-px));
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  :where(.cobble-scroll-area[data-dragging] .cobble-scroll-area-scrollbar) {
+    cursor: ns-resize;
+  }
+
+  /* --------------------------------------------------------- selection list */
+
+  :where(.cobble-selection-list) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.cobble-selection-list-viewport) {
+    background-repeat: repeat;
+    background-attachment: local;
+    background-size: calc(32 * var(--cobble-px)) calc(32 * var(--cobble-px));
+    background-position: calc(var(--cobble-tile-x, 0) * var(--cobble-px))
+      calc(var(--cobble-tile-y, 0) * var(--cobble-px));
+    image-rendering: pixelated;
+  }
+
+  :where(.cobble-selection-list-content) {
+    padding-block: calc(2 * var(--cobble-px));
+  }
+
+  :where(.cobble-selection-list-separator) {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: calc(2 * var(--cobble-px));
+  }
+
+  :where(.cobble-selection-list-separator[data-position='top']) {
+    top: calc(-2 * var(--cobble-px));
+  }
+
+  :where(.cobble-selection-list-separator[data-position='bottom']) {
+    bottom: calc(-2 * var(--cobble-px));
+  }
+
+  :where(.cobble-selection-list-item) {
+    position: relative;
+    box-sizing: border-box;
+    margin-left: calc(var(--cobble-row-left) * var(--cobble-px));
+    width: calc(var(--cobble-row-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    cursor: pointer;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-selection-list-item[data-selected]) {
+    background: #000000;
+    box-shadow: inset 0 0 0 var(--cobble-px) #808080;
+  }
+
+  :where(.cobble-selection-list-item[data-selected][data-list-focused]) {
+    box-shadow: inset 0 0 0 var(--cobble-px) #ffffff;
+  }
+
+  :where(.cobble-selection-list-item-content) {
+    position: absolute;
+    inset: calc(2 * var(--cobble-px));
+  }
+
+  /* ---------------------------------------------------------------- screens */
+
+  :where(.cobble-screen) {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  :where(.cobble-screen-panorama, .cobble-screen-background, .cobble-screen-gradient) {
+    position: absolute;
+    inset: 0;
+  }
+
+  :where(.cobble-screen-background) {
+    backdrop-filter: blur(var(--cobble-blur, 0px));
+    -webkit-backdrop-filter: blur(var(--cobble-blur, 0px));
+  }
+
+  :where(.cobble-screen-menu-background) {
+    position: absolute;
+    inset: 0;
+  }
+
+  :where(.cobble-screen-gradient) {
+    background: linear-gradient(#c0101010, #d0101010);
+  }
+
+  :where(.cobble-screen-content) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.cobble-menu-background) {
+    display: block;
+  }
+
+  /* Panorama */
+  :where(.cobble-panorama) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    perspective: var(--cobble-panorama-depth);
+    perspective-origin: 50% 50%;
+    pointer-events: none;
+  }
+
+  :where(.cobble-panorama-cube) {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+  }
+
+  :where(.cobble-panorama-face) {
+    position: absolute;
+    left: calc(-1 * var(--cobble-panorama-depth));
+    top: calc(-1 * var(--cobble-panorama-depth));
+    /* A hair larger than the cube so no seams show between faces. */
+    width: calc(2 * var(--cobble-panorama-depth) + 1px);
+    height: calc(2 * var(--cobble-panorama-depth) + 1px);
+    max-width: none;
+    backface-visibility: hidden;
+    user-select: none;
+  }
+
+  :where(.cobble-panorama-overlay) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+
+  /* Inside a screen the panorama fills it (after the base panorama rule so this wins). */
+  :where(.cobble-screen-panorama) {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Header and footer layout */
+  :where(.cobble-screen-layout) {
+    display: grid;
+    grid-template-rows:
+      calc(var(--cobble-header-height) * var(--cobble-px))
+      minmax(0, 1fr)
+      calc(var(--cobble-footer-height) * var(--cobble-px));
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.cobble-screen-layout-header, .cobble-screen-layout-footer) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(8 * var(--cobble-px));
+  }
+
+  :where(.cobble-screen-layout-title) {
+    margin: 0;
+    font-weight: inherit;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-screen-layout-content) {
+    position: relative;
+    min-height: 0;
+  }
+
+  :where(.cobble-screen-layout[data-content-layout='top'] .cobble-screen-layout-content) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: calc(30 * var(--cobble-px));
+  }
+
+  /* Splash text */
+  :where(.cobble-splash) {
+    position: absolute;
+    left: calc(50% + 123 * var(--cobble-px));
+    top: calc(69 * var(--cobble-px));
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  :where(.cobble-splash-pose) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    transform: rotate(-20deg) scale(var(--cobble-splash-scale, 1));
+  }
+
+  :where(.cobble-splash-text) {
+    position: absolute;
+    left: calc(var(--cobble-x, 0) * var(--cobble-px));
+    top: calc(-8 * var(--cobble-px));
+    white-space: pre;
+    --cobble-text-color: #ffff00;
+    --cobble-text-shadow-color: #3f3f00;
+  }
+
+  /* Boss bar / experience bar */
+  :where(.cobble-stat-bar) {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-stat-bar-clip) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: calc(var(--cobble-clip-width) * var(--cobble-px));
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  :where(.cobble-boss-bar-name) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    text-align: center;
+    white-space: pre;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-experience-level) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(-6 * var(--cobble-px));
+    text-align: center;
+    white-space: pre;
+    color: #80ff20;
+    /* Four black copies one unit away on each side (`Gui#extractExperienceLevel`). */
+    text-shadow:
+      var(--cobble-px) 0 0 #000,
+      calc(-1 * var(--cobble-px)) 0 0 #000,
+      0 var(--cobble-px) 0 #000,
+      0 calc(-1 * var(--cobble-px)) 0 #000;
+  }
+
+  /* Hotbar */
+  :where(.cobble-hotbar) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  :where(.cobble-hotbar-slot) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(16 * var(--cobble-px));
+    height: calc(16 * var(--cobble-px));
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Toast */
+  :where(.cobble-toast) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    transform: translateX(100%);
+    transition: transform 600ms ease-out;
+  }
+
+  :where(.cobble-toast[data-open]) {
+    transform: none;
+  }
+
+  :where(.cobble-toast-title, .cobble-toast-message) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    white-space: pre;
+  }
+
+  :where(.cobble-toast-title) {
+    color: #ffff00;
+  }
+
+  :where(.cobble-toast-message) {
+    color: #ffffff;
+  }
+
+  /* Loading dots */
+  :where(.cobble-loading-dots) {
+    white-space: pre;
+    --cobble-text-color: #808080;
+  }
+
+  /* Status icon rows (hearts, hunger, armor, air) */
+  :where(.cobble-status-row) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  /* Dialog */
+  :where(.cobble-dialog-backdrop) {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(#c0101010, #d0101010);
+  }
+
+  :where(.cobble-dialog) {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    padding: calc(18 * var(--cobble-px));
+    outline: none;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-dialog-title) {
+    position: relative;
+    margin: 0 0 calc(12 * var(--cobble-px));
+    font-weight: normal;
+    text-align: center;
+    color: var(--cobble-text-color);
+  }
+
+  :where(.cobble-dialog-body) {
+    position: relative;
+    color: var(--cobble-text-color);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  /* Server list entry */
+  :where(.cobble-server-entry) {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  :where(.cobble-server-entry-icon) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(32 * var(--cobble-px));
+    height: calc(32 * var(--cobble-px));
+    image-rendering: pixelated;
+  }
+
+  /* The hover overlay over the icon is a 0xA0909090 fill (`OnlineServerEntry#renderContent`). */
+  :where(.cobble-server-entry-join) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(32 * var(--cobble-px));
+    height: calc(32 * var(--cobble-px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: #a0909090;
+    cursor: pointer;
+  }
+
+  :where(.cobble-server-entry-name, .cobble-server-entry-motd, .cobble-server-entry-status) {
+    position: absolute;
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    white-space: pre;
+    --cobble-text-color: #808080;
+    --cobble-text-shadow-color: #202020;
+  }
+
+  :where(.cobble-server-entry-name, .cobble-server-entry-motd) {
+    left: calc(var(--cobble-x) * var(--cobble-px));
+  }
+
+  :where(.cobble-server-entry-name) {
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  /* Right edge sits 20 units from the entry's right edge (width - 15 - 5). */
+  :where(.cobble-server-entry-status) {
+    right: calc(20 * var(--cobble-px));
+  }
+
+  /* Advancement frame */
+  :where(.cobble-advancement-frame) {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-advancement-icon) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(16 * var(--cobble-px));
+    height: calc(16 * var(--cobble-px));
+    overflow: hidden;
+  }
+
+  /* Text area */
+  :where(.cobble-text-area) {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    cursor: text;
+    isolation: isolate;
+  }
+
+  :where(.cobble-text-area[data-disabled]) {
+    cursor: not-allowed;
+  }
+
+  :where(.cobble-text-area-input) {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: calc(4 * var(--cobble-px));
+    border: 0;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: var(--cobble-text-color);
+    caret-color: var(--cobble-text-color);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c0c0c0 transparent;
+    --cobble-text-shadow-color: #383838;
+  }
+
+  :where(.cobble-text-area-input::placeholder) {
+    color: var(--cobble-hint-color);
+    opacity: 1;
+  }
+
+  :where(.cobble-text-area-input::selection) {
+    background: #0000ff;
+    color: #ffffff;
+  }
+
+  :where(
+    .cobble-text-area[data-readonly] .cobble-text-area-input,
+    .cobble-text-area[data-disabled] .cobble-text-area-input
+  ) {
+    color: #707070;
+  }
+
+  /* The length/limit counter hangs below the box, right-aligned. */
+  :where(.cobble-text-area-counter) {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 2 * var(--cobble-px));
+    white-space: pre;
+    --cobble-text-color: #a0a0a0;
+    --cobble-text-shadow-color: #282828;
+  }
+
+  /* Separator */
+  :where(.cobble-separator) {
+    width: 100%;
+    height: calc(2 * var(--cobble-px));
+  }
+
+  /* Advancement tab */
+  :where(.cobble-advancement-tab) {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Advancement box */
+  :where(.cobble-advancement-box) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  /* Inventory slot */
+  :where(.cobble-inventory-slot) {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    outline: none;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where(.cobble-inventory-slot[disabled]) {
+    cursor: not-allowed;
+  }
+
+  /* Animated sprite: one frame of a vertical sheet, clipped */
+  :where(.cobble-animated-sprite) {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  /* Advancement widget */
+  :where(.cobble-advancement-widget) {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    min-width: calc(26 * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-advancement-widget .cobble-advancement-widget-frame) {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  :where(.cobble-advancement-widget-content) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: calc(26 * var(--cobble-px));
+    padding: 0 calc(var(--cobble-text-right) * var(--cobble-px)) 0
+      calc(var(--cobble-text-left) * var(--cobble-px));
+    white-space: pre;
+  }
+
+  :where(.cobble-advancement-widget-content[data-lines]:not([data-lines='0'])) {
+    padding-top: calc(6 * var(--cobble-px));
+    padding-bottom: calc(6 * var(--cobble-px));
+  }
+
+  :where(.cobble-advancement-widget-title) {
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+    color: var(--cobble-text-color);
+  }
+
+  :where(.cobble-advancement-widget-description) {
+    --cobble-text-color: #a0a0a0;
+    color: var(--cobble-text-color);
+  }
+
+  :where(.cobble-pack-entry-action) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(var(--cobble-w) * var(--cobble-px));
+    height: calc(var(--cobble-h) * var(--cobble-px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  :where(.cobble-locator-arrow) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+  }
+
+  /* Creative scroller */
+  :where(.cobble-creative-scroller) {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    outline: none;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  :where(.cobble-creative-scroller[data-disabled]) {
+    cursor: default;
+  }
+
+  :where(.cobble-inventory-slot-item) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(16 * var(--cobble-px));
+    height: calc(16 * var(--cobble-px));
+    overflow: hidden;
+    pointer-events: none;
+  }
+}

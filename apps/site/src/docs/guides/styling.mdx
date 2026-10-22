@@ -1,0 +1,43 @@
+Cobble UI ships one plain CSS file. Every rule lives in the `cobble` cascade layer and is wrapped in `:where()`,
+so its specificity is zero. Any class, CSS module, Tailwind utility or inline style you add overrides it without `!important`.
+
+## Hooks for styling
+
+- **Class names.** Every part has a stable class: `cobble-button`, `cobble-button-label`, `cobble-slider-handle`, and so on.
+- **Data attributes.** States are exposed as attributes: `data-hovered`, `data-focused`, `data-highlighted`,
+  `data-disabled`, `data-checked`, `data-selected`, `data-dragging`.
+- **CSS variables.** `--cobble-px` is one GUI unit. Sizes use `--cobble-width` / `--cobble-height` (in units),
+  and text uses `--cobble-text-color` and `--cobble-text-shadow-color`.
+
+```css
+.danger-button {
+  --cobble-text-color: #ff5555;
+  --cobble-text-shadow-color: #3f1515;
+}
+
+.full-width {
+  width: 100%;
+}
+```
+
+Sprites are measured from the element, so stretching a button with CSS still draws the nine-slice correctly.
+
+## Slots
+
+Inner elements accept props through `slotProps`:
+
+```tsx
+<Button slotProps={{ label: { className: 'my-label' }, background: { 'data-test': 'bg' } }}>
+  Done
+</Button>
+```
+
+## Polymorphism
+
+Use `as` to render a different element or component, such as a router link:
+
+```tsx
+<Button as={Link} to="/settings">
+  Options...
+</Button>
+```

@@ -1,0 +1,292 @@
+/* Site-only styles. The components themselves are styled by cobble-ui/styles.css. */
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+}
+
+.site-screen {
+  position: fixed;
+  inset: 0;
+}
+
+/* ------------------------------------------------------------ title screen */
+
+.site-title {
+  position: absolute;
+  top: calc(30 * var(--cobble-px));
+  left: 0;
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.site-logo {
+  margin: 0;
+  font-size: calc(48 * var(--cobble-px));
+  line-height: calc(36 * var(--cobble-px));
+  text-shadow: calc(4 * var(--cobble-px)) calc(4 * var(--cobble-px)) 0 #3f3f3f;
+}
+
+.site-title-menu {
+  position: absolute;
+  top: calc(25% + 48 * var(--cobble-px));
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--cobble-px));
+  width: calc(200 * var(--cobble-px));
+}
+
+.site-title-row {
+  position: relative;
+  display: flex;
+  gap: calc(4 * var(--cobble-px));
+  margin-top: calc(8 * var(--cobble-px));
+}
+
+.site-side-left {
+  position: absolute;
+  left: calc(-24 * var(--cobble-px));
+}
+
+.site-side-right {
+  position: absolute;
+  right: calc(-24 * var(--cobble-px));
+}
+
+.site-corner {
+  position: absolute;
+  bottom: var(--cobble-px);
+  max-width: 48%;
+}
+
+.site-corner-left {
+  left: calc(2 * var(--cobble-px));
+}
+
+.site-corner-right {
+  right: calc(2 * var(--cobble-px));
+  text-align: right;
+}
+
+/* -------------------------------------------------------------------- docs */
+
+.site-docs {
+  display: grid;
+  grid-template-columns: calc(140 * var(--cobble-px)) minmax(0, 1fr);
+  height: 100%;
+}
+
+.site-nav,
+.site-content {
+  height: 100%;
+}
+
+.site-article {
+  box-sizing: border-box;
+  max-width: calc(560 * var(--cobble-px));
+  padding: calc(8 * var(--cobble-px)) calc(14 * var(--cobble-px)) calc(16 * var(--cobble-px));
+}
+
+.site-h2 {
+  display: block;
+  margin: calc(10 * var(--cobble-px)) 0 calc(5 * var(--cobble-px));
+}
+
+.site-h3 {
+  display: block;
+  margin: calc(8 * var(--cobble-px)) 0 calc(4 * var(--cobble-px));
+}
+
+.site-p {
+  display: block;
+  margin: 0 0 calc(6 * var(--cobble-px));
+  white-space: normal;
+}
+
+.site-list {
+  margin: 0 0 calc(6 * var(--cobble-px));
+  padding-left: calc(10 * var(--cobble-px));
+}
+
+.site-wrap {
+  white-space: normal;
+}
+
+.site-code {
+  padding: 0 0.25em;
+  background: rgb(0 0 0 / 55%);
+  color: #e0e0e0;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: max(12px, calc(5.5 * var(--cobble-px)));
+  text-shadow: none;
+}
+
+.site-code-block {
+  margin: calc(4 * var(--cobble-px)) 0 calc(8 * var(--cobble-px));
+  padding: calc(5 * var(--cobble-px));
+  overflow-x: auto;
+  background: rgb(0 0 0 / 65%);
+  box-shadow: inset 0 0 0 var(--cobble-px) #555;
+  color: #e0e0e0;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: max(12px, calc(5.5 * var(--cobble-px)));
+  line-height: 1.5;
+}
+
+.site-code-block .site-code {
+  padding: 0;
+  background: none;
+}
+
+.site-demo {
+  position: relative;
+  margin: calc(6 * var(--cobble-px)) 0;
+  padding: calc(10 * var(--cobble-px));
+  background: rgb(0 0 0 / 35%);
+  box-shadow: inset 0 0 0 var(--cobble-px) #000;
+}
+
+.site-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(4 * var(--cobble-px));
+}
+
+.site-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(4 * var(--cobble-px));
+}
+
+.site-props {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.site-props th {
+  text-align: left;
+}
+
+.site-props th,
+.site-props td {
+  padding: calc(2 * var(--cobble-px)) calc(4 * var(--cobble-px));
+  border-bottom: 1px solid rgb(255 255 255 / 15%);
+  vertical-align: top;
+}
+
+.site-callout {
+  margin: calc(4 * var(--cobble-px)) 0;
+}
+
+/* Demo-specific layout */
+.site-tabs-demo {
+  width: 100%;
+}
+
+.site-tab-panel {
+  padding: calc(8 * var(--cobble-px));
+}
+
+.site-list-demo,
+.site-screen-demo {
+  position: relative;
+  height: calc(140 * var(--cobble-px));
+  overflow: hidden;
+}
+
+.site-list-demo {
+  margin-block: calc(4 * var(--cobble-px));
+}
+
+.site-screen-demo {
+  height: calc(160 * var(--cobble-px));
+}
+
+.site-fill {
+  position: absolute;
+  inset: 0;
+}
+
+.site-scroll-demo {
+  height: calc(100 * var(--cobble-px));
+}
+
+.site-sprite-box {
+  position: relative;
+}
+
+.site-world-entry {
+  display: grid;
+  gap: calc(2 * var(--cobble-px));
+  padding-left: calc(35 * var(--cobble-px));
+  padding-top: var(--cobble-px);
+}
+
+/* ---------------------------------------------------------------- settings */
+
+.site-options {
+  display: grid;
+  grid-template-columns: repeat(2, calc(150 * var(--cobble-px)));
+  gap: calc(5 * var(--cobble-px)) calc(10 * var(--cobble-px));
+}
+
+.site-options-note {
+  margin: calc(12 * var(--cobble-px)) 0 0;
+  white-space: normal;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ chrome */
+
+.site-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4 * var(--cobble-px));
+}
+
+.site-disclaimer {
+  margin: 0;
+  text-align: center;
+  white-space: normal;
+}
+
+.site-loader {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24 * var(--cobble-px));
+  translate: -50% 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4 * var(--cobble-px));
+  padding: calc(8 * var(--cobble-px)) calc(12 * var(--cobble-px));
+  background: rgb(0 0 0 / 80%);
+}
+
+.site-loader-bar {
+  box-sizing: border-box;
+  width: calc(200 * var(--cobble-px));
+  height: calc(6 * var(--cobble-px));
+  padding: var(--cobble-px);
+  border: var(--cobble-px) solid #fff;
+}
+
+.site-loader-bar-fill {
+  height: 100%;
+  background: #fff;
+}

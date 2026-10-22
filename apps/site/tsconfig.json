@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["vite/client", "mdx"],
+    "paths": {
+      "cobble-ui": ["../../packages/cobble-ui/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

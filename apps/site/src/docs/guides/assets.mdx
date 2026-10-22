@@ -1,0 +1,27 @@
+**NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
+
+Cobble UI does not contain or redistribute any Minecraft textures, sounds or fonts. Instead, the
+visitor's browser downloads them straight from Mojang when the page loads:
+
+- The version manifest and asset index come from `piston-meta.mojang.com`.
+- The 26.3 client jar (≈41 MB) comes from `piston-data.mojang.com`. Its SHA-1 is checked against the
+  value Mojang publishes, then only `assets/minecraft/textures/gui/` is kept, in Cache Storage. Later visits skip the download.
+- Sounds and the title-screen panorama are loaded by `<audio>` and `<img>` elements directly from
+  `resources.download.minecraft.net`.
+
+You can point the loader somewhere else (for example your own proxy) with `mojangAssets()`:
+
+```tsx
+<CobbleProvider assets={mojangAssets({ version: '26.3', cache: true })}>…</CobbleProvider>
+```
+
+## Using Cobble UI in your project
+
+If you build something with Cobble UI, follow the
+[Minecraft Usage Guidelines](https://www.minecraft.net/en-us/usage-guidelines): keep the disclaimer above on your
+product, website and related materials, and do not suggest that your project is made, approved or supported by Mojang or Microsoft.
+
+## Fonts
+
+The `minecraft-ttf` fonts are generated from the game's bitmap font by their author. `npx cobble-ui fonts <dir>`
+downloads them from that project's GitHub release.

@@ -1,0 +1,29 @@
+`CobbleProvider` configures every component below it. Providers can be nested: a nested provider inherits
+anything it does not set and shares the already-loaded assets.
+
+```tsx
+<CobbleProvider
+  guiScale="auto" // or a number: CSS pixels per GUI unit
+  maxGuiScale={4} // cap for "auto"
+  pixelSnap // round units to whole device pixels (default)
+  font={minecraftTtf('/fonts')}
+  sound={{ enabled: true, master: 1, ui: 1 }}
+  menuBlur={5} // 0–10, like "Menu Background Blur"
+  panoramaSpeed={1}
+  inWorld={false} // use the in-world (translucent) textures
+>
+  …
+</CobbleProvider>
+```
+
+## GUI scale
+
+`"auto"` mirrors the game: it picks the largest scale that keeps the viewport at least 320×240 units.
+Try changing it on the Settings screen of this site.
+
+## Hooks
+
+- `useAssets()` returns the loading `status`, `progress`, `error` and a `reload()` function.
+- `useGuiScale()` returns the scale in effect and the size of one unit.
+- `useSound()` returns a function that plays a UI sound event, such as `play('ui.toast.in')`.
+- `useSprite(id)`, `useTexture(id)` and `useObjectUrl(name)` give low-level access to game assets.

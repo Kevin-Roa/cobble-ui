@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+.vite
+# Font files are downloaded at build time (see apps/site/scripts/fetch-fonts.ts)
+apps/site/public/fonts
