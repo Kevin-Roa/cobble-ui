@@ -348,9 +348,9 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['ItemIcon', <ItemIcon key="a" name="apple" />],
   ['EffectIcon', <EffectIcon key="a" name="speed" />],
   ['PlayerHead', <PlayerHead key="a" />],
-  ['PlayerHead (player)', <PlayerHead key="a" player="Notch" />],
-  ['PlayerRenderer', <PlayerRenderer key="a" player="Notch" />],
-  ['PlayerInventory', <PlayerInventory key="a" player="Notch" />],
+  ['PlayerHead (player)', <PlayerHead key="a" player="Steve" />],
+  ['PlayerRenderer', <PlayerRenderer key="a" player="Steve" />],
+  ['PlayerInventory', <PlayerInventory key="a" player="Steve" />],
   ['ChestPanel', <ChestPanel key="a" title="Chest" />],
   ['HotbarWithStats', <HotbarWithStats key="a" armor={4} air={100} level={3} />],
   [

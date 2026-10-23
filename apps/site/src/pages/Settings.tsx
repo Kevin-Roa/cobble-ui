@@ -9,6 +9,7 @@ import {
   ScreenLayout,
   Slider,
   Text,
+  TextField,
   ToggleButton,
   useGuiScale,
   useToasts,
@@ -111,6 +112,20 @@ export function Settings(): JSX.Element {
               formatLabel={(value) =>
                 value === 0 ? 'Master Volume: OFF' : `Master Volume: ${String(value)}%`
               }
+            />
+          </OptionsListRow>
+          <OptionsListHeader>Docs</OptionsListHeader>
+          <OptionsListRow>
+            <Text as="label" htmlFor="default-player">
+              Example Player
+            </Text>
+            <TextField
+              id="default-player"
+              width={150}
+              maxLength={36}
+              placeholder="steve"
+              value={settings.defaultPlayer}
+              onValueChange={(defaultPlayer) => update({ defaultPlayer })}
             />
           </OptionsListRow>
           <Text as="p" color="gray" className="site-options-note">
