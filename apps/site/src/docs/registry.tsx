@@ -5,6 +5,7 @@ import {
   PlayerRendererPage,
 } from './components/players.tsx';
 import { ItemsPage } from './components/explorers.tsx';
+import { ThreeViewportPage } from './components/three.tsx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
 import AssetsGuide from './guides/assets.mdx';
@@ -366,6 +367,7 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('effect-icon', 'EffectIcon', 'Text & sprites', EffectIconPage),
   entry('player-head', 'PlayerHead', 'Text & sprites', PlayerHeadPage),
   entry('player-renderer', 'PlayerRenderer', 'Text & sprites', PlayerRendererPage),
+  entry('three-viewport', 'ThreeViewport', 'Text & sprites', ThreeViewportPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),
 ];

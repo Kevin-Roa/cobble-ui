@@ -8,7 +8,7 @@ export const MOJANG_VERSION_MANIFEST_URL =
   'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 export const MOJANG_RESOURCES_URL = 'https://resources.download.minecraft.net';
 
-const CACHE_NAME = 'cobble-ui-assets-v4';
+const CACHE_NAME = 'cobble-ui-assets-v5';
 const CACHE_ORIGIN = 'https://cobble-ui.invalid';
 
 /** Client files kept after the jar is downloaded. Everything else is discarded. */
@@ -22,8 +22,10 @@ const DEFAULT_INCLUDE = (path: string): boolean =>
   path.startsWith('assets/minecraft/models/block/') ||
   path === 'assets/minecraft/textures/misc/unknown_server.png' ||
   path === 'assets/minecraft/textures/misc/unknown_pack.png' ||
-  path === 'assets/minecraft/textures/entity/player/wide/steve.png' ||
-  path === 'assets/minecraft/textures/entity/armorstand/wood.png' ||
+  // Player skins, armor layers and the armor stand, for the three.js renderers (`ThreeViewport`).
+  path.startsWith('assets/minecraft/textures/entity/player/') ||
+  path.startsWith('assets/minecraft/textures/entity/equipment/') ||
+  path.startsWith('assets/minecraft/textures/entity/armorstand/') ||
   path === 'assets/minecraft/textures/font/ascii.png';
 
 /** Asset index objects that are kept (for sounds and the title panorama). */

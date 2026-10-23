@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
-import { ChestPanel, HotbarWithStats, PlayerHead, PlayerInventory, PlayerRenderer, mcHeadsUrl } from '../index.ts';
+import { ChestPanel, HotbarWithStats, PlayerHead, PlayerInventory, PlayerRenderer, ThreeViewport, mcHeadsUrl } from '../index.ts';
 import {
   ASSET_PHASE_LABELS,
   Air,
@@ -3452,6 +3452,24 @@ describe('player components', () => {
   it('PlayerRenderer shows the body render with a name', () => {
     renderWithProvider(<PlayerRenderer player="jeb_" />);
     expect(screen.getByRole('img', { name: 'jeb_ skin' })).toBeInTheDocument();
+  });
+
+  it('ThreeViewport shows its fallback without WebGL and takes arrow keys when rotatable', async () => {
+    renderWithProvider(
+      <ThreeViewport aria-label="Stone cube" rotatable textures={['block/stone']} fallback="Loading" />,
+    );
+    const viewport = screen.getByRole('img', { name: 'Stone cube' });
+    expect(viewport).toHaveAttribute('data-status', 'unsupported');
+    expect(viewport).toHaveAttribute('tabindex', '0');
+    expect(viewport).toHaveTextContent('Loading');
+    viewport.focus();
+    await userEvent.keyboard('{ArrowLeft}{ArrowDown}');
+    expect(viewport).toBeInTheDocument();
+  });
+
+  it('ThreeViewport is not focusable unless rotatable', () => {
+    renderWithProvider(<ThreeViewport aria-label="Static" />);
+    expect(screen.getByRole('img', { name: 'Static' })).not.toHaveAttribute('tabindex');
   });
 
   it('PlayerInventory reports clicks by area', async () => {

@@ -975,3 +975,22 @@ export type {
   HotbarWithStatsOwnProps,
   HotbarWithStatsProps,
 } from './components/hotbar/HotbarWithStats.tsx';
+
+export { ThreeViewport } from './components/three/ThreeViewport.tsx';
+export type {
+  ThreeCameraOptions,
+  ThreeFrame,
+  ThreeLook,
+  ThreeSceneContext,
+  ThreeViewportProps,
+} from './components/three/ThreeViewport.tsx';
+export { boxUvLayout, createBoxGeometry, createTexture, followAngles } from './render/three/box.ts';
+export type {
+  BoxFace,
+  BoxGeometryOptions,
+  BoxUvLayout,
+  BoxUvOptions,
+  FollowAngles,
+  ThreeModule,
+  UvRect,
+} from './render/three/box.ts';
