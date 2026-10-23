@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
@@ -37,7 +38,7 @@ export function TradeArrow(props: TradeArrowProps): JSX.Element {
   );
 }
 
-function XpClip(props: { readonly width: number; readonly sprite: string }): JSX.Element | null {
+function XpClip(props: { readonly width: number; readonly sprite: SpriteId }): JSX.Element | null {
   if (props.width <= 0) return null;
   const style: CssVariables = { '--cobble-clip-width': props.width };
   return (

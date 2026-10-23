@@ -1,3 +1,4 @@
+import { asSpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { type ElementType, type JSX, type ReactNode } from 'react';
 import { useElementState, useGuiSize, useMergedRefs } from '../../internal/hooks.ts';
@@ -71,8 +72,11 @@ export function TooltipPanel<E extends ElementType = 'div'>(
   const boxHeight = textHeight + 2 * TOOLTIP_INSET;
 
   const background =
-    tooltipStyle === undefined ? 'tooltip/background' : `tooltip/${tooltipStyle}_background`;
-  const frame = tooltipStyle === undefined ? 'tooltip/frame' : `tooltip/${tooltipStyle}_frame`;
+    tooltipStyle === undefined
+      ? 'tooltip/background'
+      : asSpriteId(`tooltip/${tooltipStyle}_background`);
+  const frame =
+    tooltipStyle === undefined ? 'tooltip/frame' : asSpriteId(`tooltip/${tooltipStyle}_frame`);
 
   const rootStyle: CssVariables = {
     '--cobble-width': boxWidth,

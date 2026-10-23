@@ -37,4 +37,6 @@ Run from the repo root unless noted.
 
 - Strict TS (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `isolatedDeclarations`, so exported functions need explicit return types). Imports use explicit `.ts`/`.tsx` extensions.
 - oxlint enforces the React Compiler rules: no ref reads/writes during render (use `useLatest`), no synchronous setState in effects (adjust state during render instead).
+- Sprite ids are typed: `SpriteId` (`src/assets/sprite-ids.ts`) is a union of every GUI sprite in the 26.3 client jar, and `Sprite`, `WidgetSprites` and friends take it, so a typo is a compile error. The file is a name list only (no assets), generated from the jar's file listing; regenerate it when bumping the game version. Sprites that are not in the jar (custom asset sources, data-pack tooltip styles) go through `asSpriteId()`. Build computed ids from literal unions, not `string`.
+- Docs: one page per component under `apps/site/src/docs/components`, registered in `registry.tsx` with a category (the sidebar groups and searches by it). Do not combine components on a page.
 - Tests: pure math/logic in `src/logic.test.ts` and `src/render/render.test.ts`; component behavior in `src/components/components.test.tsx` using `renderWithProvider` + `memoryAssets` from `test/utils.tsx`. jsdom has no canvas or layout, so assert behavior and attributes, not pixels.

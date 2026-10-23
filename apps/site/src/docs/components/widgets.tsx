@@ -1,15 +1,10 @@
 import {
   Button,
   Checkbox,
-  FriendsButton,
-  ResponseButton,
-  CrossButton,
   CycleButton,
   FormattedText,
   IconButton,
   LockButton,
-  NotificationBadge,
-  PageButton,
   RecipeBookButton,
   Slider,
   TextArea,
@@ -552,76 +547,6 @@ export function RecipeBookButtonPage(): JSX.Element {
           AS,
         ]}
       />
-    </>
-  );
-}
-
-export function SpriteButtonsPage(): JSX.Element {
-  return (
-    <>
-      <P>
-        Small buttons that are just a sprite: <Code>CrossButton</Code> (the 14×14 close cross),{' '}
-        <Code>PageButton</Code> (the 23×13 book page turner) and <Code>RecipeBookButton</Code>{' '}
-        (20×18). All highlight on hover or focus and play the click sound. A{' '}
-        <Code>NotificationBadge</Code> (8×8) shows a count from 1 to 5, or a plus sign above that.
-      </P>
-      <Demo>
-        <div className="site-row">
-          <CrossButton />
-          <PageButton direction="backward" />
-          <PageButton direction="forward" />
-          <RecipeBookButton />
-          <NotificationBadge count={1} />
-          <NotificationBadge count={4} />
-          <NotificationBadge count={9} />
-        </div>
-      </Demo>
-      <CodeBlock code="<PageButton direction='forward' onClick={nextPage} />" />
-      <H2>Props</H2>
-      <PropsTable
-        rows={[
-          {
-            name: 'direction',
-            type: "'forward' | 'backward'",
-            description: 'PageButton: which way it turns.',
-          },
-          {
-            name: 'label',
-            type: 'string',
-            description: 'Accessible name; has a sensible default.',
-          },
-          {
-            name: 'count',
-            type: 'number',
-            description: 'NotificationBadge: renders nothing at 0.',
-          },
-          COMMON_SLOT,
-          AS,
-        ]}
-      />
-      <H2>Friends and invites</H2>
-      <P>
-        <Code>ResponseButton</Code> is the 18×18 check or cross that accepts or rejects a request;{' '}
-        <Code>context</Code> picks the friends list or pending-invite artwork.{' '}
-        <Code>FriendsButton</Code> is a regular <Code>Button</Code> drawn with the friends
-        screen&apos;s own flatter sprites.
-      </P>
-      <Demo>
-        <div className="site-stack">
-          <div className="site-row">
-            <ResponseButton kind="accept" />
-            <ResponseButton kind="reject" />
-            <ResponseButton kind="accept" context="invite" />
-            <ResponseButton kind="reject" context="invite" />
-          </div>
-          <div className="site-row">
-            <FriendsButton width={120}>Add Friend</FriendsButton>
-            <FriendsButton width={120} disabled>
-              Unavailable
-            </FriendsButton>
-          </div>
-        </div>
-      </Demo>
     </>
   );
 }

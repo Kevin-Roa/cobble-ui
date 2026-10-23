@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -13,7 +14,7 @@ export const ADVANCEMENT_FRAME_SIZE = 26;
 export const ADVANCEMENT_ICON_SIZE = 16;
 
 /** Sprite of a frame (`AdvancementType#frameSprite`), e.g. `advancements/task_frame_obtained`. */
-export function advancementFrameSprite(type: AdvancementFrameType, obtained: boolean): string {
+export function advancementFrameSprite(type: AdvancementFrameType, obtained: boolean): SpriteId {
   return `advancements/${type}_frame_${obtained ? 'obtained' : 'unobtained'}`;
 }
 

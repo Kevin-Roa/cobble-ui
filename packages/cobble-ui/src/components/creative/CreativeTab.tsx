@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -10,12 +11,16 @@ export const CREATIVE_TAB_WIDTH = 26;
 export const CREATIVE_TAB_HEIGHT = 32;
 
 export type CreativeTabRow = 'top' | 'bottom';
+/** The seven columns of a row; each has its own sprite. */
+export type CreativeTabColumn = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 /** Sprite id: `container/creative_inventory/tab_<row>_<selected|unselected>_<column>`, column 1–7. */
-export function creativeTabSprite(row: CreativeTabRow, column: number, selected: boolean): string {
-  const clamped = Math.min(Math.max(Math.trunc(column), 1), 7);
-  const state = selected ? 'selected' : 'unselected';
-  return `container/creative_inventory/tab_${row}_${state}_${String(clamped)}`;
+export function creativeTabSprite(
+  row: CreativeTabRow,
+  column: CreativeTabColumn,
+  selected: boolean,
+): SpriteId {
+  return `container/creative_inventory/tab_${row}_${selected ? 'selected' : 'unselected'}_${column}`;
 }
 
 export interface CreativeTabSlotProps {
@@ -30,7 +35,7 @@ export interface CreativeTabOwnProps {
   /** `top` tabs hang above the window, `bottom` tabs below it. */
   readonly row?: CreativeTabRow;
   /** Position within the row, 1 (leftmost) to 7: the sprite differs for each. */
-  readonly column?: number;
+  readonly column?: CreativeTabColumn;
   readonly selected?: boolean;
   /** Accessible name of the tab. */
   readonly label: string;

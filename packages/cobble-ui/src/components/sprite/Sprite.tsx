@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { useRef, type JSX } from 'react';
 import { useIsomorphicLayoutEffect, useMergedRefs } from '../../internal/hooks.ts';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
@@ -6,7 +7,7 @@ import type { RgbaImage } from '../../render/blit.ts';
 
 export interface SpriteProps extends Omit<SlotProps<'canvas'>, 'width' | 'height' | 'children'> {
   /** Sprite id, e.g. `widget/button` or `icon/accessibility` (`minecraft:` is implied). */
-  readonly sprite: string | undefined;
+  readonly sprite: SpriteId | undefined;
   /** Width in GUI units. */
   readonly width: number;
   /** Height in GUI units. */

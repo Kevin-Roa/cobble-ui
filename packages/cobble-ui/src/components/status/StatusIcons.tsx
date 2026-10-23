@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
@@ -9,8 +10,19 @@ export const STATUS_ICON_SIZE = 9;
 /** Distance between icon origins (`Gui#extractHearts`: `x + i * 8`). */
 export const STATUS_ICON_STRIDE = 8;
 
+/** Icons per row before the bar wraps onto a new row above (`Gui#extractHearts`: 10). */
+export const STATUS_ICONS_PER_ROW = 10;
+
+/**
+ * Vertical distance between wrapped rows (`Gui#extractHearts`): `max(10 - (rows - 2), 3)`, so two
+ * rows sit 10 apart and every further row tucks one unit more under the one above it.
+ */
+export function statusRowHeight(rows: number): number {
+  return Math.max(10 - (rows - 2), 3);
+}
+
 /** One icon of a row: the sprites drawn bottom to top. */
-export type StatusIconLayers = readonly string[];
+export type StatusIconLayers = readonly SpriteId[];
 
 /**
  * Sprites of the `index`th icon of a half-point meter: a full icon for each full pair of points,
@@ -19,9 +31,9 @@ export type StatusIconLayers = readonly string[];
 export function halfPointIcon(
   index: number,
   value: number,
-  empty: string,
-  half: string,
-  full: string,
+  empty: SpriteId,
+  half: SpriteId,
+  full: SpriteId,
 ): StatusIconLayers {
   const point = index * 2 + 1;
   if (point < value) return [empty, full];
@@ -62,13 +74,15 @@ function StatusRow(
     count,
     layers,
     reverse,
-    slots = count,
+    slots = Math.min(count, STATUS_ICONS_PER_ROW),
   } = props;
   const Component: ElementType = as ?? 'div';
   const width = slots === 0 ? 0 : (slots - 1) * STATUS_ICON_STRIDE + STATUS_ICON_SIZE;
+  const rows = Math.max(Math.ceil(count / STATUS_ICONS_PER_ROW), 1);
+  const rowHeight = statusRowHeight(rows);
   const rootStyle: CssVariables = {
     '--cobble-width': width,
-    '--cobble-height': STATUS_ICON_SIZE,
+    '--cobble-height': (rows - 1) * rowHeight + STATUS_ICON_SIZE,
     ...style,
   };
   return (
@@ -87,14 +101,18 @@ function StatusRow(
       )}
     >
       {Array.from({ length: count }, (_, index) => {
-        const slot = reverse === true ? slots - 1 - index : index;
+        const column = index % STATUS_ICONS_PER_ROW;
+        const row = Math.floor(index / STATUS_ICONS_PER_ROW);
+        const slot = reverse === true ? slots - 1 - column : column;
+        // The first row is the bottom one; further rows stack upwards.
+        const top = (rows - 1 - row) * rowHeight;
         return layers(index).map((sprite) => (
           <Sprite
             key={`${String(index)}:${sprite}`}
             sprite={sprite}
             width={STATUS_ICON_SIZE}
             height={STATUS_ICON_SIZE}
-            style={placeAt(slot * STATUS_ICON_STRIDE, 0)}
+            style={placeAt(slot * STATUS_ICON_STRIDE, top)}
           />
         ));
       })}
@@ -151,7 +169,7 @@ export function heartLayers(
   hardcore: boolean,
 ): StatusIconLayers {
   const container = hardcore ? 'hud/heart/container_hardcore' : 'hud/heart/container';
-  const prefix = variant === 'normal' ? '' : `${variant}_`;
+  const prefix = variant === 'normal' ? '' : (`${variant}_` as const);
   const mode = hardcore ? 'hardcore_' : '';
   const point = index * 2 + 1;
   if (point < value) return [container, `hud/heart/${prefix}${mode}full`];
@@ -291,6 +309,49 @@ export function Air<E extends ElementType = 'div'>(props: AirProps<E>): JSX.Elem
       slots={10}
       reverse
       layers={(index) => [index < full ? 'hud/air' : 'hud/air_bursting']}
+    />
+  );
+}
+
+export interface VehicleHeartsOwnProps {
+  /** The mount's health in half hearts. */
+  readonly value: number;
+  /** The mount's maximum health in half hearts. */
+  readonly max: number;
+}
+
+export type VehicleHeartsProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  VehicleHeartsOwnProps
+>;
+
+/** Sprites of the `index`th mount heart (`hud/heart/vehicle_*`). */
+export function vehicleHeartLayers(index: number, value: number): StatusIconLayers {
+  const point = index * 2 + 1;
+  if (point < value) return ['hud/heart/vehicle_container', 'hud/heart/vehicle_full'];
+  if (point === value) return ['hud/heart/vehicle_container', 'hud/heart/vehicle_half'];
+  return ['hud/heart/vehicle_container'];
+}
+
+/**
+ * The health of the mount being ridden, shown above the food bar (`Gui#extractVehicleHealth`):
+ * hearts filled from the right, wrapping onto further rows above like {@link Hearts}.
+ */
+export function VehicleHearts<E extends ElementType = 'div'>(
+  props: VehicleHeartsProps<E>,
+): JSX.Element {
+  const { value, max } = props;
+  const split = splitRest(props as VehicleHeartsProps<'div'>, ['value', 'max']);
+  const health = Math.min(Math.max(value, 0), max);
+  return (
+    <StatusRow
+      {...split}
+      label="Mount health"
+      value={health}
+      max={max}
+      count={Math.ceil(max / 2)}
+      reverse
+      layers={(index) => vehicleHeartLayers(index, health)}
     />
   );
 }

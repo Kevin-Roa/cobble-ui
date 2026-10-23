@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -9,17 +10,40 @@ export type AdvancementTabSide = 'above' | 'below' | 'left' | 'right';
 /** Position among the tabs on that edge: `first` is the left/top one, `last` the right/bottom one. */
 export type AdvancementTabPosition = 'first' | 'middle' | 'last';
 
-const ACROSS = { first: 'left', middle: 'middle', last: 'right' } as const;
-const DOWN = { first: 'top', middle: 'middle', last: 'bottom' } as const;
+/** Sprites by edge and position: `[normal, selected]`. Above and below use left/middle/right, left and right use top/middle/bottom. */
+const TAB_SPRITES: Record<
+  AdvancementTabSide,
+  Record<AdvancementTabPosition, readonly [normal: SpriteId, selected: SpriteId]>
+> = {
+  above: {
+    first: ['advancements/tab_above_left', 'advancements/tab_above_left_selected'],
+    middle: ['advancements/tab_above_middle', 'advancements/tab_above_middle_selected'],
+    last: ['advancements/tab_above_right', 'advancements/tab_above_right_selected'],
+  },
+  below: {
+    first: ['advancements/tab_below_left', 'advancements/tab_below_left_selected'],
+    middle: ['advancements/tab_below_middle', 'advancements/tab_below_middle_selected'],
+    last: ['advancements/tab_below_right', 'advancements/tab_below_right_selected'],
+  },
+  left: {
+    first: ['advancements/tab_left_top', 'advancements/tab_left_top_selected'],
+    middle: ['advancements/tab_left_middle', 'advancements/tab_left_middle_selected'],
+    last: ['advancements/tab_left_bottom', 'advancements/tab_left_bottom_selected'],
+  },
+  right: {
+    first: ['advancements/tab_right_top', 'advancements/tab_right_top_selected'],
+    middle: ['advancements/tab_right_middle', 'advancements/tab_right_middle_selected'],
+    last: ['advancements/tab_right_bottom', 'advancements/tab_right_bottom_selected'],
+  },
+};
 
 /** Sprite id, e.g. `advancements/tab_above_left_selected`. The files are named left/middle/right or top/middle/bottom. */
 export function advancementTabSprite(
   side: AdvancementTabSide,
   position: AdvancementTabPosition,
   selected: boolean,
-): string {
-  const place = side === 'above' || side === 'below' ? ACROSS[position] : DOWN[position];
-  return `advancements/tab_${side}_${place}${selected ? '_selected' : ''}`;
+): SpriteId {
+  return TAB_SPRITES[side][position][selected ? 1 : 0];
 }
 
 /** Tabs above and below are 28×32; tabs on the left and right are 32×28. */

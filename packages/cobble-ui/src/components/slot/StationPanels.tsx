@@ -1,0 +1,415 @@
+import { mergeProps } from '@base-ui/react/merge-props';
+import type { CSSProperties, ElementType, JSX, ReactNode } from 'react';
+import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
+import { BrewArrow, FuelBar } from '../bar/BrewingProgress.tsx';
+import { BrewBubbles } from '../bar/BrewingBubbles.tsx';
+import { CookingArrow, FuelFlame, type CookingStation } from '../bar/CookingProgress.tsx';
+import { StonecutterRecipeButton, StonecutterScroller } from '../button/ContainerButtons.tsx';
+import { cx, placeAt } from '../shared.ts';
+import { ContainerError } from '../sprite/ContainerError.tsx';
+import { AnvilTextField } from '../text-field/AnvilTextField.tsx';
+import { InventorySlot, type EmptySlotIcon } from './InventorySlot.tsx';
+import type { SlotGridItem } from './SlotGrid.tsx';
+
+/** A slot at the screen's item coordinates; the 18×18 slot starts one unit before the item. */
+export function StationSlot(props: {
+  readonly x: number;
+  readonly y: number;
+  readonly label: string;
+  readonly item?: SlotGridItem | undefined;
+  readonly emptyIcon?: EmptySlotIcon;
+  readonly onClick?: () => void;
+}): JSX.Element {
+  const { x, y, label, item, emptyIcon, onClick } = props;
+  return (
+    <InventorySlot
+      className="cobble-placed"
+      aria-label={item?.label ?? label}
+      style={placeAt(x - 1, y - 1)}
+      {...(item?.count === undefined ? {} : { count: item.count })}
+      {...(emptyIcon === undefined ? {} : { emptyIcon })}
+      {...(onClick === undefined ? {} : { onClick })}
+    >
+      {item?.content}
+    </InventorySlot>
+  );
+}
+
+export function panelRoot<E extends ElementType>(
+  as: E | undefined,
+  name: string,
+  width: number,
+  height: number,
+  className: string | undefined,
+  style: CSSProperties | undefined,
+  rest: object,
+): { readonly Component: ElementType; readonly props: Record<string, unknown> } {
+  const rootStyle: CssVariables = { '--cobble-width': width, '--cobble-height': height, ...style };
+  return {
+    Component: as ?? 'div',
+    props: mergeProps<'div'>(
+      { className: cx('cobble-station-panel', `cobble-${name}`, className), style: rootStyle },
+      rest,
+    ) as Record<string, unknown>,
+  };
+}
+
+// ----------------------------------------------------------------------------------- anvil
+
+export type AnvilSlot = 'left' | 'right' | 'result';
+
+export interface AnvilPanelOwnProps {
+  readonly left?: SlotGridItem | undefined;
+  readonly right?: SlotGridItem | undefined;
+  readonly result?: SlotGridItem | undefined;
+  /** The item's new name. */
+  readonly name?: string;
+  readonly onNameChange?: (name: string) => void;
+  /** The combination is not allowed: draws the red cross over the arrow. */
+  readonly error?: boolean;
+  readonly onSlotClick?: (slot: AnvilSlot) => void;
+}
+
+export type AnvilPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  AnvilPanelOwnProps
+>;
+
+/**
+ * The interactive part of the anvil screen: the two input slots, the result, the name field and
+ * the error cross, at the game's own coordinates (recalled from vanilla, so approximate).
+ */
+export function AnvilPanel<E extends ElementType = 'div'>(props: AnvilPanelProps<E>): JSX.Element {
+  const {
+    as,
+    left,
+    right,
+    result,
+    name = '',
+    onNameChange,
+    error = false,
+    onSlotClick,
+    className,
+    style,
+    ...rest
+  } = props as AnvilPanelProps<'div'>;
+  const { Component, props: root } = panelRoot(as, 'anvil-panel', 169, 66, className, style, rest);
+  const click = (slot: AnvilSlot): { readonly onClick?: () => void } =>
+    onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
+  return (
+    <Component {...root}>
+      <AnvilTextField
+        className="cobble-placed"
+        aria-label="Item name"
+        style={placeAt(59, 20)}
+        value={name}
+        disabled={left === undefined}
+        {...(onNameChange === undefined ? {} : { onValueChange: onNameChange })}
+      />
+      <StationSlot x={27} y={47} label="Anvil first input" item={left} {...click('left')} />
+      <StationSlot x={76} y={47} label="Anvil second input" item={right} {...click('right')} />
+      <StationSlot x={134} y={47} label="Anvil result" item={result} {...click('result')} />
+      {error ? (
+        <ContainerError className="cobble-placed" kind="anvil" style={placeAt(99, 45)} />
+      ) : null}
+    </Component>
+  );
+}
+
+// ------------------------------------------------------------------------------ brewing stand
+
+export type BrewingSlot = 'bottle-1' | 'bottle-2' | 'bottle-3' | 'ingredient' | 'fuel';
+
+/** Ticks a brew takes (`BrewingStandMenu`). */
+export const BREW_TOTAL_TICKS = 400;
+
+export interface BrewingStandPanelOwnProps {
+  /** The three potion bottles, left to right. */
+  readonly bottles?: readonly (SlotGridItem | undefined)[];
+  readonly ingredient?: SlotGridItem | undefined;
+  readonly fuel?: SlotGridItem | undefined;
+  /** Ticks left in the current brew; 0 when idle. */
+  readonly brewTime?: number;
+  /** Blaze powder charges left, 0 to 20. */
+  readonly fuelCharges?: number;
+  readonly onSlotClick?: (slot: BrewingSlot) => void;
+}
+
+export type BrewingStandPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  BrewingStandPanelOwnProps
+>;
+
+/** Progress through a brew for `brewTime` ticks remaining: `1 - brewTime / 400`, 0 when idle. */
+export function brewProgress(brewTime: number): number {
+  if (!(brewTime > 0)) return 0;
+  return Math.min(Math.max(1 - brewTime / BREW_TOTAL_TICKS, 0), 1);
+}
+
+/**
+ * The interactive part of the brewing stand screen: three bottle slots, the ingredient and fuel
+ * slots, the blaze powder bar, the brewing arrow and the bubbles. Coordinates are recalled from
+ * vanilla and are approximations; the stand's own artwork is not drawn.
+ */
+export function BrewingStandPanel<E extends ElementType = 'div'>(
+  props: BrewingStandPanelProps<E>,
+): JSX.Element {
+  const {
+    as,
+    bottles = [],
+    ingredient,
+    fuel,
+    brewTime = 0,
+    fuelCharges = 0,
+    onSlotClick,
+    className,
+    style,
+    ...rest
+  } = props as BrewingStandPanelProps<'div'>;
+  const { Component, props: root } = panelRoot(
+    as,
+    'brewing-panel',
+    119,
+    76,
+    className,
+    style,
+    rest,
+  );
+  const click = (slot: BrewingSlot): { readonly onClick?: () => void } =>
+    onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
+  const bottlePositions = [
+    { x: 56, y: 51, slot: 'bottle-1' },
+    { x: 79, y: 58, slot: 'bottle-2' },
+    { x: 102, y: 51, slot: 'bottle-3' },
+  ] as const;
+  return (
+    <Component {...root}>
+      <FuelBar className="cobble-placed" style={placeAt(60, 44)} fuel={fuelCharges} />
+      <BrewBubbles className="cobble-placed" style={placeAt(63, 14)} brewTime={brewTime} />
+      <BrewArrow
+        className="cobble-placed"
+        style={placeAt(97, 16)}
+        progress={brewProgress(brewTime)}
+      />
+      <StationSlot
+        x={17}
+        y={17}
+        label="Blaze powder"
+        item={fuel}
+        emptyIcon="brewing_fuel"
+        {...click('fuel')}
+      />
+      <StationSlot
+        x={79}
+        y={17}
+        label="Brewing ingredient"
+        item={ingredient}
+        {...click('ingredient')}
+      />
+      {bottlePositions.map(({ x, y, slot }, index) => (
+        <StationSlot
+          key={slot}
+          x={x}
+          y={y}
+          label={`Potion bottle ${String(index + 1)}`}
+          item={bottles[index]}
+          emptyIcon="potion"
+          {...click(slot)}
+        />
+      ))}
+    </Component>
+  );
+}
+
+// --------------------------------------------------------------------------------- furnace
+
+export type FurnaceSlot = 'input' | 'fuel' | 'output';
+
+export interface FurnacePanelOwnProps {
+  readonly input?: SlotGridItem | undefined;
+  readonly fuel?: SlotGridItem | undefined;
+  readonly output?: SlotGridItem | undefined;
+  /** Progress through the current item, 0 to 1. */
+  readonly cookProgress?: number;
+  /** Fuel left in the current item, 0 to 1. */
+  readonly litProgress?: number;
+  readonly station?: CookingStation;
+  readonly onSlotClick?: (slot: FurnaceSlot) => void;
+}
+
+export type FurnacePanelProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  FurnacePanelOwnProps
+>;
+
+/**
+ * The interactive part of the furnace, smoker and blast furnace screens: input, fuel and output
+ * slots, the flame and the cooking arrow. Coordinates are recalled from vanilla and are
+ * approximations; the furnace's own artwork is not drawn.
+ */
+export function FurnacePanel<E extends ElementType = 'div'>(
+  props: FurnacePanelProps<E>,
+): JSX.Element {
+  const {
+    as,
+    input,
+    fuel,
+    output,
+    cookProgress = 0,
+    litProgress = 0,
+    station = 'furnace',
+    onSlotClick,
+    className,
+    style,
+    ...rest
+  } = props as FurnacePanelProps<'div'>;
+  const { Component, props: root } = panelRoot(
+    as,
+    'furnace-panel',
+    134,
+    72,
+    className,
+    style,
+    rest,
+  );
+  const click = (slot: FurnaceSlot): { readonly onClick?: () => void } =>
+    onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
+  return (
+    <Component {...root}>
+      <FuelFlame
+        className="cobble-placed"
+        style={placeAt(56, 36)}
+        lit={litProgress}
+        station={station}
+      />
+      <CookingArrow
+        className="cobble-placed"
+        style={placeAt(79, 34)}
+        progress={cookProgress}
+        station={station}
+      />
+      <StationSlot x={56} y={17} label="Furnace input" item={input} {...click('input')} />
+      <StationSlot x={56} y={53} label="Furnace fuel" item={fuel} {...click('fuel')} />
+      <StationSlot x={116} y={35} label="Furnace output" item={output} {...click('output')} />
+    </Component>
+  );
+}
+
+// ----------------------------------------------------------------------------- stonecutter
+
+/** Columns and visible rows of the stonecutter's recipe grid. */
+export const STONECUTTER_COLUMNS = 4;
+export const STONECUTTER_VISIBLE_ROWS = 3;
+
+/**
+ * Index of the first visible recipe for a scroll position: `(int)(scroll * offscreenRows + 0.5)`
+ * whole rows down (`StonecutterScreen#startIndex`).
+ */
+export function stonecutterStartIndex(scroll: number, recipeCount: number): number {
+  const rows = Math.ceil(recipeCount / STONECUTTER_COLUMNS);
+  const offscreen = Math.max(rows - STONECUTTER_VISIBLE_ROWS, 0);
+  const clamped = Math.min(Math.max(Number.isFinite(scroll) ? scroll : 0, 0), 1);
+  return Math.floor(clamped * offscreen + 0.5) * STONECUTTER_COLUMNS;
+}
+
+export interface StonecutterRecipe {
+  /** The result item. Supply your own. */
+  readonly content: ReactNode;
+  /** Accessible name, e.g. `Stone Stairs`. */
+  readonly label: string;
+}
+
+export interface StonecutterPanelOwnProps {
+  readonly input?: SlotGridItem | undefined;
+  readonly result?: SlotGridItem | undefined;
+  readonly recipes?: readonly StonecutterRecipe[];
+  readonly selectedRecipe?: number | null;
+  readonly onRecipeClick?: (index: number) => void;
+  /** Scroll position of the recipe grid, 0 to 1. */
+  readonly scroll?: number;
+  readonly onScrollChange?: (scroll: number) => void;
+  readonly onSlotClick?: (slot: 'input' | 'result') => void;
+}
+
+export type StonecutterPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  StonecutterPanelOwnProps
+>;
+
+/**
+ * The interactive part of the stonecutter screen: the input and result slots, the 4×3 grid of
+ * recipe cells with its scroller. Coordinates are recalled from vanilla and are approximations.
+ */
+export function StonecutterPanel<E extends ElementType = 'div'>(
+  props: StonecutterPanelProps<E>,
+): JSX.Element {
+  const {
+    as,
+    input,
+    result,
+    recipes = [],
+    selectedRecipe = null,
+    onRecipeClick,
+    scroll = 0,
+    onScrollChange,
+    onSlotClick,
+    className,
+    style,
+    ...rest
+  } = props as StonecutterPanelProps<'div'>;
+  const { Component, props: root } = panelRoot(
+    as,
+    'stonecutter-panel',
+    161,
+    69,
+    className,
+    style,
+    rest,
+  );
+  const start = stonecutterStartIndex(scroll, recipes.length);
+  const visible = recipes.slice(start, start + STONECUTTER_COLUMNS * STONECUTTER_VISIBLE_ROWS);
+  const scrollable = recipes.length > STONECUTTER_COLUMNS * STONECUTTER_VISIBLE_ROWS;
+  return (
+    <Component {...root}>
+      <StationSlot
+        x={20}
+        y={33}
+        label="Stonecutter input"
+        item={input}
+        {...(onSlotClick === undefined ? {} : { onClick: () => onSlotClick('input') })}
+      />
+      <StationSlot
+        x={143}
+        y={33}
+        label="Stonecutter result"
+        item={result}
+        {...(onSlotClick === undefined ? {} : { onClick: () => onSlotClick('result') })}
+      />
+      {visible.map((recipe, offset) => {
+        const index = start + offset;
+        return (
+          <StonecutterRecipeButton
+            key={index}
+            className="cobble-placed"
+            style={placeAt(
+              52 + (offset % STONECUTTER_COLUMNS) * 16,
+              14 + Math.floor(offset / STONECUTTER_COLUMNS) * 18,
+            )}
+            label={recipe.label}
+            selected={index === selectedRecipe}
+            {...(onRecipeClick === undefined ? {} : { onClick: () => onRecipeClick(index) })}
+          >
+            {recipe.content}
+          </StonecutterRecipeButton>
+        );
+      })}
+      <StonecutterScroller
+        className="cobble-placed"
+        style={placeAt(119, 15)}
+        disabled={!scrollable}
+        value={scroll}
+        {...(onScrollChange === undefined ? {} : { onValueChange: onScrollChange })}
+      />
+    </Component>
+  );
+}

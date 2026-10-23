@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
@@ -25,8 +26,8 @@ export type StatisticsSort = 'ascending' | 'descending';
 export function statisticsHeaderLayers(
   column: StatisticsColumn,
   sort: StatisticsSort | undefined,
-): readonly string[] {
-  const layers = ['statistics/header', `statistics/${column}`];
+): readonly SpriteId[] {
+  const layers: SpriteId[] = ['statistics/header', `statistics/${column}`];
   if (sort !== undefined)
     layers.push(sort === 'ascending' ? 'statistics/sort_up' : 'statistics/sort_down');
   return layers;

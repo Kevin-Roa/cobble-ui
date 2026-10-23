@@ -30,7 +30,7 @@ export function P({ children }: { readonly children?: ReactNode }): JSX.Element 
 }
 
 export function Code({ children }: { readonly children?: ReactNode }): JSX.Element {
-  return <code className="site-code">{children}</code>;
+  return <code className="site-code cobble-text">{children}</code>;
 }
 
 export function CodeBlock({ code }: { readonly code: string }): JSX.Element {
@@ -96,7 +96,7 @@ export function PropsTable({ rows }: { readonly rows: readonly PropRow[] }): JSX
               <Text color="aqua">{row.name}</Text>
             </td>
             <td>
-              <code className="site-code">{row.type}</code>
+              <code className="site-code cobble-text site-wrap">{row.type}</code>
             </td>
             <td>
               <Text color="gray">{row.defaultValue ?? '–'}</Text>
@@ -136,6 +136,32 @@ export const mdxComponents: MDXComponents = {
   strong: (props: Props<'strong'>) => <Text as="strong" bold {...props} />,
   em: (props: Props<'em'>) => <Text as="em" italic {...props} />,
   pre: (props: ComponentProps<'pre'>) => <pre className="site-code-block" {...props} />,
-  code: (props: ComponentProps<'code'>) => <code className="site-code" {...props} />,
+  code: (props: ComponentProps<'code'>) => <code className="site-code cobble-text" {...props} />,
   FormattedText,
 };
+
+/**
+ * The standard layout of a component page: a description, a live demo, an example, and the props.
+ * Pass `demo` as the live area's contents.
+ */
+export function ComponentDoc({
+  intro,
+  demo,
+  code,
+  rows,
+}: {
+  readonly intro: ReactNode;
+  readonly demo: ReactNode;
+  readonly code: string;
+  readonly rows: readonly PropRow[];
+}): JSX.Element {
+  return (
+    <>
+      <P>{intro}</P>
+      <Demo>{demo}</Demo>
+      <CodeBlock code={code} />
+      <H2>Props</H2>
+      <PropsTable rows={rows} />
+    </>
+  );
+}

@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useState, type ElementType, type JSX, type ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -50,14 +51,14 @@ export function packRegions(actions: PackActions): PackRegion[] {
 }
 
 /** Overlay sprites (`transferable_list/*`) drawn while hovering, with the one under the pointer highlighted. */
-export function packOverlaySprites(actions: PackActions, over: PackAction | undefined): string[] {
+export function packOverlaySprites(actions: PackActions, over: PackAction | undefined): SpriteId[] {
   const layers: PackAction[] = [];
   if (actions.canUnselect === true) layers.push('unselect');
   else if (actions.canSelect === true) layers.push('select');
   if (actions.canMoveUp === true) layers.push('move_up');
   if (actions.canMoveDown === true) layers.push('move_down');
-  return layers.map(
-    (action) => `transferable_list/${action}${action === over ? '_highlighted' : ''}`,
+  return layers.map((action): SpriteId =>
+    action === over ? `transferable_list/${action}_highlighted` : `transferable_list/${action}`,
   );
 }
 

@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -10,7 +11,7 @@ export const ADVANCEMENT_BOX_HEIGHT = 26;
 /** Which box sprite to draw: the lit/dark box of a hovered advancement, or the plain title box. */
 export type AdvancementBoxKind = 'obtained' | 'unobtained' | 'title';
 
-export function advancementBoxSprite(kind: AdvancementBoxKind): string {
+export function advancementBoxSprite(kind: AdvancementBoxKind): SpriteId {
   return kind === 'title' ? 'advancements/title_box' : `advancements/box_${kind}`;
 }
 

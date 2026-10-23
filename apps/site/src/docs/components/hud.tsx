@@ -1,24 +1,13 @@
 import {
-  AdvancementBox,
   AdvancementFrame,
-  AdvancementWidget,
-  AdvancementTab,
-  Air,
-  Armor,
-  Hearts,
-  Hunger,
-  PackListEntry,
   JumpBar,
   LocatorBar,
   BossBar,
   ExperienceBar,
   Hotbar,
-  LoadingDots,
   PingIcon,
   ServerListEntry,
-  SpectatorMenu,
   Toast,
-  WorldListEntry,
   type BossBarColor,
   type BossBarOverlay,
 } from 'cobble-ui';
@@ -179,6 +168,15 @@ export function HotbarPage(): JSX.Element {
           selected={selected}
           onSelectedChange={setSelected}
           slots={HOTBAR_DEMO_SLOTS}
+          offhand={{
+            side: 'left',
+            content: (
+              <span className="cobble-text" data-shadow="">
+                O
+              </span>
+            ),
+          }}
+          style={{ marginLeft: 'calc(30 * var(--cobble-px))' }}
         />
       </Demo>
       <CodeBlock
@@ -199,6 +197,11 @@ export function HotbarPage(): JSX.Element {
             description: 'Called when the selection changes.',
           },
           {
+            name: 'offhand',
+            type: "{ side: 'left' | 'right'; content?: ReactNode }",
+            description: 'Draws the offhand slot beside the bar, outside its 182-unit box.',
+          },
+          {
             name: 'wheel',
             type: 'boolean',
             defaultValue: 'false',
@@ -208,27 +211,6 @@ export function HotbarPage(): JSX.Element {
           AS,
         ]}
       />
-      <H2>SpectatorMenu</H2>
-      <P>
-        The hotbar frame with a 16×16 <Code>spectator/*</Code> icon in each slot you fill: close,
-        scroll left and right, teleport to player and teleport to team. Which icon goes where is up
-        to you; the game&apos;s own slot assignment is not reproduced.
-      </P>
-      <Demo>
-        <SpectatorMenu
-          icons={[
-            'scroll_left',
-            'teleport_to_player',
-            'teleport_to_team',
-            undefined,
-            undefined,
-            undefined,
-            'scroll_right',
-            undefined,
-            'close',
-          ]}
-        />
-      </Demo>
     </>
   );
 }
@@ -246,6 +228,8 @@ export function ToastPage(): JSX.Element {
         <div className="site-stack" style={{ overflow: 'hidden' }}>
           <Toast open={open} title="Saved" messages={['World backed up']} />
           <Toast open={open} title="Title only" />
+          <Toast open={open} title="Tutorial" variant="tutorial" />
+          <Toast open={open} title="Friends" variant="friends" />
           <label>
             <input type="checkbox" checked={open} onChange={(e) => setOpen(e.target.checked)} />{' '}
             open
@@ -265,6 +249,12 @@ export function ToastPage(): JSX.Element {
             description: 'Width in GUI units.',
           },
           { name: 'open', type: 'boolean', defaultValue: 'true', description: 'Slide in or out.' },
+          {
+            name: 'variant',
+            type: "'system' | 'tutorial' | 'now_playing' | 'advancement' | 'recipe' | 'friends'",
+            defaultValue: "'system'",
+            description: 'The background. The text keeps the system toast layout.',
+          },
           SLOT,
           AS,
         ]}
@@ -302,93 +292,6 @@ export function PingIconPage(): JSX.Element {
             description: 'Latency in ms, or a state.',
           },
           { name: 'index', type: 'number', description: 'Offsets the pinging animation.' },
-        ]}
-      />
-      <H2>LoadingDots</H2>
-      <P>
-        <Code>LoadingDots</Code> is the gray <Code>O o o</Code> that cycles every 300 ms while
-        connecting.
-      </P>
-      <Demo>
-        <LoadingDots />
-      </Demo>
-    </>
-  );
-}
-
-export function StatusIconsPage(): JSX.Element {
-  const [health, setHealth] = useState(15);
-  const [food, setFood] = useState(13);
-  return (
-    <>
-      <P>
-        The survival meters: <Code>Hearts</Code>, <Code>Hunger</Code>, <Code>Armor</Code> and{' '}
-        <Code>Air</Code>. Each is a row of 9×9 icons 8 units apart, measured in half points like the
-        game. Hunger and air fill from the right.
-      </P>
-      <Demo>
-        <div className="site-stack">
-          <Hearts value={health} />
-          <Hearts value={health} absorption={6} variant="poisoned" />
-          <Hearts value={health} hardcore variant="frozen" />
-          <Hunger value={food} />
-          <Hunger value={food} hunger />
-          <Armor value={13} />
-          <Air value={140} />
-          <input
-            type="range"
-            min={0}
-            max={20}
-            value={health}
-            aria-label="Health"
-            onChange={(event) => setHealth(Number(event.target.value))}
-          />
-          <input
-            type="range"
-            min={0}
-            max={20}
-            value={food}
-            aria-label="Food"
-            onChange={(event) => setFood(Number(event.target.value))}
-          />
-        </div>
-      </Demo>
-      <CodeBlock
-        code={`<Hearts value={15} absorption={4} />
-<Hunger value={13} />
-<Armor value={13} />
-<Air value={140} />`}
-      />
-      <H2>Props</H2>
-      <PropsTable
-        rows={[
-          {
-            name: 'value',
-            type: 'number',
-            description: 'Half hearts, half drumsticks, armor points (0–20) or air ticks (0–300).',
-          },
-          {
-            name: 'max',
-            type: 'number',
-            description: 'Hearts: maximum health (default 20). Air: maximum ticks (default 300).',
-          },
-          {
-            name: 'absorption',
-            type: 'number',
-            description: 'Hearts only: golden hearts after the health.',
-          },
-          {
-            name: 'variant',
-            type: "'normal' | 'poisoned' | 'withered' | 'frozen'",
-            description: 'Hearts only: tint.',
-          },
-          { name: 'hardcore', type: 'boolean', description: 'Hearts only: hardcore sprites.' },
-          {
-            name: 'hunger',
-            type: 'boolean',
-            description: 'Hunger only: green hunger-effect sprites.',
-          },
-          AS,
         ]}
       />
     </>
@@ -446,47 +349,6 @@ export function ServerListEntryPage(): JSX.Element {
           },
         ]}
       />
-      <H2>WorldListEntry</H2>
-      <P>
-        The singleplayer equivalent: the same 305×36 row with a world icon, the name and up to two
-        gray detail lines. Hovering shows the join arrow; <Code>status</Code> swaps it for{' '}
-        <Code>marked</Code>, <Code>warning</Code> or <Code>error</Code> icons.
-      </P>
-      <Demo>
-        <div className="site-stack">
-          <WorldListEntry
-            name="New World"
-            details={['New World (10/22/26 9:41 AM)', 'Survival Mode, Cheats, Version: 26.3']}
-          />
-          <WorldListEntry
-            name="Old World"
-            status="warning"
-            details={['Old World (1/1/24)', 'Creative Mode, Version: 1.20.4']}
-          />
-          <WorldListEntry name="Broken" status="error" details={['Broken (2/2/25)']} />
-        </div>
-      </Demo>
-      <H2>PackListEntry</H2>
-      <P>
-        A resource pack or data pack row: a 32×32 icon with the name and two description lines.
-        Hovering shows the available <Code>transferable_list</Code> arrows over the icon: the left
-        half enables or disables the pack, the top right moves it up and the bottom right moves it
-        down. Each is a real button; <Code>onAction</Code> receives <Code>select</Code>,{' '}
-        <Code>unselect</Code>, <Code>move_up</Code> or <Code>move_down</Code>. The 157-unit width
-        and the hit areas are approximations of the game&apos;s.
-      </P>
-      <Demo>
-        <div className="site-stack">
-          <PackListEntry
-            name="Programmer Art"
-            description={['The classic look', 'Pack format 34']}
-            canSelect
-            canMoveUp
-            canMoveDown
-          />
-          <PackListEntry name="Vanilla" description={['The default resources']} canUnselect />
-        </div>
-      </Demo>
     </>
   );
 }
@@ -528,66 +390,6 @@ export function AdvancementFramePage(): JSX.Element {
           { name: 'children', type: 'ReactNode', description: 'The icon.' },
         ]}
       />
-      <H2>AdvancementBox</H2>
-      <P>
-        The 200×26 box behind an advancement&apos;s title, nine-sliced with a 10-unit border so it
-        can be any width. <Code>kind</Code> is <Code>title</Code>, <Code>obtained</Code> or{' '}
-        <Code>unobtained</Code>.
-      </P>
-      <Demo>
-        <div className="site-stack">
-          <AdvancementBox width={200} />
-          <AdvancementBox width={120} kind="obtained" />
-          <AdvancementBox width={120} kind="unobtained" />
-        </div>
-      </Demo>
-      <H2>AdvancementTab</H2>
-      <P>
-        A tab of the advancements screen. <Code>side</Code> picks the edge (above, below, left,
-        right; 28×32 or 32×28), <Code>position</Code> picks <Code>first</Code>, <Code>middle</Code>{' '}
-        or <Code>last</Code> along it, and <Code>selected</Code> draws the raised variant. The icon
-        is centred in the sprite, which approximates the game&apos;s placement.
-      </P>
-      <Demo>
-        <div className="site-row">
-          <AdvancementTab label="Story" selected position="first">
-            <span className="cobble-text" data-shadow="">
-              S
-            </span>
-          </AdvancementTab>
-          <AdvancementTab label="Nether" position="middle">
-            <span className="cobble-text" data-shadow="">
-              N
-            </span>
-          </AdvancementTab>
-          <AdvancementTab label="End" position="last" />
-        </div>
-      </Demo>
-      <CodeBlock code="<AdvancementTab label='Story' side='above' position='first' selected />" />
-      <H2>AdvancementWidget</H2>
-      <P>
-        One advancement in the tree: the frame, and while <Code>expanded</Code> the box behind the
-        title and description beside it, sized to its text. The text offsets, vertical placement and
-        colors are approximations of the game&apos;s.
-      </P>
-      <Demo>
-        <div className="site-stack">
-          <AdvancementWidget
-            title="Stone Age"
-            type="task"
-            obtained
-            expanded
-            description={['Mine stone with your new pickaxe']}
-          />
-          <AdvancementWidget
-            title="Diamonds!"
-            type="goal"
-            expanded
-            description={['Acquire diamonds']}
-          />
-          <AdvancementWidget title="Monsters Hunted" type="challenge" obtained />
-        </div>
-      </Demo>
     </>
   );
 }

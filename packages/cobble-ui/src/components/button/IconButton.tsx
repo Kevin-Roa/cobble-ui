@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { ElementType, JSX } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
@@ -5,7 +6,7 @@ import { Button, type ButtonOwnProps } from './Button.tsx';
 
 export interface IconButtonOwnProps extends Omit<ButtonOwnProps, 'icon' | 'children'> {
   /** Icon sprite id (e.g. `icon/language`), or per-state sprites. */
-  readonly icon: string | WidgetSprites;
+  readonly icon: SpriteId | WidgetSprites;
   /** Accessible name of the button (the game narrates it). */
   readonly label: string;
   /** Icon size in GUI units. Defaults to the sprite's own size. */

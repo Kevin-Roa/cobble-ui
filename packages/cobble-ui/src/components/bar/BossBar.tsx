@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -17,8 +18,8 @@ export type BossBarOverlay = 'progress' | 'notched_6' | 'notched_10' | 'notched_
 
 /** Sprites of a boss bar (`BossHealthOverlay#extractBar`): the colored bar, then the notch overlay. */
 export function bossBarLayers(color: BossBarColor, overlay: BossBarOverlay): StatBarLayers {
-  const background = [`boss_bar/${color}_background`];
-  const progress = [`boss_bar/${color}_progress`];
+  const background: SpriteId[] = [`boss_bar/${color}_background`];
+  const progress: SpriteId[] = [`boss_bar/${color}_progress`];
   if (overlay !== 'progress') {
     background.push(`boss_bar/${overlay}_background`);
     progress.push(`boss_bar/${overlay}_progress`);

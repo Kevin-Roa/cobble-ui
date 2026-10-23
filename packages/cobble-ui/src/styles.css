@@ -448,6 +448,20 @@
     box-shadow: inset 0 0 0 var(--cobble-px) #ffffff;
   }
 
+  /* Group heading: aligned with the rows, never highlighted. */
+  :where(.cobble-selection-list-heading) {
+    box-sizing: border-box;
+    margin-left: calc(var(--cobble-row-left) * var(--cobble-px));
+    width: calc(var(--cobble-row-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    padding: calc(3 * var(--cobble-px)) calc(2 * var(--cobble-px)) 0;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: default;
+    --cobble-text-color: #a0a0a0;
+    --cobble-text-shadow-color: #282828;
+  }
+
   :where(.cobble-selection-list-item-content) {
     position: absolute;
     inset: calc(2 * var(--cobble-px));
@@ -665,8 +679,30 @@
     top: calc(var(--cobble-y) * var(--cobble-px));
     width: calc(16 * var(--cobble-px));
     height: calc(16 * var(--cobble-px));
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
     outline: none;
+    font: inherit;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Text drawn on items (counts and the like) is white with the standard shadow. */
+  :where(.cobble-hotbar-slot, .cobble-inventory-slot-item, .cobble-inventory-slot-count) {
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+    color: #ffffff;
+  }
+
+  /* Item count: right-aligned to the slot's edge, starting 10 units down (`GuiGraphics#renderItemDecorations`). */
+  :where(.cobble-inventory-slot-count) {
+    position: absolute;
+    right: 0;
+    top: calc(10 * var(--cobble-px));
+    white-space: pre;
+    pointer-events: none;
   }
 
   /* Toast */
@@ -1012,6 +1048,143 @@
     top: calc(var(--cobble-y) * var(--cobble-px));
   }
 
+  /* Panel */
+  :where(.cobble-panel) {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  :where(.cobble-panel[data-fixed-width]) {
+    width: calc(var(--cobble-width) * var(--cobble-px));
+  }
+
+  :where(.cobble-panel[data-fixed-height]) {
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-panel-content) {
+    position: relative;
+    box-sizing: border-box;
+    height: 100%;
+  }
+
+  /* Status effect entry */
+  :where(.cobble-effect-entry) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-effect-entry-icon) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(18 * var(--cobble-px));
+    height: calc(18 * var(--cobble-px));
+    overflow: hidden;
+  }
+
+  :where(.cobble-effect-entry-name, .cobble-effect-entry-duration) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    white-space: pre;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+    color: var(--cobble-text-color);
+  }
+
+  :where(.cobble-effect-entry-duration) {
+    --cobble-text-color: #7f7f7f;
+    --cobble-text-shadow-color: #1f1f1f;
+  }
+
+  /* Attack indicator: the fill rises from the bottom edge */
+  :where(.cobble-attack-indicator) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-bottom-clip) {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(var(--cobble-clip-height) * var(--cobble-px));
+    overflow: hidden;
+  }
+
+  /* Brewing arrow: the fill grows down from the top edge */
+  :where(.cobble-brew-arrow-fill) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: calc(var(--cobble-clip-height) * var(--cobble-px));
+    overflow: hidden;
+  }
+
+  :where(.cobble-beacon-button-icon) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(18 * var(--cobble-px));
+    height: calc(18 * var(--cobble-px));
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Enchanting table row */
+  :where(.cobble-enchantment-clue) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    white-space: pre;
+    color: var(--cobble-text-color, #c0c0c0);
+    pointer-events: none;
+  }
+
+  :where(.cobble-enchantment-cost) {
+    position: absolute;
+    right: calc(2 * var(--cobble-px));
+    bottom: calc(1 * var(--cobble-px));
+    white-space: pre;
+    --cobble-text-color: #80ff20;
+    --cobble-text-shadow-color: #203f08;
+    color: var(--cobble-text-color);
+    pointer-events: none;
+  }
+
+  :where(.cobble-enchantment-slot[disabled] .cobble-enchantment-cost) {
+    --cobble-text-color: #407f10;
+    --cobble-text-shadow-color: #101f04;
+  }
+
+  /* Offhand slot beside the hotbar */
+  :where(.cobble-hotbar-offhand) {
+    pointer-events: none;
+  }
+
+  /* Slot grids */
+  :where(.cobble-slot-grid) {
+    display: grid;
+    grid-template-columns: repeat(var(--cobble-columns), calc(18 * var(--cobble-px)));
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-player-inventory) {
+    display: flex;
+    flex-direction: column;
+    gap: calc(4 * var(--cobble-px));
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
   /* Creative scroller */
   :where(.cobble-creative-scroller) {
     position: relative;
@@ -1039,5 +1212,85 @@
     height: calc(16 * var(--cobble-px));
     overflow: hidden;
     pointer-events: none;
+  }
+
+  /* Crafting grid: the result slot sits to the right of the ingredients */
+  :where(.cobble-crafting-grid) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-crafting-grid .cobble-crafting-result) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+  }
+
+  /* Social player entry */
+  :where(.cobble-social-entry) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-social-entry-head) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(24 * var(--cobble-px));
+    height: calc(24 * var(--cobble-px));
+    overflow: hidden;
+  }
+
+  :where(.cobble-social-entry-name, .cobble-social-entry-status) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    white-space: pre;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+    color: var(--cobble-text-color);
+  }
+
+  :where(.cobble-social-entry-status) {
+    --cobble-text-color: #a0a0a0;
+    --cobble-text-shadow-color: #282828;
+  }
+
+  :where(.cobble-social-entry .cobble-social-entry-button) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+  }
+
+  /* Enchanting table panel: slots at the screen's own coordinates */
+  :where(.cobble-enchanting-panel) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-enchanting-panel .cobble-enchanting-slot) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+  }
+
+  /* Station panels: parts placed at the screen's own coordinates */
+  :where(.cobble-station-panel) {
+    position: relative;
+    display: block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-station-panel .cobble-placed) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
   }
 }

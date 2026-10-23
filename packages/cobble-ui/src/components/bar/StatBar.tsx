@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { JSX } from 'react';
 import type { CssVariables } from '../../internal/polymorphic.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
@@ -18,9 +19,9 @@ export function statBarFill(progress: number): number {
 
 export interface StatBarLayers {
   /** Sprites drawn in full, bottom to top. */
-  readonly background: readonly string[];
+  readonly background: readonly SpriteId[];
   /** Sprites drawn clipped to the filled width, bottom to top. */
-  readonly progress: readonly string[];
+  readonly progress: readonly SpriteId[];
 }
 
 /** Internal: stacked full-size background sprites plus progress sprites clipped to the fill. */

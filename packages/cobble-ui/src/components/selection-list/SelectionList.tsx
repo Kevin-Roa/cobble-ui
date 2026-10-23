@@ -328,3 +328,54 @@ export function SelectionListItem<E extends ElementType = 'div'>(
     </Component>
   );
 }
+
+export interface SelectionListGroupOwnProps {
+  /** The heading shown above the group's rows. Not selectable. */
+  readonly label: ReactNode;
+  /** The group's `SelectionListItem`s. */
+  readonly children?: ReactNode;
+  /** Height of the heading row in GUI units. Defaults to the list's item height. */
+  readonly headingHeight?: number;
+  readonly slotProps?: { readonly heading?: SlotProps<'div'> };
+}
+
+export type SelectionListGroupProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  SelectionListGroupOwnProps
+>;
+
+/**
+ * A labelled run of rows in a {@link SelectionList}. The heading is a plain row that cannot be
+ * selected or reached with the arrow keys, like the category entries in the game's option lists.
+ */
+export function SelectionListGroup<E extends ElementType = 'div'>(
+  props: SelectionListGroupProps<E>,
+): JSX.Element {
+  const { as, label, children, headingHeight, slotProps, className, ...rest } =
+    props as SelectionListGroupProps<'div'>;
+  const Component: ElementType = as ?? 'div';
+  const list = useSelectionList();
+  const headingId = useId();
+  return (
+    <Component
+      {...mergeProps<'div'>({ className: cx('cobble-selection-list-group', className) }, rest)}
+      role="group"
+      aria-labelledby={headingId}
+    >
+      <div
+        {...slotProps?.heading}
+        id={headingId}
+        className={cx('cobble-selection-list-heading', slotProps?.heading?.className)}
+        style={
+          {
+            '--cobble-height': headingHeight ?? list.itemHeight,
+            ...slotProps?.heading?.style,
+          } as CssVariables
+        }
+      >
+        {label}
+      </div>
+      {children}
+    </Component>
+  );
+}

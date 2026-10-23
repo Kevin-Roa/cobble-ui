@@ -96,7 +96,11 @@ export function ScrollArea<E extends ElementType = 'div'>(props: ScrollAreaProps
   const scrollable = maxScroll > 0;
   const thumbHeight = scrollable ? scrollerHeight(height, contentHeight) : 0;
   const thumbY = scrollerY(scroll, height, contentHeight);
-  const barX = scrollbarX ?? width - SCROLLBAR_WIDTH;
+  // Never let the bar hang outside the list, where a neighbouring element would cover (and steal pointer events from) it.
+  const barX = Math.min(
+    scrollbarX ?? width - SCROLLBAR_WIDTH,
+    Math.max(width - SCROLLBAR_WIDTH, 0),
+  );
 
   const latest = useLatest({ maxScroll, scrollRate, unit });
 

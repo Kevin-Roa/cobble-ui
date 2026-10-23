@@ -4,12 +4,21 @@ import {
   Screen,
   ScrollArea,
   SelectionList,
+  SelectionListGroup,
   SelectionListItem,
+  Separator,
   Text,
+  TextField,
 } from 'cobble-ui';
-import type { JSX, ReactNode } from 'react';
+import { useState, type JSX, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { DOC_PAGES } from '../docs/registry.tsx';
+import {
+  COMPONENT_PAGES,
+  DOC_CATEGORIES,
+  GUIDE_PAGES,
+  pageMatches,
+  type DocPage,
+} from '../docs/registry.tsx';
 import { Disclaimer } from './Disclaimer.tsx';
 
 export interface DocsScreenProps {
@@ -18,9 +27,32 @@ export interface DocsScreenProps {
   readonly children?: ReactNode;
 }
 
+function NavItem({ page }: { readonly page: DocPage }): JSX.Element {
+  return (
+    <SelectionListItem value={page.slug} className="site-nav-item">
+      {({ selected }) => (
+        <Text className="site-nav-label" color={selected ? 'yellow' : 'white'}>
+          {page.title}
+        </Text>
+      )}
+    </SelectionListItem>
+  );
+}
+
 /** The shared docs screen: page list on the left, content on the right. */
 export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Element {
   const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+
+  const guides = GUIDE_PAGES.filter((page) => pageMatches(page, query));
+  const components = COMPONENT_PAGES.filter((page) => pageMatches(page, query));
+  const first = guides[0] ?? components[0];
+
+  const onSearchKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Enter' && first) void navigate(`/docs/${first.slug}`);
+    else if (event.key === 'Escape') setQuery('');
+  };
+
   return (
     <Screen className="site-screen">
       <ScreenLayout
@@ -41,20 +73,52 @@ export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Elem
         }
       >
         <div className="site-docs">
-          <SelectionList
-            className="site-nav"
-            aria-label="Documentation pages"
-            value={slug ?? null}
-            onValueChange={(next) => void navigate(`/docs/${next}`)}
-            itemHeight={14}
-            rowWidth={120}
-          >
-            {DOC_PAGES.map((page) => (
-              <SelectionListItem key={page.slug} value={page.slug} className="site-nav-item">
-                {({ selected }) => <Text color={selected ? 'yellow' : 'white'}>{page.title}</Text>}
-              </SelectionListItem>
-            ))}
-          </SelectionList>
+          <div className="site-sidebar">
+            <TextField
+              className="site-search"
+              aria-label="Search pages"
+              placeholder="Search…"
+              width={144}
+              height={20}
+              maxLength={40}
+              value={query}
+              onValueChange={setQuery}
+              onKeyDown={onSearchKeyDown}
+            />
+            <SelectionList
+              className="site-nav"
+              aria-label="Documentation pages"
+              value={slug ?? null}
+              onValueChange={(next) => void navigate(`/docs/${next}`)}
+              itemHeight={14}
+              rowWidth={134}
+            >
+              {guides.map((page) => (
+                <NavItem key={page.slug} page={page} />
+              ))}
+              {guides.length > 0 && components.length > 0 ? (
+                <div className="site-nav-divider">
+                  <Separator kind="header" />
+                </div>
+              ) : null}
+              {DOC_CATEGORIES.map((category) => {
+                const pages = components.filter((page) => page.category === category);
+                if (pages.length === 0) return null;
+                return (
+                  <SelectionListGroup key={category} label={<Text color="gray">{category}</Text>}>
+                    {pages.map((page) => (
+                      <NavItem key={page.slug} page={page} />
+                    ))}
+                  </SelectionListGroup>
+                );
+              })}
+              {first ? null : (
+                <Text className="site-nav-empty" color="gray">
+                  No pages match.
+                </Text>
+              )}
+            </SelectionList>
+          </div>
           <ScrollArea className="site-content" scrollRate={18}>
             <article className="site-article">{children}</article>
           </ScrollArea>

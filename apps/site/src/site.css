@@ -83,13 +83,47 @@ body {
 
 .site-docs {
   display: grid;
-  grid-template-columns: calc(140 * var(--cobble-px)) minmax(0, 1fr);
+  grid-template-columns: calc(150 * var(--cobble-px)) minmax(0, 1fr);
   height: 100%;
 }
 
-.site-nav,
 .site-content {
   height: 100%;
+}
+
+.site-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.site-search {
+  flex: none;
+  margin: calc(3 * var(--cobble-px)) calc(3 * var(--cobble-px)) calc(2 * var(--cobble-px));
+}
+
+.site-nav {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+/* Page titles never wrap onto a second line; long ones are cut off. */
+.site-nav-label {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.site-nav-divider {
+  margin: calc(3 * var(--cobble-px)) 0;
+}
+
+.site-nav-empty {
+  display: block;
+  padding: calc(6 * var(--cobble-px));
+  text-align: center;
 }
 
 .site-article {
@@ -123,12 +157,11 @@ body {
   white-space: normal;
 }
 
+/* Inline code is set in the game font at the surrounding text size, with a dark backing. */
 .site-code {
-  padding: 0 0.25em;
+  padding: 0 calc(2 * var(--cobble-px));
   background: rgb(0 0 0 / 55%);
   color: #e0e0e0;
-  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-  font-size: max(12px, calc(5.5 * var(--cobble-px)));
   text-shadow: none;
 }
 
@@ -144,9 +177,13 @@ body {
   line-height: 1.5;
 }
 
+/* Blocks of example code stay monospace so indentation lines up. */
 .site-code-block .site-code {
   padding: 0;
   background: none;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: max(12px, calc(5.5 * var(--cobble-px)));
+  line-height: 1.5;
 }
 
 .site-demo {

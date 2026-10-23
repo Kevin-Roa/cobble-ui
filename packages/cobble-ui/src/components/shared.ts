@@ -1,3 +1,4 @@
+import type { SpriteId } from '../assets/sprite-id.ts';
 import { useCallback, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import type { CssVariables } from '../internal/polymorphic.ts';
 import { useSound } from '../provider/hooks.ts';
@@ -8,14 +9,14 @@ import type { UiSoundEvent } from '../sound/sounds.ts';
  * Missing states fall back to `enabled`.
  */
 export interface WidgetSprites {
-  readonly enabled: string;
-  readonly disabled?: string;
-  readonly enabledFocused?: string;
-  readonly disabledFocused?: string;
+  readonly enabled: SpriteId;
+  readonly disabled?: SpriteId;
+  readonly enabledFocused?: SpriteId;
+  readonly disabledFocused?: SpriteId;
 }
 
 /** `WidgetSprites#get(enabled, focused)`. */
-export function pickSprite(sprites: WidgetSprites, enabled: boolean, focused: boolean): string {
+export function pickSprite(sprites: WidgetSprites, enabled: boolean, focused: boolean): SpriteId {
   if (enabled) return focused ? (sprites.enabledFocused ?? sprites.enabled) : sprites.enabled;
   return focused
     ? (sprites.disabledFocused ?? sprites.disabled ?? sprites.enabled)

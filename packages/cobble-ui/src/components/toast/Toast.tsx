@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -12,6 +13,24 @@ export function toastHeight(messageLines: number): number {
   return 20 + Math.max(messageLines, 1) * 12;
 }
 
+/** Which toast background to draw. */
+export type ToastVariant =
+  | 'system'
+  | 'tutorial'
+  | 'now_playing'
+  | 'advancement'
+  | 'recipe'
+  | 'friends';
+
+const TOAST_SPRITES: Record<ToastVariant, SpriteId> = {
+  system: 'toast/system',
+  tutorial: 'toast/tutorial',
+  now_playing: 'toast/now_playing',
+  advancement: 'toast/advancement',
+  recipe: 'toast/recipe',
+  friends: 'friends/toast_background',
+};
+
 export interface ToastSlotProps {
   readonly sprite?: Omit<SlotProps<'canvas'>, 'width' | 'height'>;
   readonly title?: SlotProps<'span'>;
@@ -20,6 +39,11 @@ export interface ToastSlotProps {
 
 export interface ToastOwnProps {
   readonly title: ReactNode;
+  /**
+   * The background. Only the background changes: the text keeps the system toast's layout, so
+   * the advancement and recipe toasts do not get their icon or the game's text placement.
+   */
+  readonly variant?: ToastVariant;
   /** Message lines under the title, one per line. */
   readonly messages?: readonly ReactNode[];
   /** Width in GUI units. Defaults to 160. */
@@ -40,6 +64,7 @@ export function Toast<E extends ElementType = 'div'>(props: ToastProps<E>): JSX.
   const {
     as,
     title,
+    variant = 'system',
     messages = [],
     width = TOAST_WIDTH,
     open = true,
@@ -67,7 +92,12 @@ export function Toast<E extends ElementType = 'div'>(props: ToastProps<E>): JSX.
       )}
       data-open={open ? '' : undefined}
     >
-      <Sprite {...slotProps?.sprite} sprite="toast/system" width={width} height={height} />
+      <Sprite
+        {...slotProps?.sprite}
+        sprite={TOAST_SPRITES[variant]}
+        width={width}
+        height={height}
+      />
       <span
         {...slotProps?.title}
         className={cx('cobble-toast-title', 'cobble-text', slotProps?.title?.className)}

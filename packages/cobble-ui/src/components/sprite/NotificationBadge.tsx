@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { JSX } from 'react';
 import { Sprite, type SpriteProps } from './Sprite.tsx';
 
@@ -5,10 +6,18 @@ import { Sprite, type SpriteProps } from './Sprite.tsx';
 export const NOTIFICATION_BADGE_SIZE = 8;
 
 /** Sprite for a count: `notification/1`–`5`, `notification/more` above 5, none for 0 or less. */
-export function notificationSprite(count: number): string | undefined {
+const COUNT_SPRITES = [
+  'notification/1',
+  'notification/2',
+  'notification/3',
+  'notification/4',
+  'notification/5',
+] as const satisfies readonly SpriteId[];
+
+export function notificationSprite(count: number): SpriteId | undefined {
   const whole = Math.floor(count);
   if (!(whole >= 1)) return undefined;
-  return whole > 5 ? 'notification/more' : `notification/${String(whole)}`;
+  return COUNT_SPRITES[whole - 1] ?? 'notification/more';
 }
 
 export interface NotificationBadgeProps extends Omit<SpriteProps, 'sprite' | 'width' | 'height'> {

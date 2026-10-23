@@ -1,3 +1,4 @@
+import type { SpriteId } from '../assets/sprite-id.ts';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { AssetState } from '../assets/store.ts';
 import type { RgbaImage, Sprite } from '../render/blit.ts';
@@ -18,7 +19,7 @@ export function useAssets(): AssetState & { readonly reload: () => void } {
 }
 
 /** A decoded GUI sprite (`widget/button`, `icon/accessibility`, …), once loaded. */
-export function useSprite(id: string): Sprite | undefined {
+export function useSprite(id: SpriteId): Sprite | undefined {
   const { store } = useCobble();
   useStoreRevision();
   return store.getSprite(id);
@@ -29,7 +30,7 @@ export function useSprite(id: string): Sprite | undefined {
  * nine-slice/tile metadata, or the texture size for stretched sprites.
  */
 export function useSpriteSize(
-  id: string | undefined,
+  id: SpriteId | undefined,
 ): { readonly width: number; readonly height: number } | undefined {
   const { store } = useCobble();
   useStoreRevision();
@@ -42,7 +43,7 @@ export function useSpriteSize(
 
 /** A sprite composed at `width × height` GUI units for the current scale, once loaded. */
 export function useComposedSprite(
-  id: string | undefined,
+  id: SpriteId | undefined,
   width: number,
   height: number,
 ): RgbaImage | undefined {

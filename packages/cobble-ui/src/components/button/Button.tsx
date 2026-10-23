@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { Button as BaseButton } from '@base-ui/react/button';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, MouseEvent, ReactNode, Ref } from 'react';
@@ -29,7 +30,7 @@ export const BUTTON_DEFAULT_HEIGHT = 20;
 
 export interface ButtonIcon {
   /** Sprite id, or per-state sprites. */
-  readonly sprite: string | WidgetSprites;
+  readonly sprite: SpriteId | WidgetSprites;
   /** Icon width in GUI units. Defaults to the sprite's own width. */
   readonly width?: number;
   /** Icon height in GUI units. Defaults to the sprite's own height. */

@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import {
   useCallback,
@@ -37,6 +38,24 @@ export const TEXT_FIELD_SUGGESTION_COLOR = '#808080';
 const CURSOR_BLINK_MS = 300;
 const LINE_HEIGHT = 9;
 
+/** Sprites for the states of a text field's box. */
+export interface TextFieldSprites {
+  readonly normal: SpriteId;
+  readonly focused?: SpriteId;
+  readonly disabled?: SpriteId;
+}
+
+/** The box sprite for a state: the vanilla `widget/text_field` pair unless `sprites` replaces it. */
+export function textFieldSprite(
+  sprites: TextFieldSprites | undefined,
+  focused: boolean,
+  disabled: boolean,
+): SpriteId {
+  if (sprites === undefined) return focused ? 'widget/text_field_highlighted' : 'widget/text_field';
+  if (disabled && sprites.disabled !== undefined) return sprites.disabled;
+  return focused ? (sprites.focused ?? sprites.normal) : sprites.normal;
+}
+
 export interface TextFieldSlotProps {
   readonly background?: SpriteSlotProps;
   /** The (visually hidden) native input that receives keyboard input. */
@@ -60,6 +79,11 @@ export interface TextFieldOwnProps {
   readonly readOnly?: boolean;
   /** Draw the box. Defaults to `true`. */
   readonly bordered?: boolean;
+  /**
+   * Replaces the box sprites (e.g. the anvil's `container/anvil/text_field`). Without `focused`
+   * the same sprite is used while focused.
+   */
+  readonly backgroundSprites?: TextFieldSprites;
   /** Centre the text horizontally. */
   readonly centered?: boolean;
   /** Text color. Defaults to `#e0e0e0`. */
@@ -133,6 +157,7 @@ export function TextField<E extends ElementType = 'div'>(props: TextFieldProps<E
     disabled = false,
     readOnly = false,
     bordered = true,
+    backgroundSprites,
     centered = false,
     textColor = TEXT_FIELD_COLOR,
     textShadow = true,
@@ -386,7 +411,7 @@ export function TextField<E extends ElementType = 'div'>(props: TextFieldProps<E
         <Sprite
           {...slotProps?.background}
           className={cx('cobble-text-field-background', slotProps?.background?.className)}
-          sprite={focused ? 'widget/text_field_highlighted' : 'widget/text_field'}
+          sprite={textFieldSprite(backgroundSprites, focused, disabled)}
           width={w}
           height={h}
         />

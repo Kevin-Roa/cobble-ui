@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useState, type ElementType, type JSX, type ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -9,7 +10,7 @@ import { SERVER_ENTRY_HEIGHT, SERVER_ENTRY_WIDTH, SERVER_ICON_SIZE } from './Ser
 export type WorldEntryStatus = 'normal' | 'marked' | 'warning' | 'error';
 
 /** Sprite of the overlay icon, e.g. `world_list/join_highlighted`. */
-export function worldListSprite(status: WorldEntryStatus, highlighted: boolean): string {
+export function worldListSprite(status: WorldEntryStatus, highlighted: boolean): SpriteId {
   const base = status === 'normal' ? 'join' : status === 'marked' ? 'marked_join' : status;
   return `world_list/${base}${highlighted ? '_highlighted' : ''}`;
 }

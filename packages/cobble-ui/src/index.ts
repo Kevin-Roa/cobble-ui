@@ -15,6 +15,9 @@ export type {
 } from './assets/types.ts';
 export type { AssetState, AssetStatus } from './assets/store.ts';
 
+export { asSpriteId } from './assets/sprite-id.ts';
+export type { SpriteId } from './assets/sprite-id.ts';
+
 export { CobbleProvider } from './provider/CobbleProvider.tsx';
 export type { CobbleProviderProps, SoundOptions } from './provider/CobbleProvider.tsx';
 export { useCobble } from './provider/context.ts';
@@ -113,11 +116,12 @@ export {
   valueToSlider,
 } from './components/slider/Slider.tsx';
 export type { SliderOwnProps, SliderProps, SliderSlotProps } from './components/slider/Slider.tsx';
-export { TextField } from './components/text-field/TextField.tsx';
+export { TextField, textFieldSprite } from './components/text-field/TextField.tsx';
 export type {
   TextFieldOwnProps,
   TextFieldProps,
   TextFieldSlotProps,
+  TextFieldSprites,
 } from './components/text-field/TextField.tsx';
 export { Tooltip } from './components/tooltip/Tooltip.tsx';
 export type { TooltipProps, TooltipSlotProps } from './components/tooltip/Tooltip.tsx';
@@ -154,10 +158,13 @@ export type {
 } from './components/scroll-area/ScrollArea.tsx';
 export {
   SelectionList,
+  SelectionListGroup,
   SelectionListItem,
   SELECTION_LIST_ROW_WIDTH,
 } from './components/selection-list/SelectionList.tsx';
 export type {
+  SelectionListGroupOwnProps,
+  SelectionListGroupProps,
   SelectionListItemOwnProps,
   SelectionListItemProps,
   SelectionListItemState,
@@ -210,13 +217,26 @@ export { STAT_BAR_HEIGHT, STAT_BAR_WIDTH, statBarFill } from './components/bar/S
 export {
   Hotbar,
   HOTBAR_HEIGHT,
+  HOTBAR_OFFHAND_HEIGHT,
+  HOTBAR_OFFHAND_WIDTH,
+  HOTBAR_SELECTION_HEIGHT,
   HOTBAR_SLOTS,
   HOTBAR_WIDTH,
   scrollHotbar,
 } from './components/hotbar/Hotbar.tsx';
-export type { HotbarOwnProps, HotbarProps, HotbarSlotProps } from './components/hotbar/Hotbar.tsx';
+export type {
+  HotbarOffhand,
+  HotbarOwnProps,
+  HotbarProps,
+  HotbarSlotProps,
+} from './components/hotbar/Hotbar.tsx';
 export { Toast, TOAST_WIDTH, toastHeight } from './components/toast/Toast.tsx';
-export type { ToastOwnProps, ToastProps, ToastSlotProps } from './components/toast/Toast.tsx';
+export type {
+  ToastOwnProps,
+  ToastProps,
+  ToastSlotProps,
+  ToastVariant,
+} from './components/toast/Toast.tsx';
 export {
   PingIcon,
   PING_ICON_HEIGHT,
@@ -234,9 +254,13 @@ export {
   Hunger,
   STATUS_ICON_SIZE,
   STATUS_ICON_STRIDE,
+  STATUS_ICONS_PER_ROW,
+  statusRowHeight,
   airBubbles,
   halfPointIcon,
   heartLayers,
+  vehicleHeartLayers,
+  VehicleHearts,
 } from './components/status/StatusIcons.tsx';
 export type {
   AirOwnProps,
@@ -246,6 +270,8 @@ export type {
   HeartVariant,
   HeartsOwnProps,
   HeartsProps,
+  VehicleHeartsOwnProps,
+  VehicleHeartsProps,
   HungerOwnProps,
   HungerProps,
   StatusIconLayers,
@@ -376,6 +402,7 @@ export {
   creativeTabSprite,
 } from './components/creative/CreativeTab.tsx';
 export type {
+  CreativeTabColumn,
   CreativeTabOwnProps,
   CreativeTabProps,
   CreativeTabRow,
@@ -509,3 +536,287 @@ export type {
   AdvancementWidgetProps,
   AdvancementWidgetSlotProps,
 } from './components/advancement/AdvancementWidget.tsx';
+export {
+  StatusEffectEntry,
+  EFFECT_ENTRY_COMPACT_WIDTH,
+  EFFECT_ENTRY_HEIGHT,
+  EFFECT_ENTRY_WIDTH,
+} from './components/slot/StatusEffectEntry.tsx';
+export type {
+  StatusEffectEntryOwnProps,
+  StatusEffectEntryProps,
+  StatusEffectEntrySlotProps,
+} from './components/slot/StatusEffectEntry.tsx';
+export {
+  AttackIndicator,
+  ATTACK_INDICATOR_SIZE,
+  attackIndicatorFill,
+} from './components/hotbar/AttackIndicator.tsx';
+export type {
+  AttackIndicatorOwnProps,
+  AttackIndicatorProps,
+} from './components/hotbar/AttackIndicator.tsx';
+export {
+  GameModeSlot,
+  GAME_MODE_ICON_SIZE,
+  GAME_MODE_SLOT_SIZE,
+} from './components/slot/GameModeSlot.tsx';
+export type {
+  GameModeSlotOwnProps,
+  GameModeSlotProps,
+  GameModeSlotSlotProps,
+} from './components/slot/GameModeSlot.tsx';
+export {
+  PlayerActionButton,
+  WARNING_BUTTON_SPRITES,
+  WarningButton,
+} from './components/button/PlayerButtons.tsx';
+export type {
+  PlayerAction,
+  PlayerActionButtonOwnProps,
+  PlayerActionButtonProps,
+  WarningButtonOwnProps,
+  WarningButtonProps,
+} from './components/button/PlayerButtons.tsx';
+export { Panel, PANEL_BACKGROUNDS } from './components/panel/Panel.tsx';
+export type {
+  PanelBackground,
+  PanelOwnProps,
+  PanelProps,
+  PanelSlotProps,
+} from './components/panel/Panel.tsx';
+export {
+  CookingArrow,
+  COOKING_ARROW_HEIGHT,
+  COOKING_ARROW_WIDTH,
+  FUEL_FLAME_SIZE,
+  FuelFlame,
+  cookingArrowFill,
+  fuelFlameFill,
+} from './components/bar/CookingProgress.tsx';
+export type {
+  CookingArrowOwnProps,
+  CookingArrowProps,
+  CookingStation,
+  FuelFlameOwnProps,
+  FuelFlameProps,
+} from './components/bar/CookingProgress.tsx';
+export {
+  BREW_ARROW_HEIGHT,
+  BREW_ARROW_WIDTH,
+  BrewArrow,
+  FUEL_BAR_HEIGHT,
+  FUEL_BAR_WIDTH,
+  FuelBar,
+  brewArrowFill,
+  fuelBarFill,
+} from './components/bar/BrewingProgress.tsx';
+export type {
+  BrewArrowOwnProps,
+  BrewArrowProps,
+  FuelBarOwnProps,
+  FuelBarProps,
+} from './components/bar/BrewingProgress.tsx';
+export {
+  BEACON_BUTTON_SIZE,
+  BEACON_ICON_SIZE,
+  BeaconButton,
+  beaconButtonSprite,
+} from './components/slot/BeaconButton.tsx';
+export type {
+  BeaconButtonKind,
+  BeaconButtonOwnProps,
+  BeaconButtonProps,
+  BeaconButtonSlotProps,
+} from './components/slot/BeaconButton.tsx';
+export {
+  ENCHANTMENT_LEVEL_SIZE,
+  ENCHANTMENT_SLOT_HEIGHT,
+  ENCHANTMENT_SLOT_WIDTH,
+  EnchantmentSlot,
+  enchantmentLevelSprite,
+  enchantmentSlotSprite,
+} from './components/slot/EnchantmentSlot.tsx';
+export type {
+  EnchantmentOption,
+  EnchantmentSlotOwnProps,
+  EnchantmentSlotProps,
+  EnchantmentSlotSlotProps,
+} from './components/slot/EnchantmentSlot.tsx';
+export {
+  CONTAINER_SCROLLER_HEIGHT,
+  LOOM_BUTTON_SIZE,
+  LoomPatternButton,
+  LoomScroller,
+  RECIPE_BOOK_FILTER_HEIGHT,
+  RECIPE_BOOK_FILTER_WIDTH,
+  RECIPE_BOOK_PAGE_HEIGHT,
+  RECIPE_BOOK_PAGE_WIDTH,
+  RECIPE_BOOK_SLOT_SIZE,
+  RECIPE_BOOK_TAB_HEIGHT,
+  RECIPE_BOOK_TAB_WIDTH,
+  RecipeBookFilterButton,
+  RecipeBookPageButton,
+  RecipeBookSlot,
+  RecipeBookTab,
+  STONECUTTER_BUTTON_HEIGHT,
+  STONECUTTER_BUTTON_WIDTH,
+  StonecutterRecipeButton,
+  StonecutterScroller,
+  recipeBookFilterSprites,
+  recipeBookSlotSprite,
+} from './components/button/ContainerButtons.tsx';
+export type {
+  LoomPatternButtonProps,
+  LoomScrollerProps,
+  RecipeBookFilterButtonProps,
+  RecipeBookPageButtonProps,
+  RecipeBookSlotProps,
+  RecipeBookTabProps,
+  StonecutterRecipeButtonProps,
+  StonecutterScrollerProps,
+} from './components/button/ContainerButtons.tsx';
+export type { StateSprites } from './components/button/StateSpriteButton.tsx';
+export { ContainerError, containerErrorSize } from './components/sprite/ContainerError.tsx';
+export type {
+  ContainerErrorKind,
+  ContainerErrorProps,
+} from './components/sprite/ContainerError.tsx';
+export {
+  ANVIL_TEXT_FIELD_SPRITES,
+  AnvilTextField,
+} from './components/text-field/AnvilTextField.tsx';
+export type { AnvilTextFieldProps } from './components/text-field/AnvilTextField.tsx';
+export {
+  BREW_BUBBLES_HEIGHT,
+  BREW_BUBBLES_WIDTH,
+  BrewBubbles,
+  brewBubbleLength,
+} from './components/bar/BrewingBubbles.tsx';
+export type { BrewBubblesOwnProps, BrewBubblesProps } from './components/bar/BrewingBubbles.tsx';
+export {
+  CartographyMap,
+  CrafterRedstone,
+  CrafterSlot,
+  HORSE_CHEST_MAX_COLUMNS,
+  HORSE_CHEST_ROWS,
+  HORSE_CHEST_SLOT_SIZE,
+  HorseChestSlots,
+  RECIPE_OVERLAY_SIZE,
+  RecipeOverlayButton,
+  cartographyMapSize,
+  crafterSlotSprite,
+  horseChestWidth,
+  recipeOverlaySprite,
+} from './components/slot/ContainerParts.tsx';
+export type {
+  CartographyMapKind,
+  CartographyMapProps,
+  CrafterRedstoneProps,
+  CrafterSlotOwnProps,
+  CrafterSlotProps,
+  HorseChestSlotsOwnProps,
+  HorseChestSlotsProps,
+  RecipeOverlayButtonOwnProps,
+  RecipeOverlayButtonProps,
+  RecipeOverlayStation,
+} from './components/slot/ContainerParts.tsx';
+export {
+  MUSIC_NOTES_SIZE,
+  MusicNotes,
+  TRIAL_ICON_SIZE,
+  TrialAvailableIcon,
+} from './components/sprite/AnimatedIcons.tsx';
+export { ICON_NAMES, Icon, iconInfo } from './components/sprite/Icon.tsx';
+export type { IconName, IconProps } from './components/sprite/Icon.tsx';
+export { PlayerPingIcon, playerPingSprite } from './components/server-list/PlayerPingIcon.tsx';
+export type { PlayerPingIconProps } from './components/server-list/PlayerPingIcon.tsx';
+export { REALMS_BUTTON_SPRITES, RealmsButton } from './components/button/RealmsButton.tsx';
+export type { RealmsButtonProps } from './components/button/RealmsButton.tsx';
+export {
+  INVENTORY_HOTBAR_GAP,
+  PlayerInventoryGrid,
+  SlotGrid,
+  slotGridWidth,
+} from './components/slot/SlotGrid.tsx';
+export type {
+  PlayerInventoryGridOwnProps,
+  PlayerInventoryGridProps,
+  SlotGridItem,
+  SlotGridOwnProps,
+  SlotGridProps,
+} from './components/slot/SlotGrid.tsx';
+export { CRAFTING_RESULT_OFFSET, CraftingGrid } from './components/slot/CraftingGrid.tsx';
+export type { CraftingGridOwnProps, CraftingGridProps } from './components/slot/CraftingGrid.tsx';
+export {
+  SOCIAL_ENTRY_HEIGHT,
+  SOCIAL_ENTRY_WIDTH,
+  SocialPlayerEntry,
+} from './components/server-list/SocialPlayerEntry.tsx';
+export type {
+  SocialPlayerEntryOwnProps,
+  SocialPlayerEntryProps,
+  SocialPlayerEntrySlotProps,
+} from './components/server-list/SocialPlayerEntry.tsx';
+export {
+  ENCHANTING_LAYOUT,
+  EnchantingTablePanel,
+} from './components/slot/EnchantingTablePanel.tsx';
+export type {
+  EnchantingOption,
+  EnchantingTablePanelOwnProps,
+  EnchantingTablePanelProps,
+} from './components/slot/EnchantingTablePanel.tsx';
+export {
+  AnvilPanel,
+  BREW_TOTAL_TICKS,
+  BrewingStandPanel,
+  FurnacePanel,
+  STONECUTTER_COLUMNS,
+  STONECUTTER_VISIBLE_ROWS,
+  StonecutterPanel,
+  brewProgress,
+  stonecutterStartIndex,
+} from './components/slot/StationPanels.tsx';
+export type {
+  AnvilPanelOwnProps,
+  AnvilPanelProps,
+  AnvilSlot,
+  BrewingSlot,
+  BrewingStandPanelOwnProps,
+  BrewingStandPanelProps,
+  FurnacePanelOwnProps,
+  FurnacePanelProps,
+  FurnaceSlot,
+  StonecutterPanelOwnProps,
+  StonecutterPanelProps,
+  StonecutterRecipe,
+} from './components/slot/StationPanels.tsx';
+export {
+  BeaconPanel,
+  CartographyPanel,
+  CrafterPanel,
+  GrindstonePanel,
+  LOOM_COLUMNS,
+  LOOM_VISIBLE_ROWS,
+  LoomPanel,
+  SmithingTablePanel,
+  beaconEffectX,
+  loomStartIndex,
+} from './components/slot/CraftingPanels.tsx';
+export type {
+  BeaconEffectChoice,
+  BeaconPanelOwnProps,
+  BeaconPanelProps,
+  CartographyPanelOwnProps,
+  CartographyPanelProps,
+  CrafterPanelOwnProps,
+  CrafterPanelProps,
+  GrindstonePanelOwnProps,
+  GrindstonePanelProps,
+  LoomPanelOwnProps,
+  LoomPanelProps,
+  LoomPattern,
+  SmithingTablePanelOwnProps,
+  SmithingTablePanelProps,
+} from './components/slot/CraftingPanels.tsx';

@@ -54,6 +54,8 @@ export interface InventorySlotSlotProps {
 export interface InventorySlotOwnProps {
   /** The item, drawn in the 16×16 area. Item textures are not GUI assets, so supply your own. */
   readonly children?: ReactNode;
+  /** Stack size. Drawn in the corner like vanilla when above 1. */
+  readonly count?: number;
   /** Icon shown while the slot is empty, like the armor slots' silhouettes. */
   readonly emptyIcon?: EmptySlotIcon;
   readonly disabled?: boolean;
@@ -89,6 +91,7 @@ export function InventorySlot<E extends ElementType = 'button'>(
     as,
     children,
     emptyIcon,
+    count,
     disabled = false,
     slotProps,
     className,
@@ -143,6 +146,11 @@ export function InventorySlot<E extends ElementType = 'button'>(
           {children}
         </span>
       )}
+      {!empty && count !== undefined && count > 1 ? (
+        <span className="cobble-inventory-slot-count cobble-text" data-shadow="">
+          {count}
+        </span>
+      ) : null}
       {highlighted ? <SlotHighlight kind="front" /> : null}
     </Component>
   );

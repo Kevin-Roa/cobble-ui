@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { useEffect, useMemo, useState, type JSX } from 'react';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
 import { useSpriteSize } from '../../provider/hooks.ts';
@@ -32,7 +33,7 @@ export function animationFrames(
 
 export interface AnimatedSpriteProps extends Omit<SlotProps<'span'>, 'children'> {
   /** Sprite id of the sheet: all frames stacked vertically, e.g. `realm_status/expires_soon`. */
-  readonly sprite: string;
+  readonly sprite: SpriteId;
   /** Width of one frame in GUI units. */
   readonly frameWidth: number;
   /** Height of one frame in GUI units. */

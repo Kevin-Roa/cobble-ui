@@ -17,8 +17,13 @@ export const HOTBAR_SLOTS = 9;
 export const HOTBAR_WIDTH = 182;
 /** Height of the `hud/hotbar` sprite. */
 export const HOTBAR_HEIGHT = 22;
-/** Size of the `hud/hotbar_selection` sprite. */
+/** Width of the `hud/hotbar_selection` sprite. */
 export const HOTBAR_SELECTION_SIZE = 24;
+/** Height of the `hud/hotbar_selection` sprite (24×23). */
+export const HOTBAR_SELECTION_HEIGHT = 23;
+/** Size of the `hud/hotbar_offhand_*` sprites. */
+export const HOTBAR_OFFHAND_WIDTH = 29;
+export const HOTBAR_OFFHAND_HEIGHT = 24;
 /** Distance between slot origins. */
 export const HOTBAR_SLOT_STRIDE = 20;
 /** Size of the item area of a slot. */
@@ -41,7 +46,17 @@ export interface HotbarSlotProps {
   readonly selection?: SlotProps<'canvas'>;
 }
 
+/** The offhand slot drawn beside the hotbar (`Gui#extractItemHotbar`). */
+export interface HotbarOffhand {
+  /** Which side of the hotbar it sits on; the game puts it opposite the main hand. */
+  readonly side: 'left' | 'right';
+  /** The item, drawn in the 16×16 area. */
+  readonly content?: ReactNode;
+}
+
 export interface HotbarOwnProps {
+  /** Draws the offhand slot beside the bar, outside its 182-unit box. */
+  readonly offhand?: HotbarOffhand;
   /** Contents of each slot (up to 9), drawn in the 16×16 item area. */
   readonly slots?: readonly ReactNode[];
   readonly selected?: number;
@@ -67,6 +82,7 @@ export function Hotbar<E extends ElementType = 'div'>(props: HotbarProps<E>): JS
     defaultSelected = 0,
     onSelectedChange,
     wheel = false,
+    offhand,
     slotProps,
     className,
     style,
@@ -125,9 +141,25 @@ export function Hotbar<E extends ElementType = 'div'>(props: HotbarProps<E>): JS
         className={cx('cobble-hotbar-selection', slotProps?.selection?.className)}
         sprite="hud/hotbar_selection"
         width={HOTBAR_SELECTION_SIZE}
-        height={HOTBAR_SELECTION_SIZE}
+        height={HOTBAR_SELECTION_HEIGHT}
         style={placeAt(current * HOTBAR_SLOT_STRIDE - 1, -1, slotProps?.selection?.style)}
       />
+      {offhand === undefined ? null : (
+        <>
+          <Sprite
+            sprite={`hud/hotbar_offhand_${offhand.side}`}
+            width={HOTBAR_OFFHAND_WIDTH}
+            height={HOTBAR_OFFHAND_HEIGHT}
+            style={placeAt(offhand.side === 'left' ? -HOTBAR_OFFHAND_WIDTH : HOTBAR_WIDTH, -1)}
+          />
+          <span
+            className="cobble-hotbar-slot cobble-hotbar-offhand"
+            style={placeAt(offhand.side === 'left' ? -26 : HOTBAR_WIDTH + 10, 3)}
+          >
+            {offhand.content}
+          </span>
+        </>
+      )}
       {Array.from({ length: HOTBAR_SLOTS }, (_, index) => (
         <button
           key={index}

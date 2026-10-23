@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { useEffect, useState, type JSX } from 'react';
 import type { SpriteProps } from '../sprite/Sprite.tsx';
 import { Sprite } from '../sprite/Sprite.tsx';
@@ -7,7 +8,7 @@ export const PING_ICON_WIDTH = 10;
 export const PING_ICON_HEIGHT = 8;
 
 /** Sprite for a measured latency in ms (`ServerSelectionList.OnlineServerEntry`); negative means unreachable. */
-export function pingSprite(latency: number): string {
+export function pingSprite(latency: number): SpriteId {
   if (latency < 0) return 'server_list/unreachable';
   if (latency < 150) return 'server_list/ping_5';
   if (latency < 300) return 'server_list/ping_4';
@@ -17,10 +18,18 @@ export function pingSprite(latency: number): string {
 }
 
 /** Sprite of the "pinging" animation: frames advance every 100 ms, offset by `index * 2`. */
-export function pingingSprite(millis: number, index = 0): string {
+const PINGING_FRAMES = [
+  'server_list/pinging_1',
+  'server_list/pinging_2',
+  'server_list/pinging_3',
+  'server_list/pinging_4',
+  'server_list/pinging_5',
+] as const satisfies readonly SpriteId[];
+
+export function pingingSprite(millis: number, index = 0): SpriteId {
   let frame = (Math.floor(millis / 100) + index * 2) & 7;
   if (frame > 4) frame = 8 - frame;
-  return `server_list/pinging_${String(frame + 1)}`;
+  return PINGING_FRAMES[frame] ?? 'server_list/pinging_1';
 }
 
 export interface PingIconProps extends Omit<SpriteProps, 'sprite' | 'width' | 'height'> {

@@ -1,14 +1,7 @@
-import {
-  Button,
-  IconButton,
-  Screen,
-  SplashText,
-  Text,
-  Tooltip,
-} from "cobble-ui";
-import type { JSX } from "react";
-import { Link } from "react-router";
-import { DISCLAIMER } from "../components/Disclaimer.tsx";
+import { Button, IconButton, Screen, SplashText, Text, Tooltip } from 'cobble-ui';
+import type { JSX } from 'react';
+import { Link } from 'react-router';
+import { DISCLAIMER } from '../components/Disclaimer.tsx';
 
 /** A title screen built with the library (laid out like `TitleScreen`, without any Mojang branding). */
 export function Home(): JSX.Element {
@@ -19,9 +12,7 @@ export function Home(): JSX.Element {
           COBBLE UI
         </Text>
       </div>
-      <SplashText>
-        A React component library based on Minecraft Java!
-      </SplashText>
+      <SplashText>A React component library based on Minecraft Java!</SplashText>
       <nav className="site-title-menu" aria-label="Main menu">
         <Button as={Link} to="/docs/getting-started" width={200}>
           Getting Started
@@ -34,12 +25,7 @@ export function Home(): JSX.Element {
         </Button>
         <div className="site-title-row">
           <Tooltip content="Only English is available for now.">
-            <IconButton
-              icon="icon/language"
-              label="Language"
-              disabled
-              className="site-side-left"
-            />
+            <IconButton icon="icon/language" label="Language" disabled className="site-side-left" />
           </Tooltip>
           <Button as={Link} to="/settings" width={98}>
             Settings...

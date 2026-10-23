@@ -1,3 +1,4 @@
+import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useState, type ElementType, type JSX, type KeyboardEvent, type PointerEvent } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
@@ -48,9 +49,9 @@ export interface CreativeScrollerOwnProps {
   /** Shows the greyed thumb and ignores input, like when everything fits. */
   readonly disabled?: boolean;
   /** Sprite of the thumb. Defaults to the creative inventory's. */
-  readonly sprite?: string;
+  readonly sprite?: SpriteId;
   /** Sprite of the greyed thumb. */
-  readonly disabledSprite?: string;
+  readonly disabledSprite?: SpriteId;
   /** Thumb size in GUI units. Defaults to 12×15. */
   readonly thumbWidth?: number;
   readonly thumbHeight?: number;
