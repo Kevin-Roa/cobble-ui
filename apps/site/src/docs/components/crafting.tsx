@@ -210,7 +210,9 @@ export function RecipeBookTabPage(): JSX.Element {
         <>
           A category tab at the side of the recipe book: <Code>recipe_book/tab</Code>, 35×27, with a
           selected variant. The icon is centred horizontally; its offset is an approximation of the
-          game&apos;s.
+          game&apos;s. It is a toggle button (<Code>aria-pressed</Code>). To build a real tab list,
+          put the tabs in an element with <Code>role=&quot;tablist&quot;</Code> and pass{' '}
+          <Code>role=&quot;tab&quot;</Code> and <Code>aria-selected</Code> to each.
         </>
       }
       demo={

@@ -6,9 +6,21 @@
 
 > **NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
 
-Cobble UI reproduces the menus of Java Edition 26.3 pixel for pixel: buttons, icon buttons, cycle/toggle
-buttons, checkboxes, sliders, text fields, tooltips, tabs, selection lists, scroll areas, screens, the
-title-screen panorama and formatted text.
+Cobble UI reproduces the menus of Java Edition 26.3 pixel for pixel. It has 117 documented components
+across these areas:
+
+- **Buttons and inputs**: buttons, icon, cycle, toggle, lock and sprite buttons, checkboxes, sliders, text
+  fields (single and multi-line, plus the anvil's), tooltips and dialogs.
+- **Menus and layout**: screens, the title-screen panorama and splash, tabs, selection and options lists,
+  scroll areas, separators, panels, and `LinearLayout` / `GridLayout` / `FrameLayout`.
+- **Feedback**: a toast queue (`ToastProvider` and `useToasts`), progress bars and an asset-loading overlay.
+- **HUD**: hotbar, health, food, armor and air bars, boss, experience, jump and locator bars, the attack
+  indicator and status effects.
+- **Containers and crafting**: inventory slots and grids, the creative inventory, the villager trading screen
+  and the interactive parts of the anvil, furnace, brewing stand, enchanting table, stonecutter, loom,
+  cartography table, grindstone, smithing table, beacon and crafter screens.
+- **Lists and social**: server, world and resource pack rows, player rows, advancements, the recipe book.
+- **Text and sprites**: formatted text with § codes, typed sprite ids, animated sprites and named icons.
 
 - **Real game assets, never redistributed.** Textures and sounds are downloaded from Mojang's servers by the
   visitor's browser at runtime (the client jar is SHA-1 verified, then only the GUI files are cached).

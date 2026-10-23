@@ -150,8 +150,7 @@ export function RecipeBookTab<E extends ElementType = 'button'>(
     <StateSpriteButton
       {...rest}
       selected={selected}
-      role="tab"
-      aria-selected={selected}
+      toggle
       name="recipe-book-tab"
       sprites={{ normal: 'recipe_book/tab', selected: 'recipe_book/tab_selected' }}
       buttonWidth={RECIPE_BOOK_TAB_WIDTH}

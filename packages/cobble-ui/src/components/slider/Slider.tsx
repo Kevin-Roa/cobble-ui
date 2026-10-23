@@ -1,5 +1,6 @@
 import { mergeProps } from '@base-ui/react/merge-props';
 import {
+  useId,
   useState,
   type ElementType,
   type JSX,
@@ -242,6 +243,7 @@ export function Slider<E extends ElementType = 'div'>(props: SliderProps<E>): JS
   const trackHighlighted = !disabled && focused && !canChangeValue;
   const handleHighlighted = !disabled && (hovered || canChangeValue);
   const handleLeft = Math.trunc(position * (w - SLIDER_HANDLE_WIDTH));
+  const labelId = useId();
   const labelContent = formatLabel ? (
     formatLabel(value)
   ) : label === undefined ? (
@@ -264,6 +266,9 @@ export function Slider<E extends ElementType = 'div'>(props: SliderProps<E>): JS
         {
           className: cx('cobble-slider', className),
           style: rootStyle,
+          // A plain-text label names the slider; anything fancier is referenced by id. Callers can override.
+          'aria-label': typeof label === 'string' ? label : undefined,
+          'aria-labelledby': typeof label === 'string' ? undefined : labelId,
           ...handlers,
         },
         rest,
@@ -300,6 +305,7 @@ export function Slider<E extends ElementType = 'div'>(props: SliderProps<E>): JS
       />
       <ScrollingText
         {...slotProps?.label}
+        id={labelId}
         className={cx('cobble-slider-label', 'cobble-text', slotProps?.label?.className)}
         data-shadow=""
         left={2}

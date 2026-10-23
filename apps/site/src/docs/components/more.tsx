@@ -1,6 +1,7 @@
 import {
   AnvilTextField,
   BrewBubbles,
+  Button,
   CartographyMap,
   CrafterRedstone,
   CrafterSlot,
@@ -9,9 +10,12 @@ import {
   ICON_NAMES,
   MusicNotes,
   PlayerPingIcon,
+  ProgressBar,
   RealmsButton,
   RecipeOverlayButton,
+  Text,
   TrialAvailableIcon,
+  useToasts,
 } from 'cobble-ui';
 import { useState, type JSX } from 'react';
 import { Code, ComponentDoc } from '../../components/Prose.tsx';
@@ -403,6 +407,192 @@ export function RealmsButtonPage(): JSX.Element {
           description: 'Grey label, no interaction.',
         },
         AS,
+      ]}
+    />
+  );
+}
+
+export function ToastManagerPage(): JSX.Element {
+  const toasts = useToasts();
+  const [count, setCount] = useState(0);
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          Wrap your app in <Code>ToastProvider</Code> and call <Code>useToasts().show()</Code> from
+          anywhere below it. Toasts stack down the right edge, at most five at a time (set{' '}
+          <Code>maxVisible</Code>); the rest wait their turn. Each slides in over 600 ms, stays for
+          5 seconds (<Code>duration</Code>, or <Code>Infinity</Code> to keep it) and slides out,
+          playing the game&apos;s toast sounds. <Code>dismiss(id)</Code> and{' '}
+          <Code>dismissAll()</Code> slide them out early.
+        </>
+      }
+      demo={
+        <div className="site-row">
+          <Button
+            width={150}
+            onClick={() => {
+              setCount(count + 1);
+              toasts.show({ title: 'Saved', messages: [`Backup #${String(count + 1)} complete`] });
+            }}
+          >
+            Show a toast
+          </Button>
+          <Button
+            width={150}
+            onClick={() =>
+              toasts.show({ title: 'Pinned', variant: 'tutorial', duration: Infinity })
+            }
+          >
+            Show a pinned toast
+          </Button>
+          <Button width={150} onClick={() => toasts.dismissAll()}>
+            Dismiss all
+          </Button>
+        </div>
+      }
+      code={`<ToastProvider>
+  <App />
+</ToastProvider>
+
+const toasts = useToasts();
+const id = toasts.show({ title: 'Saved', messages: ['World backed up'] });
+toasts.dismiss(id);`}
+      rows={[
+        {
+          name: 'show(options)',
+          type: '(ToastOptions) => number',
+          description: 'Queues a toast; returns its id.',
+        },
+        {
+          name: 'dismiss(id) / dismissAll()',
+          type: 'function',
+          description: 'Slides toasts out early.',
+        },
+        {
+          name: 'options.duration',
+          type: 'number',
+          defaultValue: '5000',
+          description: 'Milliseconds on screen once slid in.',
+        },
+        {
+          name: 'options.variant',
+          type: 'ToastVariant',
+          defaultValue: "'system'",
+          description: 'The background.',
+        },
+        {
+          name: 'options.sound',
+          type: 'boolean',
+          defaultValue: 'true',
+          description: 'Play the in and out sounds.',
+        },
+        {
+          name: 'ToastProvider maxVisible',
+          type: 'number',
+          defaultValue: '5',
+          description: 'Toasts shown at once.',
+        },
+      ]}
+    />
+  );
+}
+
+export function ProgressBarPage(): JSX.Element {
+  const [progress, setProgress] = useState(0.4);
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          The white outlined bar of the game&apos;s loading screens: a 1-unit border, a 1-unit gap,
+          then a fill of <Code>ceil((width - 4) * progress)</Code> units. Leave{' '}
+          <Code>progress</Code> out for an indeterminate bar that sweeps back and forth. The fill
+          rule and the 10-unit height are approximations of the game&apos;s; its logo and red
+          background are deliberately not reproduced.
+        </>
+      }
+      demo={
+        <div className="site-stack">
+          <ProgressBar progress={progress} />
+          <ProgressBar progress={progress} width={100} height={6} />
+          <ProgressBar />
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={progress}
+            aria-label="Progress"
+            onChange={(event) => setProgress(Number(event.target.value))}
+          />
+        </div>
+      }
+      code="<ProgressBar progress={loaded / total} width={200} />"
+      rows={[
+        { name: 'progress', type: 'number', description: '0 to 1; omit for an indeterminate bar.' },
+        {
+          name: 'width / height',
+          type: 'number',
+          defaultValue: '200 / 10',
+          description: 'Size in GUI units.',
+        },
+        {
+          name: 'label',
+          type: 'string',
+          defaultValue: "'Progress'",
+          description: 'Accessible name.',
+        },
+        {
+          name: 'as',
+          type: 'ElementType',
+          description: 'Render a different element or component.',
+        },
+      ]}
+    />
+  );
+}
+
+export function AssetLoadingOverlayPage(): JSX.Element {
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          Shows what the provider is doing while it fetches the game assets: the phase, megabytes
+          downloaded and a progress bar, or the error with a retry button. It renders nothing once
+          the assets are ready, so you can leave it in your app. The first visit downloads the
+          official client (about 41 MB); later visits read the cache. This site uses it: reload with
+          the browser cache cleared to see it. <Code>variant=&quot;screen&quot;</Code> covers the
+          page instead of sitting at the bottom.
+        </>
+      }
+      demo={<Text color="gray">Nothing to show: the assets on this page are already loaded.</Text>}
+      code={`<CobbleProvider font={minecraftTtf('/fonts')}>
+  <App />
+  <AssetLoadingOverlay note="(first visit only)" />
+</CobbleProvider>`}
+      rows={[
+        {
+          name: 'variant',
+          type: "'panel' | 'screen'",
+          defaultValue: "'panel'",
+          description: 'Bottom box or full cover.',
+        },
+        {
+          name: 'phaseLabels',
+          type: 'Partial<Record<phase, string>>',
+          description: 'Replace the wording of a phase.',
+        },
+        {
+          name: 'note',
+          type: 'ReactNode',
+          description: 'Appended to the megabytes line while downloading.',
+        },
+        {
+          name: 'barWidth',
+          type: 'number',
+          defaultValue: '200',
+          description: 'Progress bar width in GUI units.',
+        },
       ]}
     />
   );

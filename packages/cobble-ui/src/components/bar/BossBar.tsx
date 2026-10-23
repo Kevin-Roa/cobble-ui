@@ -1,6 +1,6 @@
 import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
-import type { ElementType, JSX, ReactNode } from 'react';
+import { useId, type ElementType, type JSX, type ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
 import { cx } from '../shared.ts';
 import {
@@ -61,6 +61,7 @@ export function BossBar<E extends ElementType = 'div'>(props: BossBarProps<E>): 
     ...rest
   } = props as BossBarProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const nameId = useId();
   const rootStyle: CssVariables = {
     '--cobble-width': STAT_BAR_WIDTH,
     '--cobble-height': STAT_BAR_HEIGHT,
@@ -73,6 +74,9 @@ export function BossBar<E extends ElementType = 'div'>(props: BossBarProps<E>): 
           className: cx('cobble-stat-bar', 'cobble-boss-bar', className),
           style: rootStyle,
           role: 'progressbar',
+          // The boss's name labels the bar; a bar without one is still a boss health bar.
+          'aria-label': children === undefined ? 'Boss health' : undefined,
+          'aria-labelledby': children === undefined ? undefined : nameId,
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),
@@ -86,6 +90,7 @@ export function BossBar<E extends ElementType = 'div'>(props: BossBarProps<E>): 
       {children === undefined ? null : (
         <span
           {...slotProps?.name}
+          id={nameId}
           className={cx('cobble-boss-bar-name', 'cobble-text', slotProps?.name?.className)}
           data-shadow=""
         >

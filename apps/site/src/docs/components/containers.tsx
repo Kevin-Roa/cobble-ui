@@ -10,8 +10,10 @@ import {
   CookingArrow,
   CrafterPanel,
   CraftingGrid,
+  CreativeInventoryPanel,
   CreativeScroller,
   CreativeTab,
+  DispenserPanel,
   EnchantingTablePanel,
   EnchantmentSlot,
   FuelBar,
@@ -19,6 +21,7 @@ import {
   FurnacePanel,
   GameModeSlot,
   GrindstonePanel,
+  HopperPanel,
   LoomPanel,
   Panel,
   PlayerInventoryGrid,
@@ -28,6 +31,7 @@ import {
   StonecutterPanel,
   TradeArrow,
   VillagerScroller,
+  VillagerTradePanel,
   VillagerXpBar,
 } from 'cobble-ui';
 import { useState, type JSX } from 'react';
@@ -112,7 +116,10 @@ export function CreativeTabPage(): JSX.Element {
       intro={
         <>
           A creative inventory tab: 26×32, with a distinct sprite for each of the 7 columns of the
-          top and bottom rows. The icon offset is an approximation of the game&apos;s.
+          top and bottom rows. The icon offset is an approximation of the game&apos;s. It is a
+          toggle button (<Code>aria-pressed</Code>). To build a real tab list, put the tabs in an
+          element with <Code>role=&quot;tablist&quot;</Code> and pass{' '}
+          <Code>role=&quot;tab&quot;</Code> and <Code>aria-selected</Code> to each.
         </>
       }
       demo={
@@ -1373,6 +1380,176 @@ export function CrafterPanelPage(): JSX.Element {
           type: 'boolean',
           defaultValue: 'false',
           description: 'Redstone indicator.',
+        },
+        AS,
+      ]}
+    />
+  );
+}
+
+export function VillagerTradePanelPage(): JSX.Element {
+  const [selected, setSelected] = useState<number | null>(0);
+  const [scroll, setScroll] = useState(0);
+  const offers = Array.from({ length: 10 }, (_, i) => ({
+    label: `Trade ${String(i + 1)}`,
+    buy: <Dot />,
+    buy2: i % 3 === 0 ? <Dot /> : undefined,
+    sell: <Dot />,
+    outOfStock: i === 2,
+  }));
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          The interactive part of the villager trading screen: the scrollable list of up to seven
+          trades, its scroller, the level bar and the two payment slots with the result. A spent
+          trade is dimmed with a crossed-out arrow and cannot be chosen. {NOTE}
+        </>
+      }
+      demo={
+        <VillagerTradePanel
+          offers={offers}
+          selectedOffer={selected}
+          onOfferClick={setSelected}
+          scroll={scroll}
+          onScrollChange={setScroll}
+          levelProgress={0.4}
+          payment={[{ content: <Dot />, count: 24, label: 'Emerald' }]}
+        />
+      }
+      code="<VillagerTradePanel offers={offers} selectedOffer={i} onOfferClick={pick} levelProgress={xp} />"
+      rows={[
+        {
+          name: 'offers',
+          type: 'TradeOffer[]',
+          description: 'Every trade: label, buy, buy2, sell, outOfStock.',
+        },
+        { name: 'selectedOffer / onOfferClick', type: 'number', description: 'The chosen trade.' },
+        {
+          name: 'scroll / onScrollChange',
+          type: 'number',
+          description: 'Scroll position, 0 to 1.',
+        },
+        {
+          name: 'payment / result',
+          type: 'SlotGridItem',
+          description: 'The payment slots and the result.',
+        },
+        {
+          name: 'levelProgress',
+          type: 'number',
+          description: 'Villager level progress; omit for a trader.',
+        },
+        AS,
+      ]}
+    />
+  );
+}
+
+export function HopperPanelPage(): JSX.Element {
+  return (
+    <ComponentDoc
+      intro={<>The hopper&apos;s row of five slots, 18 units apart. {NOTE}</>}
+      demo={<HopperPanel items={[{ content: <Dot />, count: 12, label: 'Iron Ingot' }]} />}
+      code="<HopperPanel items={hopper} onSlotClick={pickUp} />"
+      rows={[
+        { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The five slots.' },
+        {
+          name: 'onSlotClick',
+          type: '(index: number) => void',
+          description: 'A slot was clicked.',
+        },
+        AS,
+      ]}
+    />
+  );
+}
+
+export function DispenserPanelPage(): JSX.Element {
+  return (
+    <ComponentDoc
+      intro={<>The 3×3 grid of a dispenser or dropper. {NOTE}</>}
+      demo={<DispenserPanel items={[undefined, { content: <Dot />, count: 64, label: 'Arrow' }]} />}
+      code="<DispenserPanel items={dispenser} onSlotClick={pickUp} />"
+      rows={[
+        { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The nine slots.' },
+        {
+          name: 'onSlotClick',
+          type: '(index: number) => void',
+          description: 'A slot was clicked.',
+        },
+        AS,
+      ]}
+    />
+  );
+}
+
+const CREATIVE_DEMO_ITEMS = Array.from({ length: 12 }, (_, i) => ({
+  content: <Dot />,
+  label: `Item ${String(i + 1)}`,
+}));
+
+const CREATIVE_DEMO_TABS = [
+  'Building Blocks',
+  'Colored Blocks',
+  'Natural Blocks',
+  'Functional Blocks',
+  'Redstone Blocks',
+  'Tools & Utilities',
+  'Combat',
+  'Food & Drinks',
+  'Ingredients',
+  'Spawn Eggs',
+  'Operator Utilities',
+  'Search Items',
+  'Saved Hotbars',
+  'Survival Inventory',
+].map((label) => ({
+  label,
+  icon: <Dot />,
+}));
+
+export function CreativeInventoryPanelPage(): JSX.Element {
+  const [tab, setTab] = useState(0);
+  const [scroll, setScroll] = useState(0);
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          The interactive part of the creative inventory screen: up to 14 tabs (seven along the top,
+          the rest along the bottom), the 9×5 item grid with its scroller, and the hotbar row.{' '}
+          {NOTE}
+        </>
+      }
+      demo={
+        <CreativeInventoryPanel
+          tabs={CREATIVE_DEMO_TABS}
+          selectedTab={tab}
+          onTabClick={setTab}
+          scroll={scroll}
+          onScrollChange={setScroll}
+          items={CREATIVE_DEMO_ITEMS}
+        />
+      }
+      code="<CreativeInventoryPanel tabs={tabs} selectedTab={i} onTabClick={pick} items={page} scroll={s} />"
+      rows={[
+        { name: 'tabs', type: '{ label, icon }[]', description: 'Up to 14 tabs.' },
+        { name: 'selectedTab / onTabClick', type: 'number', description: 'The open tab.' },
+        {
+          name: 'items / hotbar',
+          type: 'SlotGridItem[]',
+          description: 'The 45 grid slots and 9 hotbar slots.',
+        },
+        {
+          name: 'scroll / onScrollChange',
+          type: 'number',
+          description: 'Scroll position, 0 to 1.',
+        },
+        {
+          name: 'scrollable',
+          type: 'boolean',
+          defaultValue: 'true',
+          description: 'Grey the scroller out when false.',
         },
         AS,
       ]}

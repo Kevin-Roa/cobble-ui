@@ -1,10 +1,48 @@
-import { act, fireEvent, render as renderPlain, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render as renderPlain,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import type { ReactElement } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
+import type { AssetBundle, AssetSource } from '../index.ts';
 import {
+  ASSET_PHASE_LABELS,
   Air,
+  Panorama,
+  usePrefersReducedMotion,
+  CHAT_MAX_LENGTH,
+  ChatInput,
+  ChatLog,
+  chatMessageOpacity,
+  Screen,
+  AssetLoadingOverlay,
+  ProgressBar,
+  assetProgressFraction,
+  formatMegabytes,
+  progressBarFill,
+  TOAST_SLIDE_MS,
+  ToastProvider,
+  useToasts,
+  OPTIONS_LIST_ROW_WIDTH,
+  OptionsList,
+  OptionsListHeader,
+  OptionsListRow,
+  FrameLayout,
+  GridLayout,
+  GridLayoutCell,
+  LinearLayout,
+  CreativeInventoryPanel,
+  DispenserPanel,
+  HopperPanel,
+  VillagerTradePanel,
+  tradeStartIndex,
   BeaconPanel,
   CartographyPanel,
   CrafterPanel,
@@ -887,8 +925,8 @@ describe('AdvancementTab', () => {
         <span>i</span>
       </AdvancementTab>,
     );
-    const tab = screen.getByRole('tab', { name: 'Adventure' });
-    expect(tab).toHaveAttribute('aria-selected', 'true');
+    const tab = screen.getByRole('button', { name: 'Adventure' });
+    expect(tab).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText('i').parentElement).toHaveStyle({
       '--cobble-x': '8',
       '--cobble-y': '6',
@@ -1041,8 +1079,8 @@ describe('CreativeTab and CreativeScroller', () => {
     const { container } = renderWithProvider(
       <CreativeTab label="Building Blocks" row="bottom" column={3} selected />,
     );
-    expect(screen.getByRole('tab', { name: 'Building Blocks' })).toHaveAttribute(
-      'aria-selected',
+    expect(screen.getByRole('button', { name: 'Building Blocks' })).toHaveAttribute(
+      'aria-pressed',
       'true',
     );
     expect(container.querySelector('canvas')).toHaveAttribute(
@@ -1915,7 +1953,10 @@ describe('stonecutter, loom and recipe book controls', () => {
       'recipe_book/page_backward',
       'recipe_book/slot_many_uncraftable',
     ]);
-    expect(screen.getByRole('tab', { name: 'Building' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button', { name: 'Building' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(screen.getByRole('button', { name: 'Show craftable recipes only' })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -2621,5 +2662,663 @@ describe('loom, cartography, grindstone, smithing, beacon and crafter panels', (
     expect(screen.getByRole('img', { name: 'Powered' })).toBeInTheDocument();
     await user.click(screen.getByRole('switch', { name: 'Stick' }));
     expect(onSlotClick).toHaveBeenCalledWith(0);
+  });
+});
+
+describe('trading, hopper, dispenser and creative inventory panels', () => {
+  it('scrolls the trade list by whole offers', () => {
+    expect(tradeStartIndex(0, 12)).toBe(0);
+    expect(tradeStartIndex(1, 12)).toBe(5);
+    expect(tradeStartIndex(0.5, 12)).toBe(3);
+    expect(tradeStartIndex(1, 5)).toBe(0);
+  });
+
+  it('shows up to seven trades, marks the chosen one and crosses out spent ones', async () => {
+    const onOfferClick = vi.fn<(index: number) => void>();
+    const user = userEvent.setup();
+    const offers = Array.from({ length: 9 }, (_, i) => ({
+      label: `Trade ${String(i)}`,
+      buy: <span>b{i}</span>,
+      sell: <span>s{i}</span>,
+      outOfStock: i === 1,
+    }));
+    const { container } = renderWithProvider(
+      <VillagerTradePanel
+        offers={offers}
+        selectedOffer={0}
+        onOfferClick={onOfferClick}
+        levelProgress={0.5}
+      />,
+    );
+    expect(screen.getAllByRole('button', { name: /^Trade [0-9]/ })).toHaveLength(7);
+    expect(screen.getByRole('button', { name: 'Trade 0' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Trade 1' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Trade 2' })).toHaveStyle({
+      '--cobble-x': '5',
+      '--cobble-y': '58',
+    });
+    expect(slotSprites(container)).toContain('container/villager/trade_arrow_out_of_stock');
+    expect(slotSprites(container)).toContain('container/villager/experience_bar_current');
+    await user.click(screen.getByRole('button', { name: 'Trade 3' }));
+    expect(onOfferClick).toHaveBeenCalledWith(3);
+  });
+
+  it('hides the level bar for a trader and greys the scroller when every trade fits', () => {
+    const { container } = renderWithProvider(<VillagerTradePanel />);
+    expect(slotSprites(container)).not.toContain('container/villager/experience_bar_background');
+    expect(slotSprites(container)).toContain('container/villager/scroller_disabled');
+    expect(screen.getByRole('button', { name: 'Trade result' })).toHaveStyle({
+      '--cobble-x': '219',
+    });
+  });
+
+  it('lays out the hopper and dispenser grids', async () => {
+    const onSlotClick = vi.fn<(index: number) => void>();
+    const user = userEvent.setup();
+    renderWithProvider(
+      <>
+        <HopperPanel onSlotClick={onSlotClick} />
+        <DispenserPanel />
+      </>,
+    );
+    expect(screen.getAllByRole('button')).toHaveLength(5 + 9);
+    expect(screen.getByRole('group', { name: 'Hopper' })).toHaveStyle({ '--cobble-columns': '5' });
+    expect(screen.getByRole('group', { name: 'Dispenser' })).toHaveStyle({
+      '--cobble-columns': '3',
+      '--cobble-x': '61',
+    });
+    await user.click(
+      within(screen.getByRole('group', { name: 'Hopper' })).getAllByRole(
+        'button',
+      )[3] as HTMLElement,
+    );
+    expect(onSlotClick).toHaveBeenCalledWith(3);
+  });
+
+  it('places the creative tabs in two rows around the item grid', async () => {
+    const onTabClick = vi.fn<(index: number) => void>();
+    const onSlotClick = vi.fn<(area: string, index: number) => void>();
+    const user = userEvent.setup();
+    const tabs = Array.from({ length: 9 }, (_, i) => ({ label: `Tab ${String(i)}` }));
+    renderWithProvider(
+      <CreativeInventoryPanel
+        tabs={tabs}
+        selectedTab={8}
+        onTabClick={onTabClick}
+        onSlotClick={onSlotClick}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Tab 2' })).toHaveStyle({
+      '--cobble-x': '54',
+      '--cobble-y': '0',
+    });
+    expect(screen.getByRole('button', { name: 'Tab 8' })).toHaveStyle({
+      '--cobble-x': '27',
+      '--cobble-y': '160',
+    });
+    expect(screen.getByRole('button', { name: 'Tab 8' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('group', { name: 'Items' })).toHaveStyle({
+      '--cobble-columns': '9',
+      '--cobble-y': '46',
+    });
+    expect(screen.getByRole('group', { name: 'Hotbar' })).toHaveStyle({ '--cobble-y': '140' });
+    expect(screen.getByRole('scrollbar', { name: 'Scroll items' })).toHaveStyle({
+      '--cobble-x': '175',
+    });
+    await user.click(screen.getByRole('button', { name: 'Tab 4' }));
+    await user.click(
+      within(screen.getByRole('group', { name: 'Hotbar' })).getAllByRole(
+        'button',
+      )[2] as HTMLElement,
+    );
+    expect(onTabClick).toHaveBeenCalledWith(4);
+    expect(onSlotClick).toHaveBeenCalledWith('hotbar', 2);
+  });
+});
+
+describe('LinearLayout, GridLayout and FrameLayout', () => {
+  it('stacks children vertically by default, with the gap and alignment as variables', () => {
+    renderWithProvider(
+      <LinearLayout data-testid="column" spacing={4} align="center">
+        <span>a</span>
+        <span>b</span>
+      </LinearLayout>,
+    );
+    const column = screen.getByTestId('column');
+    expect(column).toHaveAttribute('data-orientation', 'vertical');
+    expect(column).toHaveStyle({ '--cobble-spacing': '4', '--cobble-align': 'center' });
+    expect(column.children).toHaveLength(2);
+  });
+
+  it('lays out a row and maps the alignments to flex values', () => {
+    renderWithProvider(
+      <LinearLayout data-testid="row" orientation="horizontal" spacing={8} align="end">
+        <span>x</span>
+      </LinearLayout>,
+    );
+    expect(screen.getByTestId('row')).toHaveAttribute('data-orientation', 'horizontal');
+    expect(screen.getByTestId('row')).toHaveStyle({ '--cobble-align': 'flex-end' });
+  });
+
+  it('sets the grid columns and spacing, with row and column overrides', () => {
+    renderWithProvider(
+      <>
+        <GridLayout data-testid="grid" columns={2} spacing={4} />
+        <GridLayout data-testid="gap" columns={3} spacing={4} columnSpacing={10} rowSpacing={2} />
+        <GridLayout data-testid="bad" columns={0} />
+      </>,
+    );
+    expect(screen.getByTestId('grid')).toHaveStyle({
+      '--cobble-columns': '2',
+      '--cobble-column-spacing': '4',
+      '--cobble-row-spacing': '4',
+    });
+    expect(screen.getByTestId('gap')).toHaveStyle({
+      '--cobble-column-spacing': '10',
+      '--cobble-row-spacing': '2',
+    });
+    expect(screen.getByTestId('bad')).toHaveStyle({ '--cobble-columns': '1' });
+  });
+
+  it('lets a grid cell span columns and rows and align itself', () => {
+    renderWithProvider(
+      <GridLayout columns={2}>
+        <GridLayoutCell data-testid="wide" colSpan={2} alignX="center">
+          wide
+        </GridLayoutCell>
+        <GridLayoutCell data-testid="tall" rowSpan={2} colSpan={0}>
+          tall
+        </GridLayoutCell>
+      </GridLayout>,
+    );
+    const wide = screen.getByTestId('wide');
+    expect(wide.style.gridColumn).toBe('span 2');
+    expect(wide.style.gridRow).toBe('span 1');
+    expect(wide).toHaveStyle({ '--cobble-align-x': 'center' });
+    const tall = screen.getByTestId('tall');
+    expect(tall.style.gridRow).toBe('span 2');
+    expect(tall.style.gridColumn).toBe('span 1');
+  });
+
+  it('centres a frame by default and takes minimum sizes', () => {
+    renderWithProvider(
+      <>
+        <FrameLayout data-testid="frame" minWidth={200} minHeight={100}>
+          <span>child</span>
+        </FrameLayout>
+        <FrameLayout data-testid="corner" alignX="end" alignY="start" />
+      </>,
+    );
+    expect(screen.getByTestId('frame')).toHaveStyle({
+      '--cobble-align-x': 'center',
+      '--cobble-align-y': 'center',
+      '--cobble-min-width': '200',
+      '--cobble-min-height': '100',
+    });
+    expect(screen.getByTestId('corner')).toHaveStyle({
+      '--cobble-align-x': 'flex-end',
+      '--cobble-align-y': 'flex-start',
+    });
+    expect(screen.getByTestId('corner').style.getPropertyValue('--cobble-min-width')).toBe('');
+  });
+});
+
+describe('OptionsList', () => {
+  it('lays rows of one or two widgets in a 310-unit column under a heading', () => {
+    expect(OPTIONS_LIST_ROW_WIDTH).toBe(310);
+    renderWithProvider(
+      <OptionsList data-testid="list">
+        <OptionsListHeader>Video Settings</OptionsListHeader>
+        <OptionsListRow data-testid="row">
+          <Button width={150}>FOV</Button>
+          <Button width={150}>Render Distance</Button>
+        </OptionsListRow>
+        <OptionsListRow>
+          <Button width={310}>Done</Button>
+        </OptionsListRow>
+      </OptionsList>,
+    );
+    expect(screen.getByRole('heading', { name: 'Video Settings' })).toBeInTheDocument();
+    expect(screen.getByTestId('list')).toHaveStyle({
+      '--cobble-row-width': '310',
+      '--cobble-item-height': '25',
+    });
+    expect(screen.getByTestId('row').children).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+  });
+
+  it('takes a custom row width and height, and can drop the separators', () => {
+    const { container } = renderWithProvider(
+      <OptionsList data-testid="list" rowWidth={220} itemHeight={30} separators={false}>
+        <OptionsListRow>
+          <Button width={220}>Wide</Button>
+        </OptionsListRow>
+      </OptionsList>,
+    );
+    expect(screen.getByTestId('list')).toHaveStyle({
+      '--cobble-row-width': '220',
+      '--cobble-item-height': '30',
+    });
+    expect(container.querySelector('.cobble-selection-list-separator')).toBeNull();
+  });
+
+  it('draws the separators by default', () => {
+    const { container } = renderWithProvider(<OptionsList />);
+    const separators = container.querySelectorAll('.cobble-selection-list-separator');
+    expect(separators).toHaveLength(2);
+    expect(separators[0]).toHaveAttribute('data-texture', 'gui/header_separator');
+    expect(separators[1]).toHaveAttribute('data-texture', 'gui/footer_separator');
+  });
+});
+
+function Trigger(props: {
+  readonly options: Parameters<ReturnType<typeof useToasts>['show']>[0];
+  readonly label?: string;
+}): ReactElement {
+  const toasts = useToasts();
+  return (
+    <>
+      <button type="button" onClick={() => toasts.show(props.options)}>
+        {props.label ?? 'show'}
+      </button>
+      <button type="button" onClick={() => toasts.dismissAll()}>
+        clear
+      </button>
+    </>
+  );
+}
+
+describe('ToastProvider', () => {
+  it('shows a queued toast, slides it in and removes it after its display time', async () => {
+    vi.useFakeTimers();
+    try {
+      renderWithProvider(
+        <ToastProvider>
+          <Trigger options={{ title: 'Saved', messages: ['World backed up'], duration: 1000 }} />
+        </ToastProvider>,
+      );
+      fireEvent.click(screen.getByText('show'));
+      const status = screen.getByRole('status');
+      expect(status).toHaveTextContent('Saved');
+      expect(status).not.toHaveAttribute('data-open');
+      await act(() => vi.advanceTimersByTimeAsync(1));
+      expect(status).toHaveAttribute('data-open');
+      await act(() => vi.advanceTimersByTimeAsync(TOAST_SLIDE_MS + 1000));
+      expect(status).not.toHaveAttribute('data-open');
+      await act(() => vi.advanceTimersByTimeAsync(TOAST_SLIDE_MS));
+      expect(screen.queryByRole('status')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps at most maxVisible on screen and brings queued ones in as room frees up', async () => {
+    vi.useFakeTimers();
+    try {
+      renderWithProvider(
+        <ToastProvider maxVisible={2}>
+          <Trigger options={{ title: 'Toast', duration: 500, sound: false }} />
+        </ToastProvider>,
+      );
+      for (let i = 0; i < 3; i++) fireEvent.click(screen.getByText('show'));
+      expect(screen.getAllByRole('status')).toHaveLength(2);
+      await act(() => vi.advanceTimersByTimeAsync(1));
+      await act(() => vi.advanceTimersByTimeAsync(TOAST_SLIDE_MS + 500));
+      expect(screen.getAllByRole('status')).toHaveLength(2);
+      await act(() => vi.advanceTimersByTimeAsync(TOAST_SLIDE_MS));
+      expect(screen.getAllByRole('status')).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('dismisses everything, including toasts that are still waiting', async () => {
+    vi.useFakeTimers();
+    try {
+      renderWithProvider(
+        <ToastProvider maxVisible={1}>
+          <Trigger options={{ title: 'Toast', duration: Infinity, sound: false }} />
+        </ToastProvider>,
+      );
+      fireEvent.click(screen.getByText('show'));
+      fireEvent.click(screen.getByText('show'));
+      await act(() => vi.advanceTimersByTimeAsync(TOAST_SLIDE_MS + 5000));
+      expect(screen.getAllByRole('status')).toHaveLength(1);
+      fireEvent.click(screen.getByText('clear'));
+      await act(() => vi.advanceTimersByTimeAsync(TOAST_SLIDE_MS + 1));
+      expect(screen.queryByRole('status')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('refuses to be used outside a provider', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(() => renderWithProvider(<Trigger options={{ title: 'x' }} />)).toThrow(/ToastProvider/);
+    spy.mockRestore();
+  });
+});
+
+let releaseAssets: () => void = () => undefined;
+
+/** An asset source that reports half a download and then waits until `releaseAssets()`. */
+function slowAssets(): AssetSource {
+  return {
+    key: 'slow',
+    load: ({ onProgress }) =>
+      new Promise<AssetBundle>((resolve) => {
+        onProgress?.({ phase: 'download', loaded: 5 * 1024 * 1024, total: 10 * 1024 * 1024 });
+        releaseAssets = () =>
+          resolve({ version: 'test', file: () => undefined, objectUrl: () => undefined });
+      }),
+  };
+}
+
+describe('ProgressBar and AssetLoadingOverlay', () => {
+  it('fills inside the 2-unit inset by ceil((width - 4) * progress)', () => {
+    expect(progressBarFill(0, 200)).toBe(0);
+    expect(progressBarFill(0.5, 200)).toBe(98);
+    expect(progressBarFill(0.001, 200)).toBe(1);
+    expect(progressBarFill(1, 200)).toBe(196);
+    expect(progressBarFill(9, 200)).toBe(196);
+    expect(progressBarFill(Number.NaN, 200)).toBe(0);
+    expect(progressBarFill(1, 3)).toBe(0);
+  });
+
+  it('is a determinate progressbar with a fill, or an indeterminate one without a value', () => {
+    renderWithProvider(
+      <>
+        <ProgressBar progress={0.25} width={100} label="Done" />
+        <ProgressBar label="Waiting" />
+      </>,
+    );
+    const done = screen.getByRole('progressbar', { name: 'Done' });
+    expect(done).toHaveAttribute('aria-valuenow', '25');
+    expect(done).toHaveStyle({ '--cobble-width': '100', '--cobble-fill': '24' });
+    expect(done).not.toHaveAttribute('data-indeterminate');
+    const waiting = screen.getByRole('progressbar', { name: 'Waiting' });
+    expect(waiting).not.toHaveAttribute('aria-valuenow');
+    expect(waiting).toHaveAttribute('data-indeterminate');
+    expect(waiting).toHaveStyle({ '--cobble-width': '200', '--cobble-height': '10' });
+  });
+
+  it('computes the download fraction only when the size is known', () => {
+    expect(assetProgressFraction(undefined)).toBeUndefined();
+    expect(assetProgressFraction({ phase: 'manifest', loaded: 0, total: 0 })).toBeUndefined();
+    expect(assetProgressFraction({ phase: 'download', loaded: 10, total: 40 })).toBe(0.25);
+    expect(assetProgressFraction({ phase: 'download', loaded: 50, total: 40 })).toBe(1);
+    expect(formatMegabytes(1024 * 1024 * 12.34)).toBe('12.3');
+    expect(ASSET_PHASE_LABELS.verify).toBe('Verifying download');
+  });
+
+  it('shows loading progress, then nothing once the assets are ready', async () => {
+    const { container } = renderPlain(
+      <CobbleProvider assets={slowAssets()} guiScale={2} sound={{ enabled: false }}>
+        <AssetLoadingOverlay />
+      </CobbleProvider>,
+    );
+    const status = await screen.findByRole('status');
+    expect(status).toHaveAttribute('data-variant', 'panel');
+    expect(screen.getByRole('progressbar', { name: 'Loading game assets' })).toBeInTheDocument();
+    expect(status).toHaveTextContent('Downloading the game client from Mojang');
+    expect(status).toHaveTextContent('5.0 / 10.0 MB');
+    releaseAssets();
+    await waitFor(() => expect(container.querySelector('.cobble-asset-overlay')).toBeNull());
+  });
+
+  it('reports a load failure and retries on request', async () => {
+    const user = userEvent.setup();
+    let attempts = 0;
+    const assets = {
+      key: 'flaky',
+      load: (): Promise<AssetBundle> => {
+        attempts++;
+        return attempts === 1
+          ? Promise.reject(new Error('offline'))
+          : Promise.resolve({ version: 'test', file: () => undefined, objectUrl: () => undefined });
+      },
+    } satisfies AssetSource;
+    const { container } = renderPlain(
+      <CobbleProvider assets={assets} guiScale={2} sound={{ enabled: false }}>
+        <AssetLoadingOverlay variant="screen" />
+      </CobbleProvider>,
+    );
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('offline');
+    expect(alert).toHaveAttribute('data-variant', 'screen');
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(container.querySelector('.cobble-asset-overlay')).toBeNull());
+    expect(attempts).toBe(2);
+  });
+});
+
+describe('Screen onClose', () => {
+  it('calls onClose when Escape is pressed and marks the key as handled', () => {
+    const onClose = vi.fn<() => void>();
+    renderWithProvider(<Screen onClose={onClose} background="none" />);
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    document.dispatchEvent(event);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(event.defaultPrevented).toBe(true);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing without a handler or after the key was used', () => {
+    const onClose = vi.fn<() => void>();
+    const { rerender } = renderWithProvider(<Screen background="none" />);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    rerender(
+      <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }}>
+        <Screen onClose={onClose} background="none" />
+      </CobbleProvider>,
+    );
+    const used = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    used.preventDefault();
+    document.dispatchEvent(used);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('leaves Escape to an open dialog, then closes the screen on the next press', async () => {
+    const onClose = vi.fn<() => void>();
+    const user = userEvent.setup();
+    renderWithProvider(
+      <Screen onClose={onClose} background="none">
+        <Dialog defaultOpen title="Sure?">
+          <DialogClose>Cancel</DialogClose>
+        </Dialog>
+      </Screen>,
+    );
+    await user.keyboard('{Escape}');
+    expect(onClose).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the latest handler without re-subscribing', () => {
+    const first = vi.fn<() => void>();
+    const second = vi.fn<() => void>();
+    const { rerender } = renderWithProvider(<Screen onClose={first} background="none" />);
+    rerender(
+      <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }}>
+        <Screen onClose={second} background="none" />
+      </CobbleProvider>,
+    );
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    );
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ChatLog and ChatInput', () => {
+  it('fades a message over the last tenth of its ten seconds', () => {
+    expect(chatMessageOpacity(0)).toBe(1);
+    expect(chatMessageOpacity(8999)).toBe(1);
+    expect(chatMessageOpacity(9000)).toBeCloseTo(1, 5);
+    expect(chatMessageOpacity(9500)).toBeCloseTo(0.25, 5);
+    expect(chatMessageOpacity(10000)).toBe(0);
+    expect(chatMessageOpacity(60000)).toBe(0);
+    expect(chatMessageOpacity(-5)).toBe(1);
+  });
+
+  it('shows recent messages, drops expired ones and sizes the log for 10 closed lines', () => {
+    const messages = [
+      { id: 1, content: 'old news', timestamp: 0 },
+      { id: 2, content: 'fading', timestamp: 500 },
+      { id: 3, content: 'fresh', timestamp: 9900 },
+    ];
+    renderWithProvider(<ChatLog messages={messages} now={10000} />);
+    expect(screen.queryByText('old news')).toBeNull();
+    expect(screen.getByText('fresh')).toHaveStyle({ '--cobble-chat-opacity': '1' });
+    expect(
+      Number(screen.getByText('fading').style.getPropertyValue('--cobble-chat-opacity')),
+    ).toBeCloseTo(0.25, 5);
+    expect(screen.getByRole('log', { name: 'Chat' })).toHaveStyle({
+      '--cobble-width': '320',
+      '--cobble-height': '90',
+    });
+  });
+
+  it('shows every message fully, 20 lines tall, while open', () => {
+    renderWithProvider(
+      <ChatLog open now={999999} messages={[{ id: 1, content: 'ancient', timestamp: 0 }]} />,
+    );
+    expect(screen.getByText('ancient')).toHaveStyle({ '--cobble-chat-opacity': '1' });
+    expect(screen.getByRole('log')).toHaveStyle({ '--cobble-height': '180' });
+  });
+
+  it('scrolls older lines into view with the wheel while open, Shift taking seven at a time', () => {
+    const messages = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      content: `m${String(i)}`,
+      timestamp: 0,
+    }));
+    renderWithProvider(<ChatLog open now={0} messages={messages} />);
+    const log = screen.getByRole('log');
+    expect(log).toHaveStyle({ '--cobble-scroll': '0' });
+    fireEvent.wheel(log, { deltaY: -100 });
+    expect(log).toHaveStyle({ '--cobble-scroll': '1' });
+    fireEvent.wheel(log, { deltaY: -100, shiftKey: true });
+    expect(log).toHaveStyle({ '--cobble-scroll': '8' });
+    fireEvent.wheel(log, { deltaY: 100, shiftKey: true });
+    fireEvent.wheel(log, { deltaY: 100 });
+    fireEvent.wheel(log, { deltaY: 100 });
+    expect(log).toHaveStyle({ '--cobble-scroll': '0' });
+  });
+
+  it('ignores the wheel while closed', () => {
+    renderWithProvider(<ChatLog now={0} messages={[{ id: 1, content: 'x', timestamp: 0 }]} />);
+    fireEvent.wheel(screen.getByRole('log'), { deltaY: -100 });
+    expect(screen.getByRole('log')).toHaveStyle({ '--cobble-scroll': '0' });
+  });
+
+  it('sends a non-empty line on Enter and clears the field', async () => {
+    const onSubmit = vi.fn<(message: string) => void>();
+    const user = userEvent.setup();
+    renderWithProvider(<ChatInput onSubmit={onSubmit} />);
+    const input = screen.getByRole('textbox', { name: 'Chat message' });
+    await user.type(input, '   {Enter}');
+    expect(onSubmit).not.toHaveBeenCalled();
+    await user.clear(input);
+    await user.type(input, 'hello world{Enter}');
+    expect(onSubmit).toHaveBeenCalledWith('hello world');
+    expect(input).toHaveValue('');
+    expect(CHAT_MAX_LENGTH).toBe(256);
+  });
+
+  it('walks back through what was sent with Up and forward with Down', async () => {
+    const user = userEvent.setup();
+    renderWithProvider(<ChatInput onSubmit={() => undefined} />);
+    const input = screen.getByRole('textbox', { name: 'Chat message' });
+    await user.type(input, 'first{Enter}');
+    await user.type(input, 'second{Enter}');
+    await user.type(input, 'second{Enter}');
+    await user.keyboard('{ArrowUp}');
+    expect(input).toHaveValue('second');
+    await user.keyboard('{ArrowUp}');
+    expect(input).toHaveValue('first');
+    await user.keyboard('{ArrowUp}');
+    expect(input).toHaveValue('first');
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveValue('second');
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveValue('');
+  });
+
+  it('uses a history supplied by the caller and lets onKeyDown claim a key', async () => {
+    const onKeyDown = vi.fn<(event: { preventDefault: () => void; key: string }) => void>(
+      (event) => {
+        if (event.key === 'ArrowUp') event.preventDefault();
+      },
+    );
+    const user = userEvent.setup();
+    renderWithProvider(
+      <ChatInput onSubmit={() => undefined} history={['/gamemode']} onKeyDown={onKeyDown} />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Chat message' });
+    await user.type(input, 'x');
+    await user.keyboard('{ArrowUp}');
+    expect(onKeyDown).toHaveBeenCalled();
+    expect(input).toHaveValue('x');
+  });
+});
+
+function mockMotionPreference(matches: boolean): { readonly change: (next: boolean) => void } {
+  const listeners = new Set<() => void>();
+  let current = matches;
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    get matches() {
+      return current && query.includes('reduce');
+    },
+    media: query,
+    addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
+    removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),
+  }));
+  return {
+    change: (next) => {
+      current = next;
+      // A copy: the provider re-registers its own resolution listener on every change.
+      const snapshot = Array.from(listeners);
+      for (const listener of snapshot) listener();
+    },
+  };
+}
+
+function MotionProbe(): ReactElement {
+  return <span data-testid="reduced">{String(usePrefersReducedMotion())}</span>;
+}
+
+describe('usePrefersReducedMotion', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('is false where matchMedia does not exist', () => {
+    vi.stubGlobal('matchMedia', undefined);
+    renderWithProvider(<MotionProbe />);
+    expect(screen.getByTestId('reduced')).toHaveTextContent('false');
+  });
+
+  it('reads the preference and follows changes to it', () => {
+    const motion = mockMotionPreference(true);
+    renderWithProvider(<MotionProbe />);
+    expect(screen.getByTestId('reduced')).toHaveTextContent('true');
+    act(() => motion.change(false));
+    expect(screen.getByTestId('reduced')).toHaveTextContent('false');
+  });
+
+  it('keeps the panorama still when reduced motion is requested, unless told not to', () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) =>
+      frames.push(callback),
+    );
+    vi.stubGlobal('cancelAnimationFrame', () => undefined);
+    mockMotionPreference(true);
+    const { unmount } = renderWithProvider(<Panorama />);
+    expect(frames).toHaveLength(0);
+    unmount();
+    renderWithProvider(<Panorama respectReducedMotion={false} />);
+    expect(frames.length).toBeGreaterThan(0);
   });
 });

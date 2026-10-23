@@ -83,10 +83,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
             // oxlint-disable-next-line react/no-array-index-key -- tabs are identified by position
             key={index}
             className="cobble-placed"
-            style={placeAt(
-              27 * (index % 7),
-              top ? 0 : TAB_MARGIN + CREATIVE_WINDOW_HEIGHT - 4,
-            )}
+            style={placeAt(27 * (index % 7), top ? 0 : TAB_MARGIN + CREATIVE_WINDOW_HEIGHT - 4)}
             label={tab.label}
             row={top ? 'top' : 'bottom'}
             column={column}
@@ -104,7 +101,9 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         rows={5}
         label="Items"
         {...(items === undefined ? {} : { items })}
-        {...(onSlotClick === undefined ? {} : { onSlotClick: (i: number) => onSlotClick('items', i) })}
+        {...(onSlotClick === undefined
+          ? {}
+          : { onSlotClick: (i: number) => onSlotClick('items', i) })}
       />
       <CreativeScroller
         className="cobble-placed"
@@ -121,7 +120,9 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         rows={1}
         label="Hotbar"
         {...(hotbar === undefined ? {} : { items: hotbar })}
-        {...(onSlotClick === undefined ? {} : { onSlotClick: (i: number) => onSlotClick('hotbar', i) })}
+        {...(onSlotClick === undefined
+          ? {}
+          : { onSlotClick: (i: number) => onSlotClick('hotbar', i) })}
       />
     </Component>
   );

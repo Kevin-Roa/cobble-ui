@@ -1,5 +1,6 @@
 import { mergeProps } from '@base-ui/react/merge-props';
-import type { ElementType, JSX, ReactNode } from 'react';
+import { useEffect, type ElementType, type JSX, type ReactNode } from 'react';
+import { useLatest } from '../../internal/hooks.ts';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
 import { useCobble } from '../../provider/context.ts';
 import { Text } from '../../text/Text.tsx';
@@ -52,6 +53,12 @@ export interface ScreenOwnProps {
    * - `"none"`: nothing.
    */
   readonly background?: ScreenBackground;
+  /**
+   * Called when Escape is pressed, like `Screen#onClose` (go back, or close the menu). Ignored while
+   * a dialog is open, so Escape closes the topmost layer first, and when another handler has already
+   * used the key.
+   */
+  readonly onClose?: () => void;
   readonly slotProps?: ScreenSlotProps;
 }
 
@@ -66,6 +73,7 @@ export function Screen<E extends ElementType = 'div'>(props: ScreenProps<E>): JS
     as,
     children,
     background = 'menu',
+    onClose,
     slotProps,
     className,
     style,
@@ -73,6 +81,19 @@ export function Screen<E extends ElementType = 'div'>(props: ScreenProps<E>): JS
   } = props as ScreenProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const { inWorld, menuBlur, unit, deviceScale } = useCobble();
+  const closeHandler = useLatest(onClose);
+  const closable = onClose !== undefined;
+  useEffect(() => {
+    if (!closable) return undefined;
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      event.preventDefault();
+      closeHandler.current?.();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [closable, closeHandler]);
   const showPanorama = (background === 'menu' && !inWorld) || background === 'panorama';
   const dpr = deviceScale / unit;
   const blur = menuBlur >= 1 ? menuBlurSigma(Math.round(menuBlur)) / dpr : 0;

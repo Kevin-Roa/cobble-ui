@@ -1293,4 +1293,189 @@
     left: calc(var(--cobble-x) * var(--cobble-px));
     top: calc(var(--cobble-y) * var(--cobble-px));
   }
+
+  /* Layouts: LinearLayout, GridLayout and FrameLayout */
+  :where(.cobble-linear-layout) {
+    display: flex;
+    gap: calc(var(--cobble-spacing, 0) * var(--cobble-px));
+    align-items: var(--cobble-align, flex-start);
+  }
+
+  :where(.cobble-linear-layout[data-orientation='vertical']) {
+    flex-direction: column;
+  }
+
+  :where(.cobble-linear-layout[data-orientation='horizontal']) {
+    flex-direction: row;
+  }
+
+  :where(.cobble-grid-layout) {
+    display: grid;
+    grid-template-columns: repeat(var(--cobble-columns, 1), max-content);
+    column-gap: calc(var(--cobble-column-spacing, 0) * var(--cobble-px));
+    row-gap: calc(var(--cobble-row-spacing, 0) * var(--cobble-px));
+  }
+
+  :where(.cobble-grid-layout > *) {
+    justify-self: var(--cobble-align-x, start);
+    align-self: var(--cobble-align-y, start);
+  }
+
+  :where(.cobble-frame-layout) {
+    display: grid;
+    min-width: calc(var(--cobble-min-width, 0) * var(--cobble-px));
+    min-height: calc(var(--cobble-min-height, 0) * var(--cobble-px));
+  }
+
+  :where(.cobble-frame-layout > *) {
+    grid-area: 1 / 1;
+    justify-self: var(--cobble-align-x, center);
+    align-self: var(--cobble-align-y, center);
+  }
+
+  /* Options list */
+  :where(.cobble-options-list) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.cobble-options-row, .cobble-options-header) {
+    box-sizing: border-box;
+    margin-left: calc(var(--cobble-row-left) * var(--cobble-px));
+    width: calc(var(--cobble-row-width) * var(--cobble-px));
+    height: calc(var(--cobble-item-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-options-row) {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(10 * var(--cobble-px));
+  }
+
+  :where(.cobble-options-header) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+    color: var(--cobble-text-color);
+    white-space: pre;
+  }
+
+  /* Toast manager: toasts stack down the right edge and slide in from beyond it */
+  :where(.cobble-toast-viewport) {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Progress bar: a 1-unit white border, a 1-unit gap, then the fill */
+  :where(.cobble-progress-bar) {
+    display: block;
+    box-sizing: border-box;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    padding: var(--cobble-px);
+    border: var(--cobble-px) solid #ffffff;
+    background: #000000;
+    overflow: hidden;
+  }
+
+  :where(.cobble-progress-bar-fill) {
+    display: block;
+    height: 100%;
+    width: calc(var(--cobble-fill, 0) * var(--cobble-px));
+    background: #ffffff;
+  }
+
+  :where(.cobble-progress-bar[data-indeterminate] .cobble-progress-bar-fill) {
+    width: 25%;
+    animation: cobble-progress-sweep 1.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes cobble-progress-sweep {
+    from {
+      margin-left: 0;
+    }
+    to {
+      margin-left: 75%;
+    }
+  }
+
+  /* Asset loading overlay */
+  :where(.cobble-asset-overlay) {
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(4 * var(--cobble-px));
+    box-sizing: border-box;
+    padding: calc(8 * var(--cobble-px)) calc(12 * var(--cobble-px));
+    background: rgb(0 0 0 / 80%);
+  }
+
+  :where(.cobble-asset-overlay[data-variant='panel']) {
+    left: 50%;
+    bottom: calc(24 * var(--cobble-px));
+    translate: -50% 0;
+  }
+
+  :where(.cobble-asset-overlay[data-variant='screen']) {
+    inset: 0;
+    justify-content: center;
+    background: #101010;
+  }
+
+  /* Chat */
+  :where(.cobble-chat-log) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: content-box;
+    width: calc((var(--cobble-width) + 8) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    overflow: hidden;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  :where(.cobble-chat-log-lines) {
+    transform: translateY(calc(var(--cobble-scroll, 0) * 9 * var(--cobble-px)));
+  }
+
+  /* Each line is a half-transparent black row, 4 units wider than the text on both sides. */
+  :where(.cobble-chat-line) {
+    box-sizing: border-box;
+    padding: 0 calc(4 * var(--cobble-px));
+    background: rgb(0 0 0 / 50%);
+    opacity: var(--cobble-chat-opacity, 1);
+    color: var(--cobble-text-color);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  :where(.cobble-chat-input) {
+    background: rgb(0 0 0 / 50%);
+  }
+
+  /* Honour the system's request for less motion: toasts appear without sliding and the bar does not sweep. */
+  @media (prefers-reduced-motion: reduce) {
+    :where(.cobble-toast) {
+      transition: none;
+    }
+
+    :where(.cobble-progress-bar[data-indeterminate] .cobble-progress-bar-fill) {
+      animation: none;
+      width: 100%;
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
 import AssetsGuide from './guides/assets.mdx';
+import BuildingScreens from './guides/building-screens.mdx';
 import GettingStarted from './guides/getting-started.mdx';
 import ProviderGuide from './guides/provider.mdx';
 import StylingGuide from './guides/styling.mdx';
@@ -17,6 +18,9 @@ import {
 } from './components/buttons.tsx';
 import {
   AnvilTextFieldPage,
+  ToastManagerPage,
+  ProgressBarPage,
+  AssetLoadingOverlayPage,
   IconPage,
   PlayerPingIconPage,
   RealmsButtonPage,
@@ -41,6 +45,10 @@ import {
   StonecutterScrollerPage,
 } from './components/crafting.tsx';
 import {
+  CreativeInventoryPanelPage,
+  DispenserPanelPage,
+  HopperPanelPage,
+  VillagerTradePanelPage,
   BeaconPanelPage,
   CartographyPanelPage,
   CrafterPanelPage,
@@ -72,6 +80,13 @@ import {
   VillagerScrollerPage,
   VillagerXpBarPage,
 } from './components/containers.tsx';
+import {
+  FrameLayoutPage,
+  GridLayoutPage,
+  LinearLayoutPage,
+  OptionsListPage,
+} from './components/layouts.tsx';
+import { ChatInputPage, ChatLogPage } from './components/chat.tsx';
 import { DialogPage } from './components/dialog.tsx';
 import {
   AdvancementBoxPage,
@@ -136,6 +151,7 @@ export type DocCategory =
   | 'Lists & entries'
   | 'Screens & layout'
   | 'Overlays'
+  | 'Chat'
   | 'HUD'
   | 'Containers & trading'
   | 'Crafting'
@@ -149,6 +165,7 @@ export const DOC_CATEGORIES: readonly DocCategory[] = [
   'Lists & entries',
   'Screens & layout',
   'Overlays',
+  'Chat',
   'HUD',
   'Containers & trading',
   'Crafting',
@@ -168,6 +185,7 @@ export interface DocPage {
 /** The introductory guides, listed above the components. */
 export const GUIDE_PAGES: readonly DocPage[] = [
   { slug: 'getting-started', title: 'Getting Started', mdx: true, Page: GettingStarted },
+  { slug: 'building-screens', title: 'Building Screens', mdx: true, Page: BuildingScreens },
   { slug: 'provider', title: 'Provider', mdx: true, Page: ProviderGuide },
   { slug: 'styling', title: 'Styling', mdx: true, Page: StylingGuide },
   { slug: 'assets', title: 'Assets & Legal', mdx: true, Page: AssetsGuide },
@@ -218,6 +236,10 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('realm-status-icon', 'RealmStatusIcon', 'Lists & entries', RealmStatusIconPage),
 
   entry('panel', 'Panel', 'Screens & layout', PanelPage),
+  entry('linear-layout', 'LinearLayout', 'Screens & layout', LinearLayoutPage),
+  entry('grid-layout', 'GridLayout', 'Screens & layout', GridLayoutPage),
+  entry('frame-layout', 'FrameLayout', 'Screens & layout', FrameLayoutPage),
+  entry('options-list', 'OptionsList', 'Lists & entries', OptionsListPage),
   entry('screen', 'Screen', 'Screens & layout', ScreenPage),
   entry('panorama', 'Panorama', 'Screens & layout', PanoramaPage),
   entry('tabs', 'Tabs', 'Screens & layout', TabsPage),
@@ -225,8 +247,13 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
 
   entry('dialog', 'Dialog', 'Overlays', DialogPage),
   entry('tooltip', 'Tooltip', 'Overlays', TooltipPage),
+  entry('progress-bar', 'ProgressBar', 'Overlays', ProgressBarPage),
+  entry('asset-loading-overlay', 'AssetLoadingOverlay', 'Overlays', AssetLoadingOverlayPage),
+  entry('toast-manager', 'ToastProvider', 'Overlays', ToastManagerPage),
   entry('toast', 'Toast', 'Overlays', ToastPage),
 
+  entry('chat-log', 'ChatLog', 'Chat', ChatLogPage),
+  entry('chat-input', 'ChatInput', 'Chat', ChatInputPage),
   entry('boss-bar', 'BossBar', 'HUD', BossBarPage),
   entry('experience-bar', 'ExperienceBar', 'HUD', ExperienceBarPage),
   entry('jump-bar', 'JumpBar', 'HUD', JumpBarPage),
@@ -291,6 +318,20 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
     'PlayerInventoryGrid',
     'Containers & trading',
     PlayerInventoryGridPage,
+  ),
+  entry(
+    'villager-trade-panel',
+    'VillagerTradePanel',
+    'Containers & trading',
+    VillagerTradePanelPage,
+  ),
+  entry('hopper-panel', 'HopperPanel', 'Containers & trading', HopperPanelPage),
+  entry('dispenser-panel', 'DispenserPanel', 'Containers & trading', DispenserPanelPage),
+  entry(
+    'creative-inventory-panel',
+    'CreativeInventoryPanel',
+    'Containers & trading',
+    CreativeInventoryPanelPage,
   ),
   entry('bundle-slot', 'BundleSlot', 'Containers & trading', BundleSlotPage),
   entry('bundle-progress-bar', 'BundleProgressBar', 'Containers & trading', BundleProgressBarPage),

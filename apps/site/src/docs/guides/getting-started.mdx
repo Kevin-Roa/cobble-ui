@@ -1,5 +1,5 @@
 Cobble UI is a React component library for building interfaces that look and behave like the menus of
-**Minecraft: Java Edition 26.3**: buttons, sliders, text fields, tooltips, tabs, lists and full screens.
+**Minecraft: Java Edition 26.3**: buttons, sliders, text fields, tooltips, tabs, lists, layouts, toasts, HUD elements, inventories and full screens. There are 117 components; the sidebar groups them by area and has a search box.
 
 Every component draws the _real_ game sprites (downloaded from Mojang at runtime, see "Assets & Legal")
 using the same nine-slice, tiling and sampling rules as the game, so they are pixel-identical at every GUI scale.
@@ -37,7 +37,7 @@ export function App() {
 ```
 
 The first visit downloads the official 26.3 client (about 41 MB, verified with Mojang's SHA-1) and keeps only
-the GUI textures in the browser cache. Use `useAssets()` to show progress, like this site does.
+the GUI textures in the browser cache. Add `<AssetLoadingOverlay />` anywhere inside the provider to show the download progress (it renders nothing once the assets are ready), or read it yourself with `useAssets()`.
 
 ## Conventions
 
@@ -45,3 +45,14 @@ the GUI textures in the browser cache. Use `useAssets()` to show progress, like 
 - **`as`.** Every component that renders an element accepts `as` to render something else, such as a router link.
 - **`slotProps`.** Components with inner parts (labels, sprites, inputs) take `slotProps` to pass props to them.
 - **No styling lock-in.** The stylesheet only uses zero-specificity selectors, so your own CSS always wins.
+
+## Accessibility
+
+Every interactive component is checked with axe-core in the test suite, and widgets have accessible names
+(a slider is named by its label, a bar by what it measures). Pass `aria-label` to override a default.
+Tab-like buttons (advancement, creative and recipe book tabs) are toggle buttons with `aria-pressed`; if you
+need a real tab list, wrap them in `role="tablist"` and pass `role="tab"` and `aria-selected` yourself.
+
+Motion follows the system setting: with `prefers-reduced-motion: reduce` the panorama holds still, toasts
+appear without sliding and indeterminate progress bars do not sweep. `usePrefersReducedMotion()` gives you the
+same flag for your own animations.

@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type FocusEvent,
   type PointerEvent,
   type Ref,
@@ -137,6 +138,29 @@ export function useAnimationFrame(active: boolean, callback: (time: number) => v
     });
     return () => cancelAnimationFrame(frame);
   }, [active, latest]);
+}
+
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+function subscribeReducedMotion(onChange: () => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function')
+    return () => undefined;
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+function getReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(REDUCED_MOTION_QUERY).matches
+  );
+}
+
+/** Whether the user asked their system to reduce motion (`prefers-reduced-motion: reduce`). */
+export function usePrefersReducedMotion(): boolean {
+  return useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
 }
 
 /** Returns a value and a callback ref that stores the element in state. */

@@ -1,10 +1,9 @@
 import 'cobble-ui/styles.css';
 import './site.css';
-import { CobbleProvider, minecraftTtf } from 'cobble-ui';
+import { AssetLoadingOverlay, CobbleProvider, ToastProvider, minecraftTtf } from 'cobble-ui';
 import { StrictMode, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
-import { AssetLoader } from './components/AssetLoader.tsx';
 import { router } from './router.tsx';
 import { SettingsProvider, useSettings } from './settings.tsx';
 
@@ -20,8 +19,10 @@ function App(): JSX.Element {
       menuBlur={settings.menuBlur}
       panoramaSpeed={settings.panoramaSpeed}
     >
-      <RouterProvider router={router} />
-      <AssetLoader />
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
+      <AssetLoadingOverlay note="(first visit only)" />
     </CobbleProvider>
   );
 }

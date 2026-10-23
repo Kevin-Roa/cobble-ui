@@ -50,11 +50,15 @@ export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Elem
 
   const onSearchKeyDown = (event: KeyboardEvent): void => {
     if (event.key === 'Enter' && first) void navigate(`/docs/${first.slug}`);
-    else if (event.key === 'Escape') setQuery('');
+    else if (event.key === 'Escape' && query !== '') {
+      // Clearing the search uses the key; with nothing to clear, Escape goes back a screen.
+      event.preventDefault();
+      setQuery('');
+    }
   };
 
   return (
-    <Screen className="site-screen">
+    <Screen className="site-screen" onClose={() => void navigate('/')}>
       <ScreenLayout
         title={title}
         footerHeight={45}

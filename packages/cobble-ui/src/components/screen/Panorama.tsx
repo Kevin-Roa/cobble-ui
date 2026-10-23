@@ -2,6 +2,7 @@ import { mergeProps } from '@base-ui/react/merge-props';
 import { useRef, useState, type ElementType, type JSX } from 'react';
 import {
   useAnimationFrame,
+  usePrefersReducedMotion,
   useElementState,
   useIsomorphicLayoutEffect,
 } from '../../internal/hooks.ts';
@@ -86,6 +87,8 @@ export interface PanoramaOwnProps {
   readonly speed?: number;
   /** Stop rotating (`Panorama#holdSpin`). */
   readonly paused?: boolean;
+  /** Hold still when the system asks to reduce motion. Defaults to `true`. */
+  readonly respectReducedMotion?: boolean;
   /** Draw `panorama_overlay.png` on top. Defaults to `true`. */
   readonly overlay?: boolean;
   readonly slotProps?: PanoramaSlotProps;
@@ -103,6 +106,7 @@ export function Panorama<E extends ElementType = 'div'>(props: PanoramaProps<E>)
     base = BASE,
     speed,
     paused = false,
+    respectReducedMotion = true,
     overlay = true,
     slotProps,
     className,
@@ -112,6 +116,8 @@ export function Panorama<E extends ElementType = 'div'>(props: PanoramaProps<E>)
   const Component: ElementType = as ?? 'div';
   const { panoramaSpeed } = useCobble();
   const effectiveSpeed = speed ?? panoramaSpeed;
+  const reducedMotion = usePrefersReducedMotion();
+  const still = paused || (respectReducedMotion && reducedMotion);
   const urls = [
     useObjectUrl(`${base}_0.png`),
     useObjectUrl(`${base}_1.png`),
@@ -143,7 +149,7 @@ export function Panorama<E extends ElementType = 'div'>(props: PanoramaProps<E>)
     }
   };
   useIsomorphicLayoutEffect(() => apply(sharedSpin));
-  useAnimationFrame(!paused, (time) => apply(advance(time, effectiveSpeed)));
+  useAnimationFrame(!still, (time) => apply(advance(time, effectiveSpeed)));
 
   const rootStyle: CssVariables = {
     '--cobble-panorama-depth': `${String(depth)}px`,

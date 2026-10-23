@@ -300,30 +300,3 @@ body {
   text-align: center;
   white-space: normal;
 }
-
-.site-loader {
-  position: fixed;
-  left: 50%;
-  bottom: calc(24 * var(--cobble-px));
-  translate: -50% 0;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(4 * var(--cobble-px));
-  padding: calc(8 * var(--cobble-px)) calc(12 * var(--cobble-px));
-  background: rgb(0 0 0 / 80%);
-}
-
-.site-loader-bar {
-  box-sizing: border-box;
-  width: calc(200 * var(--cobble-px));
-  height: calc(6 * var(--cobble-px));
-  padding: var(--cobble-px);
-  border: var(--cobble-px) solid #fff;
-}
-
-.site-loader-bar-fill {
-  height: 100%;
-  background: #fff;
-}

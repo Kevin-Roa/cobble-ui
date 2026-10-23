@@ -1,0 +1,83 @@
+The game builds every menu from a few ideas: a `Screen` with a header and footer, a list in the middle, and
+columns and rows of widgets laid out with a fixed gap. Cobble UI has the same pieces, so a screen is mostly
+composition.
+
+## A title menu
+
+`LinearLayout` stacks widgets with a gap, and `align` places them across the axis:
+
+```tsx
+import { Button, LinearLayout, Screen } from 'cobble-ui';
+
+<Screen background="panorama">
+  <LinearLayout spacing={4} align="center">
+    <Button width={200}>Singleplayer</Button>
+    <Button width={200}>Multiplayer</Button>
+    <LinearLayout orientation="horizontal" spacing={4}>
+      <Button width={98}>Options...</Button>
+      <Button width={98}>Quit Game</Button>
+    </LinearLayout>
+  </LinearLayout>
+</Screen>;
+```
+
+Use `GridLayout` when columns should line up (it sizes each column to its widest cell, and `GridLayoutCell`
+spans columns), and `FrameLayout` to centre something in the space a screen leaves.
+
+## An options screen
+
+`ScreenLayout` gives the title, a footer, and a content area that fills the space between them. `OptionsList`
+fills that area with the menu list background, separators and a scrollbar. Rows hold one widget (`310` wide)
+or two (`150` each):
+
+```tsx
+import {
+  Button,
+  CycleButton,
+  OptionsList,
+  OptionsListHeader,
+  OptionsListRow,
+  Screen,
+  ScreenLayout,
+  Slider,
+} from 'cobble-ui';
+
+<Screen onClose={goBack}>
+  <ScreenLayout title="Video Settings" footerHeight={45} footer={<Button width={200}>Done</Button>}>
+    <OptionsList>
+      <OptionsListHeader>Graphics</OptionsListHeader>
+      <OptionsListRow>
+        <Slider width={150} label="FOV" min={30} max={110} value={fov} onValueChange={setFov} />
+        <CycleButton
+          width={150}
+          label="Graphics"
+          values={modes}
+          value={mode}
+          onValueChange={setMode}
+        />
+      </OptionsListRow>
+    </OptionsList>
+  </ScreenLayout>
+</Screen>;
+```
+
+## Going back with Escape
+
+Pass `onClose` to `Screen` and Escape calls it, like `Screen#onClose` in the game. It is ignored while a
+`Dialog` is open, so Escape closes the topmost layer first, and when another handler has already used the key
+(call `event.preventDefault()` in an input's `onKeyDown` to keep Escape for yourself).
+
+## Telling the player something
+
+Wrap your app in `ToastProvider` once, then call `useToasts().show()` from any screen. Toasts stack down the
+right edge, slide in and out, and play the game's sounds:
+
+```tsx
+const toasts = useToasts();
+toasts.show({ title: 'Settings saved', messages: ['Back to the defaults'] });
+```
+
+## Loading
+
+The first visit downloads the game client. Put `<AssetLoadingOverlay />` inside the provider to show its
+progress (it renders nothing once the assets are ready), or use `variant="screen"` to cover the page.

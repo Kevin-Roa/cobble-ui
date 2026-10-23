@@ -55,6 +55,7 @@ export function ExperienceBar<E extends ElementType = 'div'>(
           className: cx('cobble-stat-bar', 'cobble-experience-bar', className),
           style: rootStyle,
           role: 'progressbar',
+          'aria-label': 'Experience',
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),

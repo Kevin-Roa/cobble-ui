@@ -81,7 +81,12 @@ export function AdvancementWidget<E extends ElementType = 'div'>(
   return (
     <Component
       {...mergeProps<'div'>(
-        { className: cx('cobble-advancement-widget', className), style: rootStyle },
+        {
+          className: cx('cobble-advancement-widget', className),
+          style: rootStyle,
+          role: 'group',
+          'aria-label': typeof title === 'string' ? title : undefined,
+        },
         rest,
       )}
       data-expanded={expanded ? '' : undefined}
@@ -133,7 +138,6 @@ export function AdvancementWidget<E extends ElementType = 'div'>(
         className={cx('cobble-advancement-widget-frame', slotProps?.frame?.className)}
         type={type}
         obtained={obtained}
-        aria-label={typeof title === 'string' ? title : undefined}
       >
         {children}
       </AdvancementFrame>

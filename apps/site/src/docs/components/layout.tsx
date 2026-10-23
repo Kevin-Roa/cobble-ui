@@ -277,6 +277,35 @@ export function PanoramaPage(): JSX.Element {
         </div>
       </Demo>
       <CodeBlock code={`<Panorama speed={1} />\n<SplashText>Pixel perfect!</SplashText>`} />
+      <H2>Props</H2>
+      <PropsTable
+        rows={[
+          {
+            name: 'speed',
+            type: 'number',
+            description: "Rotation speed multiplier; defaults to the provider's panoramaSpeed.",
+          },
+          { name: 'paused', type: 'boolean', defaultValue: 'false', description: 'Stop rotating.' },
+          {
+            name: 'respectReducedMotion',
+            type: 'boolean',
+            defaultValue: 'true',
+            description: 'Hold still when the system asks to reduce motion.',
+          },
+          {
+            name: 'overlay',
+            type: 'boolean',
+            defaultValue: 'true',
+            description: 'Draw the panorama overlay on top.',
+          },
+          {
+            name: 'base',
+            type: 'string',
+            description: 'Base name of the six images in the asset index.',
+          },
+          AS,
+        ]}
+      />
     </>
   );
 }

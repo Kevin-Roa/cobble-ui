@@ -163,7 +163,9 @@ export function AdvancementTabPage(): JSX.Element {
           right; 28×32 or 32×28), <Code>position</Code> picks <Code>first</Code>,{' '}
           <Code>middle</Code> or <Code>last</Code> along it, and <Code>selected</Code> draws the
           raised variant. The icon is centred in the sprite, which approximates the game&apos;s
-          placement.
+          placement. It is a toggle button (<Code>aria-pressed</Code>). To build a real tab list,
+          put the tabs in an element with <Code>role=&quot;tablist&quot;</Code> and pass{' '}
+          <Code>role=&quot;tab&quot;</Code> and <Code>aria-selected</Code> to each.
         </>
       }
       demo={
