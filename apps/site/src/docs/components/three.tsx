@@ -1,4 +1,4 @@
-import { ThreeViewport, createBoxGeometry, type ThreeSceneContext } from "cobble-ui";
+import { BlockModel, ThreeViewport, createBoxGeometry, type ThreeSceneContext } from "cobble-ui";
 import { useState, type JSX } from "react";
 import { Code, ComponentDoc } from "../../components/Prose.tsx";
 
@@ -152,6 +152,66 @@ export function ThreeViewportPage(): JSX.Element {
           type: "ReactNode",
           description: "Shown while loading and when WebGL is unavailable.",
         },
+      ]}
+    />
+  );
+}
+
+const BLOCK_CODE = `<BlockModel name="furnace" width={64} height={64} />
+<BlockModel name="grass_block" followMouse rotatable={false} />
+<BlockModel name="stone" autoRotate />`;
+
+export function BlockModelPage(): JSX.Element {
+  const [follow, setFollow] = useState(false);
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          Any block or item model from the game files as real three.js geometry:
+          the elements of <Code>models/**.json</Code> with per-face uv and
+          rotation, element rotation, tints and the vanilla face shading (top
+          1.0, north/south 0.8, east/west 0.6, bottom 0.5). It resolves the item
+          definition like <Code>ItemIcon</Code>, but without the inventory
+          display transform so it can be turned freely. Drag or use the arrow
+          keys. Without WebGL (or while loading) the flat <Code>ItemIcon</Code>{" "}
+          is shown. Needs the optional <Code>three</Code> peer dependency.
+        </>
+      }
+      demo={
+        <>
+          <div className="site-row">
+            {["stone", "grass_block", "furnace", "oak_log", "crafting_table", "torch", "oak_stairs"].map(
+              (name) => (
+                <BlockModel
+                  key={name}
+                  name={name}
+                  rotatable={!follow}
+                  followMouse={follow}
+                  initialYaw={follow ? 0 : -35}
+                />
+              ),
+            )}
+          </div>
+          <label>
+            <input
+              type="checkbox"
+              checked={follow}
+              onChange={(event) => setFollow(event.target.checked)}
+            />{" "}
+            Follow mouse
+          </label>
+        </>
+      }
+      code={BLOCK_CODE}
+      rows={[
+        { name: "name", type: "string", description: "Item or block id: stone, furnace, oak_stairs, ..." },
+        { name: "aria-label", type: "string", description: "Accessible name. Defaults to the id." },
+        { name: "width / height", type: "number", defaultValue: "64", description: "Size in GUI units." },
+        { name: "rotatable", type: "boolean", defaultValue: "true", description: "Drag or press the arrow keys to turn the model." },
+        { name: "followMouse", type: "boolean", defaultValue: "false", description: "Turns toward the cursor." },
+        { name: "autoRotate", type: "boolean | number", defaultValue: "false", description: "Spin around the vertical axis." },
+        { name: "initialYaw / initialPitch", type: "number", defaultValue: "-35 / 25", description: "Starting rotation in degrees." },
+        { name: "camera", type: "{ fov?, position?, target? }", defaultValue: "{ position: [0, 0, 4.2] }", description: "Camera setup, as for ThreeViewport." },
       ]}
     />
   );

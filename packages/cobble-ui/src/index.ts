@@ -976,6 +976,10 @@ export type {
   HotbarWithStatsProps,
 } from './components/hotbar/HotbarWithStats.tsx';
 
+export { BlockModel } from './components/three/BlockModel.tsx';
+export type { BlockModelProps } from './components/three/BlockModel.tsx';
+export { bakeParts, faceShade, modelTextures } from './render/three/model.ts';
+export type { BakedMesh, BakeOptions } from './render/three/model.ts';
 export { ThreeViewport } from './components/three/ThreeViewport.tsx';
 export type {
   ThreeCameraOptions,
