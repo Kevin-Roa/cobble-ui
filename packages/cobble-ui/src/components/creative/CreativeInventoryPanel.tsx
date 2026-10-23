@@ -53,6 +53,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
 ): JSX.Element {
   const {
     as,
+    background = true,
     tabs = [],
     selectedTab = 0,
     onTabClick,
@@ -73,7 +74,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
     CREATIVE_WINDOW_HEIGHT + 2 * TAB_MARGIN,
     className,
     style,
-    rest,
+    { ...rest, background },
   );
   return (
     <Component {...root}>
@@ -99,6 +100,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
       <SlotGrid
         className="cobble-placed"
         style={placeAt(9, TAB_MARGIN + 18)}
+        bare={background}
         columns={9}
         rows={5}
         label="Items"
@@ -118,6 +120,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
       <SlotGrid
         className="cobble-placed"
         style={placeAt(9, TAB_MARGIN + 112)}
+        bare={background}
         columns={9}
         rows={1}
         label="Hotbar"
