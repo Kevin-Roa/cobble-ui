@@ -134,6 +134,7 @@ export function Hotbar<E extends ElementType = 'div'>(props: HotbarProps<E>): JS
         },
         rest,
       )}
+      data-captures-wheel={wheel ? '' : undefined}
     >
       <Sprite sprite="hud/hotbar" width={HOTBAR_WIDTH} height={HOTBAR_HEIGHT} />
       <Sprite

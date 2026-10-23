@@ -48,6 +48,7 @@ export function ContainerError(props: ContainerErrorProps): JSX.Element {
       sprite={sprite}
       width={width}
       height={height}
+      data-flow=""
     />
   );
 }

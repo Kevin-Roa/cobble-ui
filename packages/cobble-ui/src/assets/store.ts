@@ -1,5 +1,6 @@
 import { composeSprite, type RgbaImage, type Sprite } from '../render/blit.ts';
 import { decodePng } from '../render/png.ts';
+import { parseSpriteAnimation } from '../render/animation.ts';
 import { parseSpriteScaling } from '../render/scaling.ts';
 import type { AssetBundle, AssetLoadProgress, AssetSource } from './types.ts';
 
@@ -46,6 +47,7 @@ export class AssetStore {
   private readonly listeners = new Set<() => void>();
   private readonly sprites = new Map<string, Entry<Sprite>>();
   private readonly textures = new Map<string, Entry<RgbaImage>>();
+  private readonly json = new Map<string, Entry<unknown>>();
   private readonly blobUrls = new Map<string, string>();
   private readonly composed = new Map<string, RgbaImage>();
   private controller: AbortController | undefined;
@@ -92,6 +94,7 @@ export class AssetStore {
     this.controller?.abort();
     this.sprites.clear();
     this.textures.clear();
+    this.json.clear();
     this.composed.clear();
     for (const url of this.blobUrls.values()) URL.revokeObjectURL(url);
     this.blobUrls.clear();
@@ -139,9 +142,13 @@ export class AssetStore {
     const mcmeta = bundle.file(`${path}.mcmeta`);
     Promise.all([png.arrayBuffer(), mcmeta?.text()])
       .then(([bytes, meta]) => {
+        const image = decodePng(new Uint8Array(bytes));
+        const json: unknown = meta === undefined ? undefined : JSON.parse(meta);
+        const animation = parseSpriteAnimation(json, image.width, image.height);
         const sprite: Sprite = {
-          image: decodePng(new Uint8Array(bytes)),
-          scaling: parseSpriteScaling(meta === undefined ? undefined : JSON.parse(meta)),
+          image,
+          scaling: parseSpriteScaling(json),
+          ...(animation === undefined ? {} : { animation }),
         };
         this.sprites.set(id, { status: 'ready', value: sprite });
         this.emit();
@@ -177,6 +184,50 @@ export class AssetStore {
         this.textures.set(id, { status: 'missing' });
       });
     return undefined;
+  }
+
+  /**
+   * Returns a parsed JSON file from the client (`assets/minecraft/items/stone.json`): the value
+   * once loaded, `null` when the file does not exist or is not JSON, `undefined` while loading.
+   */
+  getJson(path: string): unknown {
+    const entry = this.json.get(path);
+    if (entry)
+      return entry.status === 'ready' ? entry.value : entry.status === 'missing' ? null : undefined;
+    const bundle = this.state.bundle;
+    if (!bundle) return undefined;
+    const file = bundle.file(path);
+    if (!file) {
+      this.json.set(path, { status: 'missing' });
+      return null;
+    }
+    this.json.set(path, { status: 'pending' });
+    file
+      .text()
+      .then((text) => {
+        this.json.set(path, { status: 'ready', value: JSON.parse(text) as unknown });
+        this.emit();
+      })
+      .catch(() => {
+        this.json.set(path, { status: 'missing' });
+        this.emit();
+      });
+    return undefined;
+  }
+
+  /** Every file path in the loaded client files that starts with `prefix` and ends with `suffix`. */
+  listPaths(prefix: string, suffix = ''): readonly string[] {
+    const paths = this.state.bundle?.paths?.();
+    if (!paths) return [];
+    const found: string[] = [];
+    for (const path of paths)
+      if (path.startsWith(prefix) && path.endsWith(suffix)) found.push(path);
+    return found.toSorted();
+  }
+
+  /** Whether the client has a texture (`item/diamond_sword`), without decoding it or warning. */
+  hasTexture(id: string): boolean {
+    return this.state.bundle?.file(texturePath(id)) !== undefined;
   }
 
   /** Returns a `blob:` URL for a client file, suitable for `<img>` or CSS. */

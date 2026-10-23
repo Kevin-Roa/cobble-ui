@@ -125,6 +125,7 @@ export function ChatLog<E extends ElementType = 'div'>(props: ChatLogProps<E>): 
         rest,
       )}
       data-open={open ? '' : undefined}
+      data-captures-wheel={open ? '' : undefined}
     >
       <div className="cobble-chat-log-lines">
         {visible.map((message) => (

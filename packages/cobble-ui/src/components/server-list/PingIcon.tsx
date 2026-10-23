@@ -55,5 +55,13 @@ export function PingIcon(props: PingIconProps): JSX.Element {
       : latency === 'pinging'
         ? pingingSprite(tick * 100, index)
         : pingSprite(latency);
-  return <Sprite {...rest} sprite={sprite} width={PING_ICON_WIDTH} height={PING_ICON_HEIGHT} />;
+  return (
+    <Sprite
+      {...rest}
+      sprite={sprite}
+      width={PING_ICON_WIDTH}
+      height={PING_ICON_HEIGHT}
+      data-flow=""
+    />
+  );
 }

@@ -21,13 +21,5 @@ export interface RealmStatusIconProps extends Omit<
  */
 export function RealmStatusIcon(props: RealmStatusIconProps): JSX.Element {
   const { status, ...rest } = props;
-  return (
-    <AnimatedSprite
-      {...rest}
-      sprite={`realm_status/${status}`}
-      frameWidth={REALM_STATUS_WIDTH}
-      frameHeight={REALM_STATUS_HEIGHT}
-      frametime={10}
-    />
-  );
+  return <AnimatedSprite {...rest} sprite={`realm_status/${status}`} />;
 }

@@ -1,4 +1,4 @@
-import { InventorySlot, type EmptySlotIcon } from 'cobble-ui';
+import { InventorySlot, ItemIcon, type EmptySlotIcon } from 'cobble-ui';
 import type { JSX } from 'react';
 import { Code, ComponentDoc } from '../../components/Prose.tsx';
 
@@ -31,9 +31,7 @@ export function InventorySlotPage(): JSX.Element {
             <InventorySlot key={icon} emptyIcon={icon} aria-label={`Empty ${icon} slot`} />
           ))}
           <InventorySlot aria-label="Item" count={64}>
-            <span className="cobble-text" data-shadow="">
-              ◆
-            </span>
+            <ItemIcon name="diamond" />
           </InventorySlot>
         </div>
       }

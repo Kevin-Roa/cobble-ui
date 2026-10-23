@@ -245,7 +245,7 @@ export interface CartographyMapProps extends Omit<SpriteProps, 'sprite' | 'width
 export function CartographyMap(props: CartographyMapProps): JSX.Element {
   const { kind, ...rest } = props;
   const { sprite, width, height } = MAP_SPRITES[kind];
-  return <Sprite {...rest} sprite={sprite} width={width} height={height} />;
+  return <Sprite {...rest} sprite={sprite} width={width} height={height} data-flow="" />;
 }
 
 // ------------------------------------------------------------------------------------- horse

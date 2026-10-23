@@ -9,6 +9,7 @@ import {
   type EnchantmentOption,
 } from './EnchantmentSlot.tsx';
 import { InventorySlot } from './InventorySlot.tsx';
+import { useContainerBackground } from './StationPanels.tsx';
 import type { SlotGridItem } from './SlotGrid.tsx';
 
 /** Where the slots sit, in the enchanting screen's own coordinates (`EnchantmentMenu`). */
@@ -36,6 +37,8 @@ export interface EnchantingOption {
 }
 
 export interface EnchantingTablePanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   /** The item to enchant. */
   readonly item?: SlotGridItem | undefined;
   /** The lapis lazuli stack. */
@@ -57,7 +60,7 @@ const OPTIONS: readonly EnchantmentOption[] = [1, 2, 3];
 /**
  * The interactive part of the enchanting table screen: the item slot, the lapis slot (with its
  * placeholder icon while empty) and the three option rows, at the game's own coordinates. The
- * book and the screen background are not drawn. The slot coordinates are recalled from vanilla
+ * book is not drawn; the screen background is, unless `background` is false. The slot coordinates are recalled from vanilla
  * and are approximations.
  */
 export function EnchantingTablePanel<E extends ElementType = 'div'>(
@@ -71,21 +74,33 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
     onItemClick,
     onLapisClick,
     onOptionClick,
+    background = true,
     className,
     style,
     ...rest
   } = props as EnchantingTablePanelProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const { itemSlot, lapisSlot, optionsX, optionsY } = ENCHANTING_LAYOUT;
+  const container = useContainerBackground(
+    'enchanting',
+    optionsX + ENCHANTMENT_SLOT_WIDTH,
+    optionsY + 3 * ENCHANTMENT_SLOT_HEIGHT,
+    background,
+  );
   const rootStyle: CssVariables = {
-    '--cobble-width': optionsX + ENCHANTMENT_SLOT_WIDTH,
-    '--cobble-height': optionsY + 3 * ENCHANTMENT_SLOT_HEIGHT,
+    '--cobble-width': container.width,
+    '--cobble-height': container.height,
+    ...container.style,
     ...style,
   };
   return (
     <Component
       {...mergeProps<'div'>(
-        { className: cx('cobble-enchanting-panel', className), style: rootStyle },
+        {
+          className: cx('cobble-enchanting-panel', className),
+          style: rootStyle,
+          ...container.attributes,
+        },
         rest,
       )}
     >

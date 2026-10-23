@@ -110,6 +110,7 @@ export function Icon(props: IconProps): JSX.Element {
       width={width}
       height={height}
       data-icon={name}
+      data-flow=""
     />
   );
 }

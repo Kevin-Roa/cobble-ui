@@ -103,7 +103,10 @@ import {
   LinearLayout,
   LoomPatternButton,
   LoomScroller,
+  EffectIcon,
+  ItemIcon,
   MusicNotes,
+  PlayerHead,
   Panel,
   PlayerActionButton,
   PlayerPingIcon,
@@ -340,6 +343,9 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['LoomPatternButton', <LoomPatternButton key="a" label="Border" selected />],
   ['LoomScroller', <LoomScroller key="a" />],
   ['MusicNotes', <MusicNotes key="a" />],
+  ['ItemIcon', <ItemIcon key="a" name="apple" />],
+  ['EffectIcon', <EffectIcon key="a" name="speed" />],
+  ['PlayerHead', <PlayerHead key="a" />],
   [
     'Panel',
     <Panel key="a" width={100} height={40}>

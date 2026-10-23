@@ -23,5 +23,5 @@ export interface PlayerPingIconProps extends Omit<SpriteProps, 'sprite' | 'width
  */
 export function PlayerPingIcon(props: PlayerPingIconProps): JSX.Element {
   const { latency, ...rest } = props;
-  return <Sprite {...rest} sprite={playerPingSprite(latency)} width={10} height={8} />;
+  return <Sprite {...rest} sprite={playerPingSprite(latency)} width={10} height={8} data-flow="" />;
 }

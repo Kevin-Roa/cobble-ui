@@ -2,7 +2,7 @@ import type { ElementType, JSX, ReactNode } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { placeAt } from '../shared.ts';
 import { SlotGrid, type SlotGridItem } from '../slot/SlotGrid.tsx';
-import { panelRoot } from '../slot/StationPanels.tsx';
+import { usePanelRoot } from '../slot/StationPanels.tsx';
 import { CreativeScroller } from './CreativeScroller.tsx';
 import { CreativeTab, type CreativeTabColumn } from './CreativeTab.tsx';
 
@@ -20,6 +20,8 @@ export interface CreativeInventoryTab {
 }
 
 export interface CreativeInventoryPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   /** Up to 14 tabs: the first seven go along the top, the rest along the bottom. */
   readonly tabs?: readonly CreativeInventoryTab[];
   readonly selectedTab?: number;
@@ -44,7 +46,7 @@ export type CreativeInventoryPanelProps<E extends ElementType = 'div'> = Polymor
 /**
  * The interactive part of the creative inventory screen: the tabs along the top and bottom, the
  * 9×5 item grid with its scroller, and the hotbar row. Coordinates are recalled from vanilla and
- * are approximations; the window's artwork is not drawn.
+ * are approximations; the window's artwork is drawn behind it unless `background` is false.
  */
 export function CreativeInventoryPanel<E extends ElementType = 'div'>(
   props: CreativeInventoryPanelProps<E>,
@@ -64,7 +66,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as CreativeInventoryPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'creative-panel',
     CREATIVE_WINDOW_WIDTH,

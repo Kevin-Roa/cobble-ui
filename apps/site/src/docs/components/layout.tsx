@@ -19,6 +19,7 @@ import {
 } from 'cobble-ui';
 import type { JSX } from 'react';
 import { Code, CodeBlock, Demo, H2, P, PropsTable } from '../../components/Prose.tsx';
+import { SpriteExplorer } from './explorers.tsx';
 
 const AS = {
   name: 'as',
@@ -384,6 +385,7 @@ export function SpritePage(): JSX.Element {
         </div>
       </Demo>
       <CodeBlock code={`<Sprite sprite="widget/button" width={60} height={40} />`} />
+      <SpriteExplorer />
     </>
   );
 }

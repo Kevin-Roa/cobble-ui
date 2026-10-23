@@ -33,6 +33,11 @@
     pointer-events: none;
   }
 
+  /* Standalone sprites (icons, ping bars, …) sit in the normal flow; a parent that places them overrides this. */
+  :where(.cobble-sprite[data-flow]) {
+    position: relative;
+  }
+
   :where(.cobble-tiled-texture) {
     display: block;
     background-repeat: repeat;
@@ -455,6 +460,8 @@
     width: calc(var(--cobble-row-width) * var(--cobble-px));
     height: calc(var(--cobble-height) * var(--cobble-px));
     padding: calc(3 * var(--cobble-px)) calc(2 * var(--cobble-px)) 0;
+    /* One text line, so the strut of a taller inherited line-height cannot push the label out of the row. */
+    line-height: calc(9 * var(--cobble-px));
     overflow: hidden;
     white-space: nowrap;
     cursor: default;
@@ -1286,6 +1293,27 @@
     display: block;
     width: calc(var(--cobble-width) * var(--cobble-px));
     height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  /* The screen's own artwork: the window part of its 256-wide texture sheet, behind the slots. */
+  :where([data-container-background]) {
+    isolation: isolate;
+  }
+
+  :where([data-container-background])::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: calc(var(--cobble-container-y, 0) * var(--cobble-px));
+    width: calc(var(--cobble-container-width) * var(--cobble-px));
+    height: calc(var(--cobble-container-height) * var(--cobble-px));
+    background-image: var(--cobble-container-image, none);
+    background-repeat: no-repeat;
+    background-size: calc(var(--cobble-container-sheet-width) * var(--cobble-px))
+      calc(var(--cobble-container-sheet-height) * var(--cobble-px));
+    image-rendering: pixelated;
+    pointer-events: none;
   }
 
   :where(.cobble-station-panel .cobble-placed) {

@@ -2,6 +2,7 @@ import type { SpriteId } from '../../assets/sprite-id.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useState, type ElementType, type JSX, type ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
+import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
 import { SERVER_ENTRY_HEIGHT, SERVER_ENTRY_WIDTH, SERVER_ICON_SIZE } from './ServerListEntry.tsx';
@@ -63,6 +64,8 @@ export function WorldListEntry<E extends ElementType = 'div'>(
     ...rest
   } = props as WorldListEntryProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const fallbackIcon = useTextureUrl('misc/unknown_server');
+  const iconUrl = icon ?? fallbackIcon;
   const [hovered, setHovered] = useState(false);
   const [overIcon, setOverIcon] = useState(false);
   const rootStyle: CssVariables = {
@@ -88,12 +91,12 @@ export function WorldListEntry<E extends ElementType = 'div'>(
       data-hovered={hovered ? '' : undefined}
       data-status={status}
     >
-      {icon === undefined ? null : (
+      {iconUrl === undefined ? null : (
         <img
           alt=""
           {...slotProps?.icon}
           className={cx('cobble-server-entry-icon', slotProps?.icon?.className)}
-          src={icon}
+          src={iconUrl}
           style={placeAt(0, 0, slotProps?.icon?.style)}
         />
       )}

@@ -5,6 +5,7 @@ import { BrewArrow, FuelBar } from '../bar/BrewingProgress.tsx';
 import { BrewBubbles } from '../bar/BrewingBubbles.tsx';
 import { CookingArrow, FuelFlame, type CookingStation } from '../bar/CookingProgress.tsx';
 import { StonecutterRecipeButton, StonecutterScroller } from '../button/ContainerButtons.tsx';
+import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { ContainerError } from '../sprite/ContainerError.tsx';
 import { AnvilTextField } from '../text-field/AnvilTextField.tsx';
@@ -35,7 +36,82 @@ export function StationSlot(props: {
   );
 }
 
-export function panelRoot<E extends ElementType>(
+/** A container screen's background in the client (`textures/gui/container/*.png`, a 256-wide sheet). */
+interface ContainerTexture {
+  readonly texture: string;
+  /** Size of the screen's window (`imageWidth` × `imageHeight`). */
+  readonly width: number;
+  readonly height: number;
+  readonly sheetWidth?: number;
+  readonly sheetHeight?: number;
+  /** Where the window starts inside the panel. */
+  readonly offsetY?: number;
+}
+
+const CONTAINER_TEXTURES: Readonly<Record<string, ContainerTexture>> = {
+  anvil: { texture: 'anvil', width: 176, height: 166 },
+  beacon: { texture: 'beacon', width: 230, height: 219 },
+  blast_furnace: { texture: 'blast_furnace', width: 176, height: 166 },
+  brewing: { texture: 'brewing_stand', width: 176, height: 166 },
+  cartography: { texture: 'cartography_table', width: 176, height: 166 },
+  crafter: { texture: 'crafter', width: 176, height: 166 },
+  creative: {
+    texture: 'creative_inventory/tab_items',
+    width: 195,
+    height: 136,
+    offsetY: 28,
+  },
+  dispenser: { texture: 'dispenser', width: 176, height: 166 },
+  enchanting: { texture: 'enchanting_table', width: 176, height: 166 },
+  furnace: { texture: 'furnace', width: 176, height: 166 },
+  grindstone: { texture: 'grindstone', width: 176, height: 166 },
+  hopper: { texture: 'hopper', width: 176, height: 133 },
+  loom: { texture: 'loom', width: 176, height: 166 },
+  smithing: { texture: 'smithing', width: 176, height: 166 },
+  smoker: { texture: 'smoker', width: 176, height: 166 },
+  stonecutter: { texture: 'stonecutter', width: 176, height: 166 },
+  trade: { texture: 'villager', width: 276, height: 166, sheetWidth: 512 },
+};
+
+/** The names a panel can draw its background for (`CONTAINER_TEXTURES` keys). */
+export type ContainerBackgroundName = string;
+
+/**
+ * The real screen artwork behind a panel's slots: the window part of the screen's texture, at the
+ * screen's own coordinates, so a panel lines up with the game's screen. Grows the panel to the
+ * window's size; pass `enabled = false` to get the bare interactive area instead.
+ */
+export function useContainerBackground(
+  name: ContainerBackgroundName,
+  width: number,
+  height: number,
+  enabled: boolean,
+): {
+  readonly width: number;
+  readonly height: number;
+  readonly style: CssVariables;
+  readonly attributes: { readonly 'data-container-background'?: '' };
+} {
+  const info = CONTAINER_TEXTURES[name];
+  const url = useTextureUrl(`gui/container/${info?.texture ?? ''}`);
+  if (!enabled || info === undefined) return { width, height, style: {}, attributes: {} };
+  const style: CssVariables = {
+    '--cobble-container-width': info.width,
+    '--cobble-container-height': info.height,
+    '--cobble-container-sheet-width': info.sheetWidth ?? 256,
+    '--cobble-container-sheet-height': info.sheetHeight ?? 256,
+    '--cobble-container-y': info.offsetY ?? 0,
+    ...(url === undefined ? {} : { '--cobble-container-image': `url("${url}")` }),
+  };
+  return {
+    width: Math.max(width, info.width),
+    height: Math.max(height, info.height + (info.offsetY ?? 0) * 2),
+    style,
+    attributes: { 'data-container-background': '' },
+  };
+}
+
+export function usePanelRoot<E extends ElementType>(
   as: E | undefined,
   name: string,
   width: number,
@@ -43,13 +119,25 @@ export function panelRoot<E extends ElementType>(
   className: string | undefined,
   style: CSSProperties | undefined,
   rest: object,
+  texture: ContainerBackgroundName = name.replace(/-panel$/, ''),
 ): { readonly Component: ElementType; readonly props: Record<string, unknown> } {
-  const rootStyle: CssVariables = { '--cobble-width': width, '--cobble-height': height, ...style };
+  const { background = true, ...others } = rest as { readonly background?: boolean };
+  const container = useContainerBackground(texture, width, height, background);
+  const rootStyle: CssVariables = {
+    '--cobble-width': container.width,
+    '--cobble-height': container.height,
+    ...container.style,
+    ...style,
+  };
   return {
     Component: as ?? 'div',
     props: mergeProps<'div'>(
-      { className: cx('cobble-station-panel', `cobble-${name}`, className), style: rootStyle },
-      rest,
+      {
+        className: cx('cobble-station-panel', `cobble-${name}`, className),
+        style: rootStyle,
+        ...container.attributes,
+      },
+      others,
     ) as Record<string, unknown>,
   };
 }
@@ -59,6 +147,8 @@ export function panelRoot<E extends ElementType>(
 export type AnvilSlot = 'left' | 'right' | 'result';
 
 export interface AnvilPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly left?: SlotGridItem | undefined;
   readonly right?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
@@ -93,7 +183,15 @@ export function AnvilPanel<E extends ElementType = 'div'>(props: AnvilPanelProps
     style,
     ...rest
   } = props as AnvilPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(as, 'anvil-panel', 169, 66, className, style, rest);
+  const { Component, props: root } = usePanelRoot(
+    as,
+    'anvil-panel',
+    169,
+    66,
+    className,
+    style,
+    rest,
+  );
   const click = (slot: AnvilSlot): { readonly onClick?: () => void } =>
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   return (
@@ -124,6 +222,8 @@ export type BrewingSlot = 'bottle-1' | 'bottle-2' | 'bottle-3' | 'ingredient' | 
 export const BREW_TOTAL_TICKS = 400;
 
 export interface BrewingStandPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   /** The three potion bottles, left to right. */
   readonly bottles?: readonly (SlotGridItem | undefined)[];
   readonly ingredient?: SlotGridItem | undefined;
@@ -149,7 +249,7 @@ export function brewProgress(brewTime: number): number {
 /**
  * The interactive part of the brewing stand screen: three bottle slots, the ingredient and fuel
  * slots, the blaze powder bar, the brewing arrow and the bubbles. Coordinates are recalled from
- * vanilla and are approximations; the stand's own artwork is not drawn.
+ * vanilla and are approximations; the stand's own artwork is drawn behind it unless `background` is false.
  */
 export function BrewingStandPanel<E extends ElementType = 'div'>(
   props: BrewingStandPanelProps<E>,
@@ -166,7 +266,7 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as BrewingStandPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'brewing-panel',
     119,
@@ -226,6 +326,8 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
 export type FurnaceSlot = 'input' | 'fuel' | 'output';
 
 export interface FurnacePanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly input?: SlotGridItem | undefined;
   readonly fuel?: SlotGridItem | undefined;
   readonly output?: SlotGridItem | undefined;
@@ -245,7 +347,7 @@ export type FurnacePanelProps<E extends ElementType = 'div'> = PolymorphicProps<
 /**
  * The interactive part of the furnace, smoker and blast furnace screens: input, fuel and output
  * slots, the flame and the cooking arrow. Coordinates are recalled from vanilla and are
- * approximations; the furnace's own artwork is not drawn.
+ * approximations; the furnace's own artwork is drawn behind it unless `background` is false.
  */
 export function FurnacePanel<E extends ElementType = 'div'>(
   props: FurnacePanelProps<E>,
@@ -263,7 +365,7 @@ export function FurnacePanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as FurnacePanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'furnace-panel',
     134,
@@ -271,6 +373,7 @@ export function FurnacePanel<E extends ElementType = 'div'>(
     className,
     style,
     rest,
+    station === 'furnace' ? 'furnace' : station === 'smoker' ? 'smoker' : 'blast_furnace',
   );
   const click = (slot: FurnaceSlot): { readonly onClick?: () => void } =>
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
@@ -320,6 +423,8 @@ export interface StonecutterRecipe {
 }
 
 export interface StonecutterPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly input?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
   readonly recipes?: readonly StonecutterRecipe[];
@@ -357,7 +462,7 @@ export function StonecutterPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as StonecutterPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'stonecutter-panel',
     161,

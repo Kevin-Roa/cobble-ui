@@ -1,19 +1,15 @@
 import type { SpriteId } from '../../assets/sprite-id.ts';
 import { useEffect, useMemo, useState, type JSX } from 'react';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
-import { useSpriteSize } from '../../provider/hooks.ts';
+import type { AnimationFrame } from '../../render/animation.ts';
+import { useSpriteAnimation, useSpriteSize } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from './Sprite.tsx';
 
 /** Milliseconds per game tick, the unit of `.mcmeta` animation times. */
 export const TICK_MS = 50;
 
-export interface AnimationFrame {
-  /** Which frame of the sheet, counting from the top. */
-  readonly index: number;
-  /** How many ticks it is shown for. */
-  readonly time: number;
-}
+export type { AnimationFrame };
 
 /**
  * The frame sequence of an animated sprite (`SpriteContents.AnimatedTexture`): either the
@@ -34,27 +30,40 @@ export function animationFrames(
 export interface AnimatedSpriteProps extends Omit<SlotProps<'span'>, 'children'> {
   /** Sprite id of the sheet: all frames stacked vertically, e.g. `realm_status/expires_soon`. */
   readonly sprite: SpriteId;
-  /** Width of one frame in GUI units. */
-  readonly frameWidth: number;
-  /** Height of one frame in GUI units. */
-  readonly frameHeight: number;
-  /** Ticks per frame when `frames` is not given (`animation.frametime`). Defaults to 1. */
+  /** Width of one frame in GUI units. Defaults to the sheet's `.mcmeta` `animation.width`. */
+  readonly frameWidth?: number;
+  /** Height of one frame in GUI units. Defaults to the sheet's `.mcmeta` `animation.height`. */
+  readonly frameHeight?: number;
+  /** Ticks per frame when `frames` is not given. Defaults to the sheet's `animation.frametime`. */
   readonly frametime?: number;
-  /** Explicit frame order and times (`animation.frames`). */
+  /** Explicit frame order and times. Defaults to the sheet's `animation.frames`. */
   readonly frames?: readonly AnimationFrame[];
 }
 
 /**
- * A sprite sheet played like an `.mcmeta` animation. The renderer does not read animation
- * metadata, so pass the frame size and timing yourself; the sheet's frame count is taken from
- * its height. Draws the first frame until the sheet has loaded.
+ * A sprite sheet played like an `.mcmeta` animation (`SpriteContents.AnimatedTexture`). The frame
+ * size and timing come from the sheet's own `animation` metadata, so passing the sprite id is
+ * enough; any prop given overrides the metadata. Draws nothing until the sheet has loaded unless
+ * the frame size is given.
  */
 export function AnimatedSprite(props: AnimatedSpriteProps): JSX.Element {
-  const { sprite, frameWidth, frameHeight, frametime, frames, className, style, ...rest } = props;
+  const { sprite, className, style, ...rest } = props;
+  const {
+    frameWidth: widthOverride,
+    frameHeight: heightOverride,
+    frametime: frametimeOverride,
+    frames: framesOverride,
+    ...root
+  } = rest;
+  const meta = useSpriteAnimation(sprite);
   const size = useSpriteSize(sprite);
+  const frameWidth = widthOverride ?? meta?.frameWidth ?? size?.width ?? 0;
+  const frameHeight = heightOverride ?? meta?.frameHeight ?? size?.height ?? 0;
+  const frametime = frametimeOverride ?? meta?.frametime;
+  const frames = framesOverride ?? meta?.frames;
   const sheetWidth = size?.width ?? frameWidth;
   const sheetHeight = size?.height ?? frameHeight;
-  const frameCount = Math.max(Math.floor(sheetHeight / frameHeight), 1);
+  const frameCount = Math.max(frameHeight === 0 ? 1 : Math.floor(sheetHeight / frameHeight), 1);
   const sequence = useMemo(
     () => animationFrames(frameCount, frametime, frames),
     [frameCount, frametime, frames],
@@ -88,7 +97,7 @@ export function AnimatedSprite(props: AnimatedSpriteProps): JSX.Element {
   return (
     <span
       aria-hidden
-      {...rest}
+      {...root}
       className={cx('cobble-animated-sprite', className)}
       style={rootStyle}
       data-frame={current?.index ?? 0}

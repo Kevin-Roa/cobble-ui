@@ -1,3 +1,4 @@
+import { ItemsPage } from './components/explorers.tsx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
 import AssetsGuide from './guides/assets.mdx';
@@ -30,6 +31,9 @@ import {
   CrafterSlotPage,
   HorseChestSlotsPage,
   MusicNotesPage,
+  ItemIconPage,
+  EffectIconPage,
+  PlayerHeadPage,
   RecipeOverlayButtonPage,
   TrialAvailableIconPage,
 } from './components/more.tsx';
@@ -352,6 +356,10 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('music-notes', 'MusicNotes', 'Text & sprites', MusicNotesPage),
   entry('trial-available-icon', 'TrialAvailableIcon', 'Text & sprites', TrialAvailableIconPage),
   entry('icon', 'Icon', 'Text & sprites', IconPage),
+  entry('item-icon', 'ItemIcon', 'Text & sprites', ItemIconPage),
+  entry('items', 'Items', 'Text & sprites', ItemsPage),
+  entry('effect-icon', 'EffectIcon', 'Text & sprites', EffectIconPage),
+  entry('player-head', 'PlayerHead', 'Text & sprites', PlayerHeadPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),
 ];

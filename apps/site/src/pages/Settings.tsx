@@ -14,7 +14,7 @@ import {
   useToasts,
 } from 'cobble-ui';
 import type { JSX } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { Disclaimer } from '../components/Disclaimer.tsx';
 import { useSettings } from '../settings.tsx';
 
@@ -26,8 +26,11 @@ export function Settings(): JSX.Element {
   const { guiScale } = useGuiScale();
   const toasts = useToasts();
   const navigate = useNavigate();
+  const location = useLocation();
+  const back = (): void =>
+    void navigate((location.state as { readonly from?: string } | null)?.from ?? '/');
   return (
-    <Screen className="site-screen" onClose={() => void navigate('/')}>
+    <Screen className="site-screen" onClose={back}>
       <ScreenLayout
         title="Settings"
         footerHeight={45}
@@ -43,7 +46,7 @@ export function Settings(): JSX.Element {
               >
                 Reset
               </Button>
-              <Button as={Link} to="/" width={150}>
+              <Button width={150} onClick={back}>
                 Done
               </Button>
             </LinearLayout>
@@ -81,6 +84,14 @@ export function Settings(): JSX.Element {
               value={Math.round(settings.panoramaSpeed * 100)}
               onValueChange={(speed) => update({ panoramaSpeed: speed / 100 })}
               formatLabel={(value) => `Panorama Scroll Speed: ${(value / 100).toFixed(2)}`}
+            />
+          </OptionsListRow>
+          <OptionsListRow>
+            <ToggleButton
+              width={310}
+              label="In-World Menu Style"
+              checked={settings.inWorld}
+              onCheckedChange={(inWorld) => update({ inWorld })}
             />
           </OptionsListRow>
           <OptionsListHeader>Sound</OptionsListHeader>

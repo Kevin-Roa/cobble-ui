@@ -1210,8 +1210,13 @@ describe('AnimatedSprite and RealmStatusIcon', () => {
     await waitFor(() => expect(root).toHaveAttribute('data-frame', '0'), { timeout: 1500 });
   });
 
-  it('draws a realm status light from its own sheet', () => {
-    const { container } = renderWithProvider(<RealmStatusIcon status="expires_soon" />);
+  it('draws a realm status light from its own sheet', async () => {
+    const { container } = renderAnimated(<RealmStatusIcon status="expires_soon" />);
+    await waitFor(() =>
+      expect(container.querySelector('.cobble-animated-sprite')).toHaveStyle({
+        '--cobble-width': '10',
+      }),
+    );
     expect(container.querySelector('canvas')).toHaveAttribute(
       'data-sprite',
       'realm_status/expires_soon',
@@ -1379,9 +1384,44 @@ describe('SpectatorMenu', () => {
   });
 });
 
+/** Sprite sheets with the `animation` metadata the 26.3 jar ships for them. */
+function animatedAssets(): AssetSource {
+  const files: Record<string, Uint8Array> = {};
+  const add = (id: string, width: number, height: number, animation: object): void => {
+    const path = `assets/minecraft/textures/gui/sprites/${id}.png`;
+    files[path] = png(width, height, () => [255, 255, 255, 255]);
+    files[`${path}.mcmeta`] = new TextEncoder().encode(JSON.stringify({ animation }));
+  };
+  add('icon/music_notes', 16, 128, { width: 16, height: 16, frametime: 2 });
+  add('icon/trial_available', 8, 48, {
+    width: 8,
+    height: 8,
+    frames: [{ index: 0, time: 10 }, 1, 2, 3, 4, 5],
+  });
+  add('realm_status/expires_soon', 10, 56, { width: 10, height: 28, frametime: 10 });
+  add('hud/locator_bar_arrow_up', 7, 10, {
+    width: 7,
+    height: 5,
+    frames: [
+      { index: 0, time: 10 },
+      { index: 1, time: 4 },
+    ],
+  });
+  add('hud/locator_bar_arrow_down', 7, 10, { width: 7, height: 5 });
+  return memoryAssets({ files });
+}
+
+function renderAnimated(ui: ReactElement): ReturnType<typeof renderPlain> {
+  return renderPlain(
+    <CobbleProvider assets={animatedAssets()} guiScale={2} sound={{ enabled: false }}>
+      {ui}
+    </CobbleProvider>,
+  );
+}
+
 describe('LocatorBar arrows', () => {
-  it('draws a 7x5 animated arrow above or below its dot', () => {
-    const { container } = renderWithProvider(
+  it('draws a 7x5 animated arrow above or below its dot', async () => {
+    const { container } = renderAnimated(
       <LocatorBar
         waypoints={[
           { position: 0, arrow: 'up' },
@@ -1391,6 +1431,7 @@ describe('LocatorBar arrows', () => {
     );
     const arrows = [...container.querySelectorAll<HTMLElement>('.cobble-locator-arrow')];
     expect(arrows).toHaveLength(2);
+    await waitFor(() => expect(arrows[0]).toHaveStyle({ '--cobble-width': '7' }));
     expect(arrows[0]).toHaveStyle({
       '--cobble-width': '7',
       '--cobble-height': '5',
@@ -2112,8 +2153,8 @@ describe('anvil field, brewing bubbles and container parts', () => {
     expect(slotSprites(container)).toEqual(['container/horse/chest_slots']);
   });
 
-  it('draws the animated icons from their sheets', () => {
-    const { container } = renderWithProvider(
+  it('draws the animated icons from their sheets', async () => {
+    const { container } = renderAnimated(
       <>
         <MusicNotes />
         <TrialAvailableIcon />
@@ -2121,6 +2162,7 @@ describe('anvil field, brewing bubbles and container parts', () => {
     );
     expect(slotSprites(container)).toEqual(['icon/music_notes', 'icon/trial_available']);
     const frames = [...container.querySelectorAll<HTMLElement>('.cobble-animated-sprite')];
+    await waitFor(() => expect(frames[0]).toHaveStyle({ '--cobble-width': '16' }));
     expect(frames[0]).toHaveStyle({ '--cobble-width': '16', '--cobble-height': '16' });
     expect(frames[1]).toHaveStyle({ '--cobble-width': '8', '--cobble-height': '8' });
   });
@@ -2326,11 +2368,11 @@ describe('CraftingGrid and SocialPlayerEntry', () => {
       '--cobble-width': '236',
       '--cobble-height': '34',
     });
-    expect(screen.getByText('face').parentElement).toHaveStyle({ '--cobble-x': '5' });
-    expect(screen.getByText('Steve')).toHaveStyle({ '--cobble-x': '34', '--cobble-y': '7' });
-    expect(screen.getByText('Hidden')).toHaveStyle({ '--cobble-y': '18' });
-    expect(screen.getByRole('button', { name: 'Report' })).toHaveStyle({ '--cobble-x': '212' });
-    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '188' });
+    expect(screen.getByText('face').parentElement).toHaveStyle({ '--cobble-x': '6' });
+    expect(screen.getByText('Steve')).toHaveStyle({ '--cobble-x': '34', '--cobble-y': '8' });
+    expect(screen.getByText('Hidden')).toHaveStyle({ '--cobble-y': '20' });
+    expect(screen.getByRole('button', { name: 'Report' })).toHaveStyle({ '--cobble-x': '210' });
+    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '186' });
     await user.click(screen.getByRole('button', { name: 'Mute' }));
     await user.click(screen.getByRole('button', { name: 'Report' }));
     expect(onMutedChange).toHaveBeenCalledWith(true);
@@ -2339,16 +2381,16 @@ describe('CraftingGrid and SocialPlayerEntry', () => {
 
   it('centres the name and drops the report button when there is nothing to show', () => {
     renderWithProvider(<SocialPlayerEntry name="Alex" />);
-    expect(screen.getByText('Alex')).toHaveStyle({ '--cobble-y': '13' });
+    expect(screen.getByText('Alex')).toHaveStyle({ '--cobble-y': '12' });
     expect(screen.queryByRole('button', { name: 'Report' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '212' });
+    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '210' });
   });
 });
 
 describe('EnchantingTablePanel', () => {
   it('puts the slots and three rows at the screen coordinates', () => {
     expect(ENCHANTING_LAYOUT.optionsX).toBe(60);
-    const { container } = renderWithProvider(<EnchantingTablePanel />);
+    const { container } = renderWithProvider(<EnchantingTablePanel background={false} />);
     expect(container.querySelector('.cobble-enchanting-panel')).toHaveStyle({
       '--cobble-width': '168',
       '--cobble-height': '71',
@@ -2393,12 +2435,20 @@ describe('EnchantingTablePanel', () => {
 });
 
 describe('station panels', () => {
+  it('grows to the screen window and draws its artwork unless turned off', () => {
+    const { container } = renderWithProvider(<AnvilPanel />);
+    const panel = container.querySelector('.cobble-anvil-panel');
+    expect(panel).toHaveAttribute('data-container-background');
+    expect(panel).toHaveStyle({ '--cobble-width': '176', '--cobble-height': '166' });
+  });
+
   it('lays out the anvil: three slots, the name field and the error cross', async () => {
     const onSlotClick = vi.fn<(slot: string) => void>();
     const onNameChange = vi.fn<(name: string) => void>();
     const user = userEvent.setup();
     const { container } = renderWithProvider(
       <AnvilPanel
+        background={false}
         left={{ content: <span>sword</span>, label: 'Iron Sword' }}
         name="Blade"
         onNameChange={onNameChange}

@@ -109,7 +109,13 @@ export function ScrollArea<E extends ElementType = 'div'>(props: ScrollAreaProps
     const onWheel = (event: WheelEvent): void => {
       const state = latest.current;
       const notches = wheelNotches(event);
-      if (notches === 0 || state.maxScroll === 0) return;
+      // Widgets that use the wheel themselves (chat history, hotbar) mark themselves.
+      const captured = (event.target as Element | null)?.closest?.('[data-captures-wheel]');
+      if (captured && viewport.contains(captured)) return;
+      if (event.defaultPrevented || notches === 0 || state.maxScroll === 0) return;
+      // Only the innermost scrollable area under the cursor takes the wheel, even at its ends, so a
+      // nested area never also scrolls the one around it.
+      event.stopPropagation();
       const current = viewport.scrollTop / state.unit;
       const next = Math.min(state.maxScroll, Math.max(0, current + notches * state.scrollRate));
       if (next === current) return;

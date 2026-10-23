@@ -4,11 +4,16 @@ import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/p
 import { MuteButton } from '../button/SocialButtons.tsx';
 import { ReportButton } from '../button/SocialButtons.tsx';
 import { cx, placeAt } from '../shared.ts';
+import { PlayerHead } from '../sprite/TextureIcons.tsx';
 import { Sprite } from '../sprite/Sprite.tsx';
 
 /** Size of the `social_interactions/background` sprite. */
 export const SOCIAL_ENTRY_WIDTH = 236;
 export const SOCIAL_ENTRY_HEIGHT = 34;
+/** Gap between the sprite's border and the row's content. */
+const CONTENT_INSET = 2;
+/** Left edge of the name: the face (24 wide) and a 4 gap after the content's 4 inset. */
+const NAME_X = CONTENT_INSET + 4 + 24 + 4;
 
 export interface SocialPlayerEntrySlotProps {
   readonly head?: SlotProps<'span'>;
@@ -21,7 +26,7 @@ export interface SocialPlayerEntryOwnProps {
   readonly name: ReactNode;
   /** A line under the name in gray, e.g. `Hidden` or `Blocked`. */
   readonly status?: ReactNode;
-  /** The player's face, drawn in a 24×24 area. Skins are not GUI assets, so supply your own. */
+  /** The player's face, drawn in a 24×24 area. Defaults to the Steve skin's face. */
   readonly children?: ReactNode;
   readonly muted?: boolean;
   readonly onMutedChange?: (muted: boolean) => void;
@@ -65,7 +70,9 @@ export function SocialPlayerEntry<E extends ElementType = 'div'>(
     '--cobble-height': SOCIAL_ENTRY_HEIGHT,
     ...style,
   };
-  const reportX = width - 4 - 20;
+  // The row's content area is inset 2 units from the sprite's border (`getContentX`/`getContentRight`),
+  // with 4 more between it and the face and the buttons.
+  const reportX = width - CONTENT_INSET - 4 - 20;
   const muteX = onReport === undefined ? reportX : reportX - 24;
   const muteProps: Record<string, unknown> = {};
   if (muted !== undefined) muteProps['muted'] = muted;
@@ -81,14 +88,14 @@ export function SocialPlayerEntry<E extends ElementType = 'div'>(
       <span
         {...slotProps?.head}
         className={cx('cobble-social-entry-head', slotProps?.head?.className)}
-        style={placeAt(5, 5, slotProps?.head?.style)}
+        style={placeAt(CONTENT_INSET + 4, 5, slotProps?.head?.style)}
       >
-        {children}
+        {children ?? <PlayerHead size={24} />}
       </span>
       <span
         {...slotProps?.name}
         className={cx('cobble-social-entry-name', 'cobble-text', slotProps?.name?.className)}
-        style={placeAt(34, status === undefined ? 13 : 7, slotProps?.name?.style)}
+        style={placeAt(NAME_X, status === undefined ? 12 : 8, slotProps?.name?.style)}
         data-shadow=""
       >
         {name}
@@ -97,7 +104,7 @@ export function SocialPlayerEntry<E extends ElementType = 'div'>(
         <span
           {...slotProps?.status}
           className={cx('cobble-social-entry-status', 'cobble-text', slotProps?.status?.className)}
-          style={placeAt(34, 18, slotProps?.status?.style)}
+          style={placeAt(NAME_X, 20, slotProps?.status?.style)}
           data-shadow=""
         >
           {status}

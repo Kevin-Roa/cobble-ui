@@ -6,7 +6,7 @@ import { placeAt } from '../shared.ts';
 import { CartographyMap, CrafterRedstone, CrafterSlot } from './ContainerParts.tsx';
 import { ContainerError } from '../sprite/ContainerError.tsx';
 import type { SlotGridItem } from './SlotGrid.tsx';
-import { StationSlot, panelRoot } from './StationPanels.tsx';
+import { StationSlot, usePanelRoot } from './StationPanels.tsx';
 
 // -------------------------------------------------------------------------------------- loom
 
@@ -17,6 +17,8 @@ export interface LoomPattern {
 }
 
 export interface LoomPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly banner?: SlotGridItem | undefined;
   readonly dye?: SlotGridItem | undefined;
   readonly patternItem?: SlotGridItem | undefined;
@@ -50,7 +52,7 @@ export function loomStartIndex(scroll: number, patternCount: number): number {
 /**
  * The interactive part of the loom screen: banner, dye, pattern item and result slots, and the
  * grid of pattern cells with its scroller. Coordinates are recalled from vanilla and are
- * approximations; the screen's artwork is not drawn.
+ * approximations; the screen's artwork is drawn behind it unless `background` is false.
  */
 export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E>): JSX.Element {
   const {
@@ -69,7 +71,15 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
     style,
     ...rest
   } = props as LoomPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(as, 'loom-panel', 161, 76, className, style, rest);
+  const { Component, props: root } = usePanelRoot(
+    as,
+    'loom-panel',
+    161,
+    76,
+    className,
+    style,
+    rest,
+  );
   const click = (
     slot: 'banner' | 'dye' | 'patternItem' | 'result',
   ): { readonly onClick?: () => void } =>
@@ -120,6 +130,8 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
 // ------------------------------------------------------------------------------- cartography
 
 export interface CartographyPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly map?: SlotGridItem | undefined;
   readonly material?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
@@ -161,7 +173,7 @@ export function CartographyPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as CartographyPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'cartography-panel',
     165,
@@ -206,6 +218,8 @@ export function CartographyPanel<E extends ElementType = 'div'>(
 // ------------------------------------------------------------------------------- grindstone
 
 export interface GrindstonePanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly top?: SlotGridItem | undefined;
   readonly bottom?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
@@ -236,7 +250,7 @@ export function GrindstonePanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as GrindstonePanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'grindstone-panel',
     147,
@@ -268,6 +282,8 @@ export function GrindstonePanel<E extends ElementType = 'div'>(
 // ---------------------------------------------------------------------------- smithing table
 
 export interface SmithingTablePanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly template?: SlotGridItem | undefined;
   readonly base?: SlotGridItem | undefined;
   readonly addition?: SlotGridItem | undefined;
@@ -301,7 +317,7 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as SmithingTablePanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'smithing-panel',
     116,
@@ -359,6 +375,8 @@ export interface BeaconEffectChoice {
 }
 
 export interface BeaconPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   /** The payment slot (iron, gold, emerald or diamond). */
   readonly payment?: SlotGridItem | undefined;
   /** Rows of effects, one per pyramid tier that is unlocked; each row is centred. */
@@ -405,7 +423,7 @@ export function BeaconPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as BeaconPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'beacon-panel',
     212,
@@ -463,6 +481,8 @@ export function BeaconPanel<E extends ElementType = 'div'>(
 // ----------------------------------------------------------------------------------- crafter
 
 export interface CrafterPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   /** The nine grid slots in reading order. */
   readonly slots?: readonly (SlotGridItem | undefined)[];
   /** Which of the nine slots are switched off. */
@@ -498,7 +518,7 @@ export function CrafterPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as CrafterPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'crafter-panel',
     152,

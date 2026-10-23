@@ -11,7 +11,7 @@ import {
   TextField,
 } from 'cobble-ui';
 import { useState, type JSX, type KeyboardEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import {
   COMPONENT_PAGES,
   DOC_CATEGORIES,
@@ -42,6 +42,7 @@ function NavItem({ page }: { readonly page: DocPage }): JSX.Element {
 /** The shared docs screen: page list on the left, content on the right. */
 export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState('');
 
   const guides = GUIDE_PAGES.filter((page) => pageMatches(page, query));
@@ -68,7 +69,7 @@ export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Elem
               <Button as={Link} to="/" width={150}>
                 Back to Title Screen
               </Button>
-              <Button as={Link} to="/settings" width={150}>
+              <Button as={Link} to="/settings" state={{ from: location.pathname }} width={150}>
                 Settings...
               </Button>
             </div>
@@ -123,7 +124,7 @@ export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Elem
               )}
             </SelectionList>
           </div>
-          <ScrollArea className="site-content" scrollRate={18}>
+          <ScrollArea key={slug} className="site-content" scrollRate={18}>
             <article className="site-article">{children}</article>
           </ScrollArea>
         </div>

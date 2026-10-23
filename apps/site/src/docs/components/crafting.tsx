@@ -1,5 +1,7 @@
 import {
   ContainerError,
+  type ContainerErrorKind,
+  ItemIcon,
   LoomPatternButton,
   LoomScroller,
   RecipeBookFilterButton,
@@ -8,7 +10,6 @@ import {
   RecipeBookTab,
   StonecutterRecipeButton,
   StonecutterScroller,
-  type ContainerErrorKind,
 } from 'cobble-ui';
 import { useState, type JSX } from 'react';
 import { Code, ComponentDoc } from '../../components/Prose.tsx';
@@ -18,14 +19,6 @@ const AS = {
   type: 'ElementType',
   description: 'Render a different element or component.',
 };
-
-function Letter({ children }: { readonly children: string }): JSX.Element {
-  return (
-    <span className="cobble-text" data-shadow="">
-      {children}
-    </span>
-  );
-}
 
 export function StonecutterRecipeButtonPage(): JSX.Element {
   const [selected, setSelected] = useState(1);
@@ -40,14 +33,19 @@ export function StonecutterRecipeButtonPage(): JSX.Element {
       }
       demo={
         <div className="site-row">
-          {['A', 'B', 'C', 'D'].map((name, index) => (
+          {[
+            ['Stone Stairs', 'stone'],
+            ['Stone Slab', 'cobblestone'],
+            ['Stone Bricks', 'stone_bricks'],
+            ['Stone Pressure Plate', 'andesite'],
+          ].map(([name, item], index) => (
             <StonecutterRecipeButton
               key={name}
-              label={`Recipe ${name}`}
+              label={name ?? ''}
               selected={index === selected}
               onClick={() => setSelected(index)}
             >
-              <Letter>{name}</Letter>
+              <ItemIcon name={item ?? 'stone'} />
             </StonecutterRecipeButton>
           ))}
         </div>
@@ -217,14 +215,19 @@ export function RecipeBookTabPage(): JSX.Element {
       }
       demo={
         <div className="site-stack">
-          {['Building', 'Redstone', 'Equipment', 'Misc'].map((name, index) => (
+          {[
+            ['Building', 'bricks'],
+            ['Redstone', 'redstone'],
+            ['Equipment', 'iron_sword'],
+            ['Misc', 'lava_bucket'],
+          ].map(([name, item], index) => (
             <RecipeBookTab
               key={name}
-              label={name}
+              label={name ?? ''}
               selected={index === selected}
               onClick={() => setSelected(index)}
             >
-              <Letter>{name.slice(0, 1)}</Letter>
+              <ItemIcon name={item ?? 'stone'} />
             </RecipeBookTab>
           ))}
         </div>
@@ -333,16 +336,16 @@ export function RecipeBookSlotPage(): JSX.Element {
       demo={
         <div className="site-row">
           <RecipeBookSlot label="Torch">
-            <Letter>T</Letter>
+            <ItemIcon name="torch" />
           </RecipeBookSlot>
           <RecipeBookSlot label="Planks" many>
-            <Letter>P</Letter>
+            <ItemIcon name="oak_planks" />
           </RecipeBookSlot>
           <RecipeBookSlot label="Chest" craftable={false}>
-            <Letter>C</Letter>
+            <ItemIcon name="barrel" />
           </RecipeBookSlot>
           <RecipeBookSlot label="Boats" craftable={false} many>
-            <Letter>B</Letter>
+            <ItemIcon name="oak_boat" />
           </RecipeBookSlot>
         </div>
       }

@@ -3,6 +3,7 @@ import {
   AdvancementTab,
   AdvancementWidget,
   AnimatedSprite,
+  ItemIcon,
   LoadingDots,
   NotificationBadge,
   PackListEntry,
@@ -12,6 +13,7 @@ import {
 } from 'cobble-ui';
 import { useState, type JSX } from 'react';
 import { Code, ComponentDoc } from '../../components/Prose.tsx';
+import { AnimatedSpriteExplorer } from './explorers.tsx';
 
 const AS = {
   name: 'as',
@@ -171,16 +173,14 @@ export function AdvancementTabPage(): JSX.Element {
       demo={
         <div className="site-row">
           <AdvancementTab label="Story" selected position="first">
-            <span className="cobble-text" data-shadow="">
-              S
-            </span>
+            <ItemIcon name="grass_block" />
           </AdvancementTab>
           <AdvancementTab label="Nether" position="middle">
-            <span className="cobble-text" data-shadow="">
-              N
-            </span>
+            <ItemIcon name="netherrack" />
           </AdvancementTab>
-          <AdvancementTab label="End" position="last" />
+          <AdvancementTab label="End" position="last">
+            <ItemIcon name="end_stone" />
+          </AdvancementTab>
         </div>
       }
       code="<AdvancementTab label='Story' side='above' position='first' selected />"
@@ -303,42 +303,36 @@ export function AnimatedSpritePage(): JSX.Element {
       intro={
         <>
           Plays a sprite sheet (frames stacked vertically) the way the game plays an{' '}
-          <Code>.mcmeta</Code> animation. The renderer does not read animation metadata, so pass the
-          frame size and timing yourself; the number of frames comes from the sheet height. Times
-          are in game ticks (50 ms).
+          <Code>.mcmeta</Code> animation. Pass just the sprite id: the frame size, frame order and
+          timing are read from the sheet&apos;s own <Code>animation</Code> metadata, in game ticks
+          (50 ms). Any of the props below overrides what the metadata says.
         </>
       }
       demo={
         <div className="site-row">
-          <AnimatedSprite
-            sprite="icon/trial_available"
-            frameWidth={8}
-            frameHeight={8}
-            frames={[
-              { index: 0, time: 10 },
-              { index: 1, time: 2 },
-              { index: 2, time: 2 },
-              { index: 3, time: 2 },
-              { index: 4, time: 2 },
-              { index: 5, time: 2 },
-            ]}
-          />
+          <AnimatedSprite sprite="icon/trial_available" />
+          <AnimatedSprite sprite="icon/music_notes" />
+          <AnimatedSprite sprite="realm_status/expires_soon" />
         </div>
       }
-      code={`<AnimatedSprite sprite="icon/trial_available" frameWidth={8} frameHeight={8}
-  frames={[{ index: 0, time: 10 }, { index: 1, time: 2 }]} />`}
+      code={`<AnimatedSprite sprite="icon/trial_available" />`}
+      after={<AnimatedSpriteExplorer />}
       rows={[
         { name: 'sprite', type: 'SpriteId', description: 'Sheet sprite id.' },
         {
           name: 'frameWidth / frameHeight',
           type: 'number',
-          description: 'Size of one frame, in GUI units.',
+          description: 'Size of one frame, in GUI units. Defaults to the metadata.',
         },
-        { name: 'frametime', type: 'number', defaultValue: '1', description: 'Ticks per frame.' },
+        {
+          name: 'frametime',
+          type: 'number',
+          description: 'Ticks per frame. Defaults to the metadata.',
+        },
         {
           name: 'frames',
           type: '{ index, time }[]',
-          description: 'Explicit frame order and times.',
+          description: 'Explicit frame order and times. Defaults to the metadata.',
         },
       ]}
     />
@@ -390,8 +384,8 @@ export function SocialPlayerEntryPage(): JSX.Element {
         <>
           A player row of the social interactions screen: the 236×34 nine-sliced background, a 24×24
           face, the name with an optional gray status line, and the mute and report buttons at the
-          right. Skins are not GUI assets, so supply the face. The inner offsets are approximations
-          of the game&apos;s.
+          right. The face defaults to Steve; pass your own as children. The inner offsets are
+          approximations of the game&apos;s.
         </>
       }
       demo={
@@ -401,11 +395,7 @@ export function SocialPlayerEntryPage(): JSX.Element {
             muted={muted}
             onMutedChange={setMuted}
             onReport={() => undefined}
-          >
-            <span className="cobble-text" data-shadow="">
-              S
-            </span>
-          </SocialPlayerEntry>
+          ></SocialPlayerEntry>
           <SocialPlayerEntry name="Alex" status="Hidden" onReport={() => undefined} />
           <SocialPlayerEntry name="Herobrine" status="Blocked" />
         </div>

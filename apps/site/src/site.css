@@ -300,3 +300,88 @@ body {
   text-align: center;
   white-space: normal;
 }
+
+/* ---------------------------------------------------------------- explorer */
+
+.site-explorer {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--cobble-px));
+  margin: calc(6 * var(--cobble-px)) 0;
+}
+
+.site-explorer-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--cobble-px));
+}
+
+.site-explorer-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(2 * var(--cobble-px));
+  padding: calc(3 * var(--cobble-px));
+  background: rgb(0 0 0 / 35%);
+  box-shadow: inset 0 0 0 var(--cobble-px) #000;
+}
+
+.site-explorer-tile {
+  position: relative;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  background: rgb(255 255 255 / 8%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-explorer-tile:hover,
+.site-explorer-tile:focus-visible {
+  background: rgb(255 255 255 / 22%);
+  outline: none;
+}
+
+.site-explorer-tile[data-selected] {
+  box-shadow: inset 0 0 0 var(--cobble-px) #fff;
+}
+
+.site-explorer-lazy {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.site-explorer-sprite {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.site-explorer-detail {
+  padding: calc(6 * var(--cobble-px));
+  background: rgb(0 0 0 / 35%);
+  box-shadow: inset 0 0 0 var(--cobble-px) #000;
+}
+
+.site-explorer-preview {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 * var(--cobble-px));
+}
+
+.site-explorer-stage {
+  display: flex;
+  align-items: flex-start;
+  min-height: calc(20 * var(--cobble-px));
+  max-width: 100%;
+  overflow: auto;
+  padding: calc(4 * var(--cobble-px)) 0;
+}

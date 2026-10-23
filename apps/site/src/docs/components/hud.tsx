@@ -1,15 +1,16 @@
 import {
   AdvancementFrame,
-  JumpBar,
-  LocatorBar,
   BossBar,
+  type BossBarColor,
+  type BossBarOverlay,
   ExperienceBar,
   Hotbar,
+  ItemIcon,
+  JumpBar,
+  LocatorBar,
   PingIcon,
   ServerListEntry,
   Toast,
-  type BossBarColor,
-  type BossBarOverlay,
 } from 'cobble-ui';
 import { useState, type JSX } from 'react';
 import { Code, CodeBlock, Demo, H2, P, PropsTable } from '../../components/Prose.tsx';
@@ -146,11 +147,17 @@ export function ExperienceBarPage(): JSX.Element {
   );
 }
 
-const HOTBAR_DEMO_SLOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
-  <span key={number} className="cobble-text" data-shadow="">
-    {number}
-  </span>
-));
+const HOTBAR_DEMO_SLOTS = [
+  'iron_sword',
+  'iron_pickaxe',
+  'iron_axe',
+  'iron_shovel',
+  'bow',
+  'torch',
+  'cooked_beef',
+  'oak_planks',
+  'water_bucket',
+].map((name) => <ItemIcon key={name} name={name} />);
 
 export function HotbarPage(): JSX.Element {
   const [selected, setSelected] = useState(0);
@@ -170,11 +177,7 @@ export function HotbarPage(): JSX.Element {
           slots={HOTBAR_DEMO_SLOTS}
           offhand={{
             side: 'left',
-            content: (
-              <span className="cobble-text" data-shadow="">
-                O
-              </span>
-            ),
+            content: <ItemIcon name="totem_of_undying" />,
           }}
           style={{ marginLeft: 'calc(30 * var(--cobble-px))' }}
         />
@@ -359,16 +362,16 @@ export function AdvancementFramePage(): JSX.Element {
     <>
       <P>
         The 26×26 frame around an advancement icon: square for tasks, rounded for goals, spiked for
-        challenges, dark until obtained. Children fill the 16×16 icon area; item textures are not
-        part of the GUI assets, so supply your own image.
+        challenges, dark until obtained. Children fill the 16×16 icon area; use an
+        <Code>ItemIcon</Code> or any other image.
       </P>
       <Demo>
         <div className="site-row">
           {frames.map((type) => (
             <AdvancementFrame key={type} type={type} obtained>
-              <span className="cobble-text" data-shadow="">
-                {type.slice(0, 1).toUpperCase()}
-              </span>
+              <ItemIcon
+                name={type === 'task' ? 'oak_planks' : type === 'goal' ? 'compass' : 'dragon_egg'}
+              />
             </AdvancementFrame>
           ))}
           {frames.map((type) => (

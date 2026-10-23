@@ -32,6 +32,8 @@ export interface AssetBundle {
    * only be used by `<img>`/`<audio>` elements, not read with `fetch`.
    */
   objectUrl(name: string): string | undefined;
+  /** Lists every file path in the bundle, for explorers and tooling. Optional. */
+  paths?(): Iterable<string>;
 }
 
 /** Something that can produce an {@link AssetBundle}. */

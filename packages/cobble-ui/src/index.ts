@@ -29,6 +29,9 @@ export {
   useSound,
   useSprite,
   useSpriteSize,
+  useAssetPaths,
+  useAssetRevision,
+  useHasTexture,
   useTexture,
   useTextureUrl,
 } from './provider/hooks.ts';
@@ -727,6 +730,20 @@ export {
   TRIAL_ICON_SIZE,
   TrialAvailableIcon,
 } from './components/sprite/AnimatedIcons.tsx';
+export {
+  DEFAULT_SKIN,
+  EFFECT_ICON_SIZE,
+  EffectIcon,
+  ITEM_ICON_SIZE,
+  ItemIcon,
+  PLAYER_HEAD_SIZE,
+  PlayerHead,
+} from './components/sprite/TextureIcons.tsx';
+export type {
+  EffectIconProps,
+  ItemIconProps,
+  PlayerHeadProps,
+} from './components/sprite/TextureIcons.tsx';
 export { ICON_NAMES, Icon, iconInfo } from './components/sprite/Icon.tsx';
 export type { IconName, IconProps } from './components/sprite/Icon.tsx';
 export { PlayerPingIcon, playerPingSprite } from './components/server-list/PlayerPingIcon.tsx';

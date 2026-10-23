@@ -43,7 +43,7 @@ export function ChatLogPage(): JSX.Element {
               width={100}
               onClick={() =>
                 add(
-                  'A much longer message that is certain to wrap onto a second line of the log, like chat does.',
+                  '<Steve> A much longer message that is certain to wrap onto a second line of the log, like chat does.',
                 )
               }
             >

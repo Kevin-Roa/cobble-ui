@@ -1,4 +1,5 @@
 import type { NineSliceScaling, SpriteScaling } from './scaling.ts';
+import type { SpriteAnimation } from './animation.ts';
 
 /** A decoded, non-premultiplied RGBA image. */
 export interface RgbaImage {
@@ -10,6 +11,8 @@ export interface RgbaImage {
 export interface Sprite {
   readonly image: RgbaImage;
   readonly scaling: SpriteScaling;
+  /** Present for sprite sheets whose `.mcmeta` declares an `animation`. */
+  readonly animation?: SpriteAnimation;
 }
 
 /**

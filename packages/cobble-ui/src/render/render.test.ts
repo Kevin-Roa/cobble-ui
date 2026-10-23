@@ -1,6 +1,7 @@
 import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
 import { composeSprite, composeTiledTexture, deviceSize, type RgbaImage } from './blit.ts';
+import { projectModel, resolveItem } from './item-model.ts';
 import { decodePng } from './png.ts';
 import { parseSpriteScaling, type SpriteScaling } from './scaling.ts';
 
@@ -199,5 +200,93 @@ describe('decodePng', () => {
 
   it('rejects non-PNG data', () => {
     expect(() => decodePng(new Uint8Array([1, 2, 3]))).toThrow('Not a PNG file');
+  });
+});
+
+function failNoModel(): never {
+  throw new Error('item has no model');
+}
+
+describe('item models', () => {
+  const files: Record<string, unknown> = {
+    'assets/minecraft/items/stone.json': {
+      model: { type: 'minecraft:model', model: 'minecraft:block/stone' },
+    },
+    'assets/minecraft/items/stick.json': {
+      model: { type: 'minecraft:model', model: 'minecraft:item/stick' },
+    },
+    'assets/minecraft/models/block/stone.json': {
+      parent: 'minecraft:block/cube_all',
+      textures: { all: 'minecraft:block/stone' },
+    },
+    'assets/minecraft/models/block/cube_all.json': {
+      parent: 'block/cube',
+      textures: {
+        down: '#all',
+        up: '#all',
+        north: '#all',
+        south: '#all',
+        west: '#all',
+        east: '#all',
+      },
+    },
+    'assets/minecraft/models/block/cube.json': {
+      parent: 'block/block',
+      elements: [
+        {
+          from: [0, 0, 0],
+          to: [16, 16, 16],
+          faces: {
+            down: { texture: '#down' },
+            up: { texture: '#up' },
+            north: { texture: '#north' },
+            south: { texture: '#south' },
+            west: { texture: '#west' },
+            east: { texture: '#east' },
+          },
+        },
+      ],
+    },
+    'assets/minecraft/models/block/block.json': {
+      display: {
+        gui: { rotation: [30, 225, 0], translation: [0, 0, 0], scale: [0.625, 0.625, 0.625] },
+      },
+    },
+    'assets/minecraft/models/item/stick.json': {
+      parent: 'minecraft:item/generated',
+      textures: { layer0: 'minecraft:item/stick' },
+    },
+    'assets/minecraft/models/item/generated.json': {
+      parent: 'builtin/generated',
+      gui_light: 'front',
+    },
+  };
+  const source = (path: string): unknown => files[path] ?? null;
+
+  it('draws a block as three lit faces seen from above', () => {
+    const parts = resolveItem('stone', source);
+    expect(parts).toHaveLength(1);
+    const faces = projectModel(parts?.[0]?.model ?? failNoModel(), []);
+    expect(faces.map((face) => face.texture)).toEqual([
+      'block/stone',
+      'block/stone',
+      'block/stone',
+    ]);
+    // The top face is the brightest, and the cube fits the 16-unit slot.
+    expect(Math.max(...faces.map((face) => face.shade))).toBe(1);
+    for (const face of faces) {
+      expect(face.origin[0]).toBeGreaterThanOrEqual(0);
+      expect(face.origin[0]).toBeLessThanOrEqual(16);
+    }
+  });
+
+  it('reads flat item layers from generated models', () => {
+    const parts = resolveItem('stick', source);
+    expect(parts?.[0]?.model.layers).toEqual(['item/stick']);
+  });
+
+  it('reports files that are still loading and items that have no model', () => {
+    expect(resolveItem('stone', () => undefined)).toBeUndefined();
+    expect(resolveItem('nothing', source)).toBeNull();
   });
 });

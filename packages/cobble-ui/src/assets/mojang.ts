@@ -8,12 +8,21 @@ export const MOJANG_VERSION_MANIFEST_URL =
   'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 export const MOJANG_RESOURCES_URL = 'https://resources.download.minecraft.net';
 
-const CACHE_NAME = 'cobble-ui-assets-v1';
+const CACHE_NAME = 'cobble-ui-assets-v3';
 const CACHE_ORIGIN = 'https://cobble-ui.invalid';
 
 /** Client files kept after the jar is downloaded. Everything else is discarded. */
 const DEFAULT_INCLUDE = (path: string): boolean =>
   path.startsWith('assets/minecraft/textures/gui/') ||
+  path.startsWith('assets/minecraft/textures/item/') ||
+  path.startsWith('assets/minecraft/textures/block/') ||
+  path.startsWith('assets/minecraft/textures/mob_effect/') ||
+  path.startsWith('assets/minecraft/items/') ||
+  path.startsWith('assets/minecraft/models/item/') ||
+  path.startsWith('assets/minecraft/models/block/') ||
+  path === 'assets/minecraft/textures/misc/unknown_server.png' ||
+  path === 'assets/minecraft/textures/misc/unknown_pack.png' ||
+  path === 'assets/minecraft/textures/entity/player/wide/steve.png' ||
   path === 'assets/minecraft/textures/font/ascii.png';
 
 /** Asset index objects that are kept (for sounds and the title panorama). */
@@ -166,6 +175,10 @@ class MojangBundle implements AssetBundle {
 
   file(path: string): Blob | undefined {
     return this.files.get(path);
+  }
+
+  paths(): Iterable<string> {
+    return this.files.keys();
   }
 
   objectUrl(name: string): string | undefined {

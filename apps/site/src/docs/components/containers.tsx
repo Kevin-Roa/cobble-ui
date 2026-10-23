@@ -14,6 +14,7 @@ import {
   CreativeScroller,
   CreativeTab,
   DispenserPanel,
+  EffectIcon,
   EnchantingTablePanel,
   EnchantmentSlot,
   FuelBar,
@@ -22,6 +23,7 @@ import {
   GameModeSlot,
   GrindstonePanel,
   HopperPanel,
+  ItemIcon,
   LoomPanel,
   Panel,
   PlayerInventoryGrid,
@@ -36,6 +38,39 @@ import {
 } from 'cobble-ui';
 import { useState, type JSX } from 'react';
 import { Code, ComponentDoc } from '../../components/Prose.tsx';
+
+/** Real item textures to fill demo slots with. */
+const DEMO_ITEMS = [
+  'stone',
+  'oak_planks',
+  'iron_ingot',
+  'diamond',
+  'apple',
+  'torch',
+  'coal',
+  'emerald',
+  'arrow',
+  'stick',
+] as const;
+
+function demoItem(index: number): string {
+  return DEMO_ITEMS[index % DEMO_ITEMS.length] ?? 'stone';
+}
+
+const CREATIVE_TAB_ITEMS = [
+  'bricks',
+  'red_dye',
+  'oak_log',
+  'crafting_table',
+  'redstone',
+  'iron_sword',
+  'apple',
+  'ender_pearl',
+  'lava_bucket',
+  'compass',
+  'chest',
+  'barrier',
+];
 
 const AS = {
   name: 'as',
@@ -58,9 +93,7 @@ export function BundleSlotPage(): JSX.Element {
         <div className="site-row">
           <BundleSlot />
           <BundleSlot highlighted>
-            <span className="cobble-text" data-shadow="">
-              3
-            </span>
+            <ItemIcon name="apple" />
           </BundleSlot>
         </div>
       }
@@ -324,26 +357,20 @@ export function StatusEffectEntryPage(): JSX.Element {
           An active effect in the inventory&apos;s side panel: the 32×32 nine-sliced{' '}
           <Code>effect_background</Code> (a different one for ambient effects such as beacons), the
           icon, and the name and remaining time. <Code>compact</Code> shows only the icon in a 32×32
-          box. The text and icon offsets are approximations of the game&apos;s; supply your own mob
-          effect icon.
+          box. The text and icon offsets are approximations of the game&apos;s; the icon is any
+          element, like <Code>EffectIcon</Code>.
         </>
       }
       demo={
         <div className="site-stack">
           <StatusEffectEntry name="Speed II" duration="0:42">
-            <span className="cobble-text" data-shadow="">
-              S
-            </span>
+            <EffectIcon name="speed" />
           </StatusEffectEntry>
           <StatusEffectEntry name="Haste" duration="∞" ambient>
-            <span className="cobble-text" data-shadow="">
-              H
-            </span>
+            <EffectIcon name="haste" />
           </StatusEffectEntry>
           <StatusEffectEntry compact>
-            <span className="cobble-text" data-shadow="">
-              S
-            </span>
+            <EffectIcon name="speed" />
           </StatusEffectEntry>
         </div>
       }
@@ -372,7 +399,12 @@ export function StatusEffectEntryPage(): JSX.Element {
 
 export function GameModeSlotPage(): JSX.Element {
   const [selected, setSelected] = useState(1);
-  const modes = ['Creative Mode', 'Survival Mode', 'Adventure Mode', 'Spectator Mode'];
+  const modes = [
+    ['Creative Mode', 'grass_block'],
+    ['Survival Mode', 'iron_sword'],
+    ['Adventure Mode', 'map'],
+    ['Spectator Mode', 'ender_eye'],
+  ] as const;
   return (
     <ComponentDoc
       intro={
@@ -384,16 +416,14 @@ export function GameModeSlotPage(): JSX.Element {
       }
       demo={
         <div className="site-row" role="radiogroup" aria-label="Game mode">
-          {modes.map((mode, index) => (
+          {modes.map(([mode, item], index) => (
             <GameModeSlot
               key={mode}
               label={mode}
               selected={index === selected}
               onClick={() => setSelected(index)}
             >
-              <span className="cobble-text" data-shadow="">
-                {mode.slice(0, 1)}
-              </span>
+              <ItemIcon name={item} />
             </GameModeSlot>
           ))}
         </div>
@@ -616,9 +646,7 @@ export function BeaconButtonPage(): JSX.Element {
               selected={index === selected}
               onClick={() => setSelected(index)}
             >
-              <span className="cobble-text" data-shadow="">
-                {name.slice(0, 1)}
-              </span>
+              <EffectIcon name={name.toLowerCase()} />
             </BeaconButton>
           ))}
           <BeaconButton label="Jump Boost" disabled />
@@ -730,10 +758,10 @@ export function SlotGridPage(): JSX.Element {
             label="Chest"
             onSlotClick={setPicked}
             items={[
-              { content: <Dot />, count: 64, label: 'Cobblestone' },
-              { content: <Dot />, count: 12, label: 'Iron Ingot' },
+              { content: <ItemIcon name="cobblestone" />, count: 64, label: 'Cobblestone' },
+              { content: <ItemIcon name="iron_ingot" />, count: 12, label: 'Iron Ingot' },
               undefined,
-              { content: <Dot />, label: 'Diamond Pickaxe' },
+              { content: <ItemIcon name="diamond_pickaxe" />, label: 'Diamond Pickaxe' },
             ]}
           />
           <SlotGrid columns={4} rows={1} label="Armor" emptyIcon="helmet" />
@@ -779,10 +807,10 @@ export function PlayerInventoryGridPage(): JSX.Element {
       }
       demo={
         <PlayerInventoryGrid
-          items={[{ content: <Dot />, count: 32, label: 'Oak Planks' }]}
+          items={[{ content: <ItemIcon name="oak_planks" />, count: 32, label: 'Oak Planks' }]}
           hotbar={[
-            { content: <Dot />, label: 'Sword' },
-            { content: <Dot />, count: 16, label: 'Torch' },
+            { content: <ItemIcon name="iron_sword" />, label: 'Sword' },
+            { content: <ItemIcon name="torch" />, count: 16, label: 'Torch' },
           ]}
         />
       }
@@ -809,14 +837,6 @@ export function PlayerInventoryGridPage(): JSX.Element {
   );
 }
 
-function Dot(): JSX.Element {
-  return (
-    <span className="cobble-text" data-shadow="">
-      ◆
-    </span>
-  );
-}
-
 export function CraftingGridPage(): JSX.Element {
   return (
     <ComponentDoc
@@ -832,13 +852,17 @@ export function CraftingGridPage(): JSX.Element {
         <div className="site-stack">
           <CraftingGrid
             ingredients={[
-              { content: <Dot />, label: 'Plank' },
-              { content: <Dot />, label: 'Plank' },
+              { content: <ItemIcon name="oak_planks" />, label: 'Plank' },
+              { content: <ItemIcon name="oak_planks" />, label: 'Plank' },
               undefined,
-              { content: <Dot />, label: 'Plank' },
-              { content: <Dot />, label: 'Plank' },
+              { content: <ItemIcon name="oak_planks" />, label: 'Plank' },
+              { content: <ItemIcon name="oak_planks" />, label: 'Plank' },
             ]}
-            result={{ content: <Dot />, count: 4, label: 'Crafting Table' }}
+            result={{
+              content: <ItemIcon name="crafting_table" />,
+              count: 4,
+              label: 'Crafting Table',
+            }}
           />
           <CraftingGrid size={2} />
         </div>
@@ -876,15 +900,15 @@ export function EnchantingTablePanelPage(): JSX.Element {
         <>
           The interactive part of the enchanting table screen: the item slot, the lapis slot (with
           its placeholder icon while empty) and the three option rows, at the game&apos;s own
-          coordinates. The book and the screen background are not drawn. The slot coordinates are
+          coordinates. The book is not drawn; the screen background is. The slot coordinates are
           recalled from vanilla and are approximations.
         </>
       }
       demo={
         <div className="site-stack">
           <EnchantingTablePanel
-            item={{ content: <Dot />, label: 'Iron Sword' }}
-            lapis={{ content: <Dot />, count: 3 }}
+            item={{ content: <ItemIcon name="iron_sword" />, label: 'Iron Sword' }}
+            lapis={{ content: <ItemIcon name="lapis_lazuli" />, count: 3 }}
             options={[
               { clue: 'Clue text', cost: 1, label: 'Enchantment option 1, 1 level' },
               { clue: 'Clue text', cost: 2, label: 'Enchantment option 2, 2 levels' },
@@ -930,7 +954,7 @@ export function EnchantingTablePanelPage(): JSX.Element {
 const NOTE = (
   <>
     Coordinates are recalled from vanilla and are approximations; the screen&apos;s own background
-    artwork is not drawn. Supply your own item content.
+    artwork is drawn behind it. Any element works as item content.
   </>
 );
 
@@ -947,13 +971,13 @@ export function AnvilPanelPage(): JSX.Element {
       demo={
         <div className="site-stack">
           <AnvilPanel
-            left={{ content: <Dot />, label: 'Iron Sword' }}
-            right={{ content: <Dot />, count: 2, label: 'Iron Ingot' }}
-            result={{ content: <Dot />, label: 'Repaired Iron Sword' }}
+            left={{ content: <ItemIcon name="iron_sword" />, label: 'Iron Sword' }}
+            right={{ content: <ItemIcon name="iron_ingot" />, count: 2, label: 'Iron Ingot' }}
+            result={{ content: <ItemIcon name="iron_sword" />, label: 'Repaired Iron Sword' }}
             name={name}
             onNameChange={setName}
           />
-          <AnvilPanel left={{ content: <Dot />, label: 'Stick' }} error />
+          <AnvilPanel left={{ content: <ItemIcon name="stick" />, label: 'Stick' }} error />
         </div>
       }
       code="<AnvilPanel left={a} right={b} result={out} name={name} onNameChange={setName} error={!ok} />"
@@ -992,12 +1016,12 @@ export function BrewingStandPanelPage(): JSX.Element {
         <div className="site-stack">
           <BrewingStandPanel
             bottles={[
-              { content: <Dot />, label: 'Water Bottle' },
+              { content: <ItemIcon name="potion" />, label: 'Water Bottle' },
               undefined,
-              { content: <Dot />, label: 'Water Bottle' },
+              { content: <ItemIcon name="potion" />, label: 'Water Bottle' },
             ]}
-            ingredient={{ content: <Dot />, label: 'Nether Wart' }}
-            fuel={{ content: <Dot />, count: 3, label: 'Blaze Powder' }}
+            ingredient={{ content: <ItemIcon name="nether_wart" />, label: 'Nether Wart' }}
+            fuel={{ content: <ItemIcon name="blaze_powder" />, count: 3, label: 'Blaze Powder' }}
             brewTime={time}
             fuelCharges={15}
           />
@@ -1045,9 +1069,9 @@ export function FurnacePanelPage(): JSX.Element {
       demo={
         <div className="site-stack">
           <FurnacePanel
-            input={{ content: <Dot />, label: 'Raw Iron' }}
-            fuel={{ content: <Dot />, count: 8, label: 'Coal' }}
-            output={{ content: <Dot />, count: 3, label: 'Iron Ingot' }}
+            input={{ content: <ItemIcon name="raw_iron" />, label: 'Raw Iron' }}
+            fuel={{ content: <ItemIcon name="coal" />, count: 8, label: 'Coal' }}
+            output={{ content: <ItemIcon name="iron_ingot" />, count: 3, label: 'Iron Ingot' }}
             cookProgress={0.6}
             litProgress={0.7}
           />
@@ -1083,7 +1107,7 @@ export function StonecutterPanelPage(): JSX.Element {
   const [selected, setSelected] = useState<number | null>(1);
   const [scroll, setScroll] = useState(0);
   const recipes = Array.from({ length: 16 }, (_, i) => ({
-    content: <Dot />,
+    content: <ItemIcon name={demoItem(i)} />,
     label: `Recipe ${String(i + 1)}`,
   }));
   return (
@@ -1097,7 +1121,7 @@ export function StonecutterPanelPage(): JSX.Element {
       }
       demo={
         <StonecutterPanel
-          input={{ content: <Dot />, count: 5, label: 'Stone' }}
+          input={{ content: <ItemIcon name="stone" />, count: 5, label: 'Stone' }}
           recipes={recipes}
           selectedRecipe={selected}
           onRecipeClick={setSelected}
@@ -1129,7 +1153,7 @@ export function LoomPanelPage(): JSX.Element {
   const [selected, setSelected] = useState<number | null>(0);
   const [scroll, setScroll] = useState(0);
   const patterns = Array.from({ length: 24 }, (_, i) => ({
-    content: <Dot />,
+    content: <ItemIcon name={demoItem(i)} />,
     label: `Pattern ${String(i + 1)}`,
   }));
   return (
@@ -1142,8 +1166,8 @@ export function LoomPanelPage(): JSX.Element {
       }
       demo={
         <LoomPanel
-          banner={{ content: <Dot />, label: 'White Banner' }}
-          dye={{ content: <Dot />, label: 'Red Dye' }}
+          banner={{ content: <ItemIcon name="white_wool" />, label: 'White Banner' }}
+          dye={{ content: <ItemIcon name="red_dye" />, label: 'Red Dye' }}
           patterns={patterns}
           selectedPattern={selected}
           onPatternClick={setSelected}
@@ -1188,11 +1212,11 @@ export function CartographyPanelPage(): JSX.Element {
       demo={
         <div className="site-stack">
           <CartographyPanel
-            map={{ content: <Dot />, label: 'Map' }}
-            material={{ content: <Dot />, label: 'Paper' }}
+            map={{ content: <ItemIcon name="map" />, label: 'Map' }}
+            material={{ content: <ItemIcon name="paper" />, label: 'Paper' }}
             preview="scaled"
           >
-            <Dot />
+            <ItemIcon name="map" />
           </CartographyPanel>
           <CartographyPanel preview="duplicated" locked />
           <CartographyPanel error />
@@ -1225,8 +1249,8 @@ export function GrindstonePanelPage(): JSX.Element {
       demo={
         <div className="site-stack">
           <GrindstonePanel
-            top={{ content: <Dot />, label: 'Enchanted Sword' }}
-            result={{ content: <Dot />, label: 'Sword' }}
+            top={{ content: <ItemIcon name="diamond_sword" />, label: 'Enchanted Sword' }}
+            result={{ content: <ItemIcon name="iron_sword" />, label: 'Sword' }}
           />
           <GrindstonePanel error />
         </div>
@@ -1259,10 +1283,13 @@ export function SmithingTablePanelPage(): JSX.Element {
         <div className="site-stack">
           <SmithingTablePanel />
           <SmithingTablePanel
-            template={{ content: <Dot />, label: 'Netherite Upgrade' }}
-            base={{ content: <Dot />, label: 'Diamond Sword' }}
-            addition={{ content: <Dot />, label: 'Netherite Ingot' }}
-            result={{ content: <Dot />, label: 'Netherite Sword' }}
+            template={{
+              content: <ItemIcon name="netherite_upgrade_smithing_template" />,
+              label: 'Netherite Upgrade',
+            }}
+            base={{ content: <ItemIcon name="diamond_sword" />, label: 'Diamond Sword' }}
+            addition={{ content: <ItemIcon name="netherite_ingot" />, label: 'Netherite Ingot' }}
+            result={{ content: <ItemIcon name="netherite_sword" />, label: 'Netherite Sword' }}
           />
         </div>
       }
@@ -1286,7 +1313,7 @@ export function SmithingTablePanelPage(): JSX.Element {
 }
 
 function effect(label: string): { readonly content: JSX.Element; readonly label: string } {
-  return { content: <Dot />, label };
+  return { content: <EffectIcon name={label.toLowerCase().replaceAll(' ', '_')} />, label };
 }
 
 export function BeaconPanelPage(): JSX.Element {
@@ -1309,7 +1336,7 @@ export function BeaconPanelPage(): JSX.Element {
           ]}
           selected={selected}
           onEffectClick={(tier, index) => setSelected([[tier, index]])}
-          payment={{ content: <Dot />, label: 'Iron Ingot' }}
+          payment={{ content: <ItemIcon name="iron_ingot" />, label: 'Iron Ingot' }}
         />
       }
       code="<BeaconPanel tiers={tiers} selected={chosen} onEffectClick={choose} onConfirm={apply} />"
@@ -1362,7 +1389,7 @@ export function CrafterPanelPage(): JSX.Element {
         <CrafterPanel
           disabledSlots={off}
           onSlotClick={(index) => setOff(off.map((value, i) => (i === index ? !value : value)))}
-          slots={[{ content: <Dot />, label: 'Stick' }]}
+          slots={[{ content: <ItemIcon name="stick" />, label: 'Stick' }]}
           powered
         />
       }
@@ -1392,9 +1419,9 @@ export function VillagerTradePanelPage(): JSX.Element {
   const [scroll, setScroll] = useState(0);
   const offers = Array.from({ length: 10 }, (_, i) => ({
     label: `Trade ${String(i + 1)}`,
-    buy: <Dot />,
-    buy2: i % 3 === 0 ? <Dot /> : undefined,
-    sell: <Dot />,
+    buy: <ItemIcon name="emerald" />,
+    buy2: i % 3 === 0 ? <ItemIcon name="paper" /> : undefined,
+    sell: <ItemIcon name={demoItem(i)} />,
     outOfStock: i === 2,
   }));
   return (
@@ -1414,7 +1441,7 @@ export function VillagerTradePanelPage(): JSX.Element {
           scroll={scroll}
           onScrollChange={setScroll}
           levelProgress={0.4}
-          payment={[{ content: <Dot />, count: 24, label: 'Emerald' }]}
+          payment={[{ content: <ItemIcon name="emerald" />, count: 24, label: 'Emerald' }]}
         />
       }
       code="<VillagerTradePanel offers={offers} selectedOffer={i} onOfferClick={pick} levelProgress={xp} />"
@@ -1450,7 +1477,11 @@ export function HopperPanelPage(): JSX.Element {
   return (
     <ComponentDoc
       intro={<>The hopper&apos;s row of five slots, 18 units apart. {NOTE}</>}
-      demo={<HopperPanel items={[{ content: <Dot />, count: 12, label: 'Iron Ingot' }]} />}
+      demo={
+        <HopperPanel
+          items={[{ content: <ItemIcon name="iron_ingot" />, count: 12, label: 'Iron Ingot' }]}
+        />
+      }
       code="<HopperPanel items={hopper} onSlotClick={pickUp} />"
       rows={[
         { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The five slots.' },
@@ -1469,7 +1500,11 @@ export function DispenserPanelPage(): JSX.Element {
   return (
     <ComponentDoc
       intro={<>The 3×3 grid of a dispenser or dropper. {NOTE}</>}
-      demo={<DispenserPanel items={[undefined, { content: <Dot />, count: 64, label: 'Arrow' }]} />}
+      demo={
+        <DispenserPanel
+          items={[undefined, { content: <ItemIcon name="arrow" />, count: 64, label: 'Arrow' }]}
+        />
+      }
       code="<DispenserPanel items={dispenser} onSlotClick={pickUp} />"
       rows={[
         { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The nine slots.' },
@@ -1485,7 +1520,7 @@ export function DispenserPanelPage(): JSX.Element {
 }
 
 const CREATIVE_DEMO_ITEMS = Array.from({ length: 12 }, (_, i) => ({
-  content: <Dot />,
+  content: <ItemIcon name={demoItem(i)} />,
   label: `Item ${String(i + 1)}`,
 }));
 
@@ -1504,9 +1539,9 @@ const CREATIVE_DEMO_TABS = [
   'Search Items',
   'Saved Hotbars',
   'Survival Inventory',
-].map((label) => ({
+].map((label, i) => ({
   label,
-  icon: <Dot />,
+  icon: <ItemIcon name={CREATIVE_TAB_ITEMS[i % CREATIVE_TAB_ITEMS.length] ?? 'stone'} />,
 }));
 
 export function CreativeInventoryPanelPage(): JSX.Element {

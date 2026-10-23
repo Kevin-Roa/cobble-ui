@@ -5,7 +5,7 @@ import { VillagerScroller } from '../trade/VillagerScroller.tsx';
 import { TradeArrow, VillagerXpBar } from '../trade/Trade.tsx';
 import { placeAt } from '../shared.ts';
 import { SlotGrid, type SlotGridItem } from './SlotGrid.tsx';
-import { StationSlot, panelRoot } from './StationPanels.tsx';
+import { StationSlot, usePanelRoot } from './StationPanels.tsx';
 
 // --------------------------------------------------------------------------------- villager
 
@@ -38,6 +38,8 @@ export function tradeStartIndex(scroll: number, offerCount: number): number {
 }
 
 export interface VillagerTradePanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly offers?: readonly TradeOffer[];
   readonly selectedOffer?: number | null;
   readonly onOfferClick?: (index: number) => void;
@@ -60,7 +62,7 @@ export type VillagerTradePanelProps<E extends ElementType = 'div'> = Polymorphic
 /**
  * The interactive part of the villager trading screen: the scrollable list of up to seven trades,
  * its scroller, the level bar and the two payment slots with the result. Coordinates are recalled
- * from vanilla and are approximations; the screen's artwork is not drawn.
+ * from vanilla and are approximations; the screen's artwork is drawn behind it unless `background` is false.
  */
 export function VillagerTradePanel<E extends ElementType = 'div'>(
   props: VillagerTradePanelProps<E>,
@@ -80,7 +82,15 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as VillagerTradePanelProps<'div'>;
-  const { Component, props: root } = panelRoot(as, 'trade-panel', 240, 158, className, style, rest);
+  const { Component, props: root } = usePanelRoot(
+    as,
+    'trade-panel',
+    240,
+    158,
+    className,
+    style,
+    rest,
+  );
   const start = tradeStartIndex(scroll, offers.length);
   const visible = offers.slice(start, start + TRADE_VISIBLE_ROWS);
   const click = (slot: 'payment-1' | 'payment-2' | 'result'): { readonly onClick?: () => void } =>
@@ -155,6 +165,8 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
 // ------------------------------------------------------------------------- hopper, dispenser
 
 export interface SlotsPanelOwnProps {
+  /** Draw the screen's own artwork behind the slots. Defaults to true. */
+  readonly background?: boolean;
   readonly items?: readonly (SlotGridItem | undefined)[];
   readonly onSlotClick?: (index: number) => void;
 }
@@ -173,7 +185,15 @@ export function HopperPanel<E extends ElementType = 'div'>(
   props: HopperPanelProps<E>,
 ): JSX.Element {
   const { as, items, onSlotClick, className, style, ...rest } = props as HopperPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(as, 'hopper-panel', 106, 18, className, style, rest);
+  const { Component, props: root } = usePanelRoot(
+    as,
+    'hopper-panel',
+    106,
+    18,
+    className,
+    style,
+    rest,
+  );
   return (
     <Component {...root}>
       <SlotGrid
@@ -194,7 +214,7 @@ export function DispenserPanel<E extends ElementType = 'div'>(
   props: DispenserPanelProps<E>,
 ): JSX.Element {
   const { as, items, onSlotClick, className, style, ...rest } = props as DispenserPanelProps<'div'>;
-  const { Component, props: root } = panelRoot(
+  const { Component, props: root } = usePanelRoot(
     as,
     'dispenser-panel',
     116,

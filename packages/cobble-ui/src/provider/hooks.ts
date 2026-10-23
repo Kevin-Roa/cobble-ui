@@ -1,9 +1,23 @@
 import type { SpriteId } from '../assets/sprite-id.ts';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { AssetState } from '../assets/store.ts';
+import type { SpriteAnimation } from '../render/animation.ts';
 import type { RgbaImage, Sprite } from '../render/blit.ts';
 import type { PlaySoundOptions, UiSoundEvent } from '../sound/sounds.ts';
 import { useCobble } from './context.ts';
+
+/** Changes whenever anything in the asset store changes (a sprite or file finished loading, …). */
+export function useAssetRevision(): number {
+  return useStoreRevision();
+}
+
+/** Every file in the loaded client files with this path prefix and suffix, sorted. */
+export function useAssetPaths(prefix: string, suffix = ''): readonly string[] {
+  const { store } = useCobble();
+  const revision = useStoreRevision();
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- recomputed when the store changes
+  return useMemo(() => store.listPaths(prefix, suffix), [store, prefix, suffix, revision]);
+}
 
 function useStoreRevision(): number {
   const { store } = useCobble();
@@ -41,6 +55,13 @@ export function useSpriteSize(
   return { width: sprite.scaling.width, height: sprite.scaling.height };
 }
 
+/** The `.mcmeta` animation of a sprite sheet, once loaded (`undefined` for static sprites). */
+export function useSpriteAnimation(id: SpriteId | undefined): SpriteAnimation | undefined {
+  const { store } = useCobble();
+  useStoreRevision();
+  return id === undefined ? undefined : store.getSprite(id)?.animation;
+}
+
 /** A sprite composed at `width × height` GUI units for the current scale, once loaded. */
 export function useComposedSprite(
   id: SpriteId | undefined,
@@ -54,10 +75,17 @@ export function useComposedSprite(
 }
 
 /** A decoded texture (`gui/menu_background`, …), once loaded. */
-export function useTexture(id: string): RgbaImage | undefined {
+export function useTexture(id: string | undefined): RgbaImage | undefined {
   const { store } = useCobble();
   useStoreRevision();
-  return store.getTexture(id);
+  return id === undefined ? undefined : store.getTexture(id);
+}
+
+/** Whether a texture exists in the loaded client files. */
+export function useHasTexture(id: string): boolean {
+  const { store } = useCobble();
+  useStoreRevision();
+  return store.hasTexture(id);
 }
 
 /** A `blob:` URL for a texture from the client jar, once loaded. */

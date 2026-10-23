@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { parseSpriteAnimation } from './render/animation.ts';
 import {
   scrollerHeight,
   scrollerY,
@@ -246,5 +247,36 @@ describe('screens', () => {
   it('pulses the splash text', () => {
     expect(splashScale(68, 0)).toBeCloseTo(1.8);
     expect(splashScale(68, 250)).toBeCloseTo(1.7);
+  });
+});
+
+describe('parseSpriteAnimation', () => {
+  it('reads sizes, frame times and explicit frames from the mcmeta', () => {
+    expect(
+      parseSpriteAnimation(
+        { animation: { width: 8, height: 8, frametime: 2, frames: [{ index: 0, time: 10 }, 1] } },
+        8,
+        48,
+      ),
+    ).toEqual({
+      frameWidth: 8,
+      frameHeight: 8,
+      frametime: 2,
+      frames: [
+        { index: 0, time: 10 },
+        { index: 1, time: 2 },
+      ],
+    });
+  });
+
+  it('makes frames square and one tick long by default, and ignores other metadata', () => {
+    expect(parseSpriteAnimation({ animation: {} }, 16, 64)).toEqual({
+      frameWidth: 16,
+      frameHeight: 16,
+      frametime: 1,
+      frames: undefined,
+    });
+    expect(parseSpriteAnimation({ gui: {} }, 16, 16)).toBeUndefined();
+    expect(parseSpriteAnimation(undefined, 16, 16)).toBeUndefined();
   });
 });

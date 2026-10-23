@@ -2,7 +2,7 @@ import { mergeProps } from '@base-ui/react/merge-props';
 import { Fragment, type ElementType, type JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx, placeAt } from '../shared.ts';
-import { AnimatedSprite, type AnimationFrame } from '../sprite/AnimatedSprite.tsx';
+import { AnimatedSprite } from '../sprite/AnimatedSprite.tsx';
 import { Sprite } from '../sprite/Sprite.tsx';
 import { STAT_BAR_HEIGHT, STAT_BAR_WIDTH } from './StatBar.tsx';
 
@@ -15,12 +15,6 @@ export type LocatorDot = 'default_0' | 'default_1' | 'default_2' | 'default_3' |
 /** Size of one frame of the up/down arrow sheets (`hud/locator_bar_arrow_*`, 7×10 = two 7×5 frames). */
 export const LOCATOR_ARROW_WIDTH = 7;
 export const LOCATOR_ARROW_HEIGHT = 5;
-
-/** `.mcmeta` timing of the arrow sheets: frame 0 for 10 ticks, then frame 1 for 4. */
-const ARROW_FRAMES: readonly AnimationFrame[] = [
-  { index: 0, time: 10 },
-  { index: 1, time: 4 },
-];
 
 export interface LocatorWaypoint {
   /** Direction relative to where the player looks: -1 is the left edge of the bar, 1 the right edge. */
@@ -80,9 +74,6 @@ export function LocatorBar<E extends ElementType = 'div'>(props: LocatorBarProps
             <AnimatedSprite
               className="cobble-locator-arrow"
               sprite={`hud/locator_bar_arrow_${waypoint.arrow}`}
-              frameWidth={LOCATOR_ARROW_WIDTH}
-              frameHeight={LOCATOR_ARROW_HEIGHT}
-              frames={ARROW_FRAMES}
               style={placeAt(
                 locatorDotX(waypoint.position) + 1,
                 waypoint.arrow === 'up' ? -2 - LOCATOR_ARROW_HEIGHT : -2 + LOCATOR_DOT_SIZE,

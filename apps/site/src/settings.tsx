@@ -14,6 +14,7 @@ export interface SiteSettings {
   readonly volume: number;
   readonly menuBlur: number;
   readonly panoramaSpeed: number;
+  readonly inWorld: boolean;
 }
 
 const DEFAULTS: SiteSettings = {
@@ -22,6 +23,7 @@ const DEFAULTS: SiteSettings = {
   volume: 1,
   menuBlur: 5,
   panoramaSpeed: 1,
+  inWorld: false,
 };
 const STORAGE_KEY = 'cobble-ui-site-settings';
 

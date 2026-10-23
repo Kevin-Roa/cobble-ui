@@ -18,6 +18,7 @@ function App(): JSX.Element {
       sound={{ enabled: settings.sound, master: settings.volume }}
       menuBlur={settings.menuBlur}
       panoramaSpeed={settings.panoramaSpeed}
+      inWorld={settings.inWorld}
     >
       <ToastProvider>
         <RouterProvider router={router} />

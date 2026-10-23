@@ -25,6 +25,7 @@ export function memoryAssets(options: MemoryAssetsOptions): AssetSource {
     version: options.version ?? 'memory',
     file: (path) => files.get(path),
     objectUrl: (name) => objects[name],
+    paths: () => files.keys(),
   };
   return {
     key: `memory:${String(++nextId)}:${bundle.version}`,
