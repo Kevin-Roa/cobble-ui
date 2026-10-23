@@ -1,6 +1,7 @@
 import type { ElementType, JSX } from 'react';
 import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
+import { cx } from '../shared.ts';
 import { CreativeScroller, type CreativeScrollerOwnProps } from '../creative/CreativeScroller.tsx';
 import {
   StateSpriteButton,
@@ -9,6 +10,35 @@ import {
 } from './StateSpriteButton.tsx';
 
 type Wrapped = Omit<StateSpriteButtonOwnProps, 'label'> & { readonly label?: string };
+
+/** Default inset between a cell's edge and the content drawn in it, in GUI units. */
+export const CONTAINER_BUTTON_PADDING = 2;
+
+/**
+ * Content slot props that make the content fill the button minus `padding` on every side, so an
+ * item or icon scales to the cell instead of having a hardcoded size.
+ */
+function fitContent(
+  width: number,
+  height: number,
+  padding: number,
+  slot: StateSpriteButtonOwnProps['slotProps'],
+): NonNullable<StateSpriteButtonOwnProps['slotProps']> {
+  return {
+    ...slot,
+    content: {
+      ...slot?.content,
+      className: cx('cobble-fit-content', slot?.content?.className),
+      style: {
+        left: `calc(${String(padding)} * var(--cobble-px))`,
+        top: `calc(${String(padding)} * var(--cobble-px))`,
+        width: `calc(${String(width - padding * 2)} * var(--cobble-px))`,
+        height: `calc(${String(height - padding * 2)} * var(--cobble-px))`,
+        ...slot?.content?.style,
+      },
+    },
+  };
+}
 
 // ---------------------------------------------------------------------------- stonecutter
 
@@ -28,13 +58,13 @@ export type StonecutterRecipeButtonProps<E extends ElementType = 'button'> = Pol
 
 /**
  * A recipe cell of the stonecutter (`container/stonecutter/recipe`, 16×18): lit when hovered or
- * focused and dark when it is the chosen recipe. The result item goes inside, in a 16×16 area
- * one unit down.
+ * focused and dark when it is the chosen recipe. The result item goes inside and scales to
+ * fit the cell with {@link CONTAINER_BUTTON_PADDING} around it.
  */
 export function StonecutterRecipeButton<E extends ElementType = 'button'>(
   props: StonecutterRecipeButtonProps<E>,
 ): JSX.Element {
-  const { label = 'Recipe', ...rest } = props as StonecutterRecipeButtonProps<'button'>;
+  const { label = 'Recipe', slotProps, ...rest } = props as StonecutterRecipeButtonProps<'button'>;
   return (
     <StateSpriteButton
       {...rest}
@@ -43,8 +73,12 @@ export function StonecutterRecipeButton<E extends ElementType = 'button'>(
       sprites={STONECUTTER_SPRITES}
       buttonWidth={STONECUTTER_BUTTON_WIDTH}
       buttonHeight={STONECUTTER_BUTTON_HEIGHT}
-      contentX={0}
-      contentY={1}
+      slotProps={fitContent(
+        STONECUTTER_BUTTON_WIDTH,
+        STONECUTTER_BUTTON_HEIGHT,
+        CONTAINER_BUTTON_PADDING,
+        slotProps,
+      )}
       toggle
     />
   );
@@ -64,12 +98,12 @@ export type LoomPatternButtonProps<E extends ElementType = 'button'> = Polymorph
 
 /**
  * A banner pattern cell of the loom (`container/loom/pattern`, 14×14). The pattern preview goes
- * inside; its offset is an approximation of the game's.
+ * inside and scales to fit the cell with padding around it.
  */
 export function LoomPatternButton<E extends ElementType = 'button'>(
   props: LoomPatternButtonProps<E>,
 ): JSX.Element {
-  const { label = 'Pattern', ...rest } = props as LoomPatternButtonProps<'button'>;
+  const { label = 'Pattern', slotProps, ...rest } = props as LoomPatternButtonProps<'button'>;
   return (
     <StateSpriteButton
       {...rest}
@@ -78,6 +112,12 @@ export function LoomPatternButton<E extends ElementType = 'button'>(
       sprites={LOOM_SPRITES}
       buttonWidth={LOOM_BUTTON_SIZE}
       buttonHeight={LOOM_BUTTON_SIZE}
+      slotProps={fitContent(
+        LOOM_BUTTON_SIZE,
+        LOOM_BUTTON_SIZE,
+        CONTAINER_BUTTON_PADDING,
+        slotProps,
+      )}
       toggle
     />
   );
@@ -280,11 +320,16 @@ export type RecipeBookSlotProps<E extends ElementType = 'button'> = PolymorphicP
   }
 >;
 
-/** One result slot of the recipe book (25×25), with the item inset by 4. */
+/** One result slot of the recipe book (25×25), with the item scaled to fit, inset by 4. */
 export function RecipeBookSlot<E extends ElementType = 'button'>(
   props: RecipeBookSlotProps<E>,
 ): JSX.Element {
-  const { craftable = true, many = false, ...rest } = props as RecipeBookSlotProps<'button'>;
+  const {
+    craftable = true,
+    many = false,
+    slotProps,
+    ...rest
+  } = props as RecipeBookSlotProps<'button'>;
   return (
     <StateSpriteButton
       {...rest}
@@ -292,8 +337,7 @@ export function RecipeBookSlot<E extends ElementType = 'button'>(
       sprites={{ normal: recipeBookSlotSprite(craftable, many) }}
       buttonWidth={RECIPE_BOOK_SLOT_SIZE}
       buttonHeight={RECIPE_BOOK_SLOT_SIZE}
-      contentX={4}
-      contentY={4}
+      slotProps={fitContent(RECIPE_BOOK_SLOT_SIZE, RECIPE_BOOK_SLOT_SIZE, 4, slotProps)}
     />
   );
 }

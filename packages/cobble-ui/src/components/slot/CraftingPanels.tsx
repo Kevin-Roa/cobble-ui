@@ -3,6 +3,13 @@ import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { LoomPatternButton, LoomScroller } from '../button/ContainerButtons.tsx';
 import { BeaconButton } from './BeaconButton.tsx';
 import { placeAt } from '../shared.ts';
+import {
+  ARMOR_STAND_HEIGHT,
+  ARMOR_STAND_WIDTH,
+  ArmorStand,
+  SMITHING_ARMOR_STAND_X,
+  SMITHING_ARMOR_STAND_Y,
+} from './ArmorStand.tsx';
 import { CartographyMap, CrafterRedstone, CrafterSlot } from './ContainerParts.tsx';
 import { ContainerError } from '../sprite/ContainerError.tsx';
 import type { SlotGridItem } from './SlotGrid.tsx';
@@ -289,6 +296,8 @@ export interface SmithingTablePanelOwnProps {
   readonly addition?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
   readonly error?: boolean;
+  /** Show the armor stand preview. Defaults to true when the background is drawn. */
+  readonly armorStand?: boolean;
   readonly onSlotClick?: (slot: 'template' | 'base' | 'addition' | 'result') => void;
 }
 
@@ -300,7 +309,8 @@ export type SmithingTablePanelProps<E extends ElementType = 'div'> = Polymorphic
 /**
  * The interactive part of the smithing table screen: template, base, addition and result slots
  * (the first three with their placeholder silhouettes) and the error cross. Coordinates are
- * recalled from vanilla and are approximations.
+ * recalled from vanilla and are approximations. The armor stand is a flat stand-in for the game's
+ * entity renderer.
  */
 export function SmithingTablePanel<E extends ElementType = 'div'>(
   props: SmithingTablePanelProps<E>,
@@ -312,20 +322,17 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
     addition,
     result,
     error = false,
+    background = true,
+    armorStand = background,
     onSlotClick,
     className,
     style,
     ...rest
   } = props as SmithingTablePanelProps<'div'>;
-  const { Component, props: root } = usePanelRoot(
-    as,
-    'smithing-panel',
-    116,
-    67,
-    className,
-    style,
-    rest,
-  );
+  const { Component, props: root } = usePanelRoot(as, 'smithing-panel', 116, 67, className, style, {
+    ...rest,
+    background,
+  });
   const click = (
     slot: 'template' | 'base' | 'addition' | 'result',
   ): { readonly onClick?: () => void } =>
@@ -357,6 +364,15 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
         {...click('addition')}
       />
       <StationSlot x={98} y={48} label="Smithing result" item={result} {...click('result')} />
+      {armorStand ? (
+        <ArmorStand
+          className="cobble-placed"
+          style={placeAt(
+            SMITHING_ARMOR_STAND_X - (ARMOR_STAND_WIDTH * 1.5) / 2,
+            SMITHING_ARMOR_STAND_Y - ARMOR_STAND_HEIGHT * 1.5,
+          )}
+        />
+      ) : null}
       {error ? (
         <ContainerError className="cobble-placed" kind="smithing" style={placeAt(65, 46)} />
       ) : null}

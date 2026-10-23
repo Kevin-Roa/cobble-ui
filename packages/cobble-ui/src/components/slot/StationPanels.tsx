@@ -19,14 +19,17 @@ export function StationSlot(props: {
   readonly label: string;
   readonly item?: SlotGridItem | undefined;
   readonly emptyIcon?: EmptySlotIcon;
+  /** Draw no slot of its own: the panel's background already has one. */
+  readonly bare?: boolean;
   readonly onClick?: () => void;
 }): JSX.Element {
-  const { x, y, label, item, emptyIcon, onClick } = props;
+  const { x, y, label, item, emptyIcon, bare, onClick } = props;
   return (
     <InventorySlot
       className="cobble-placed"
       aria-label={item?.label ?? label}
       style={placeAt(x - 1, y - 1)}
+      {...(bare === true ? { bare } : {})}
       {...(item?.count === undefined ? {} : { count: item.count })}
       {...(emptyIcon === undefined ? {} : { emptyIcon })}
       {...(onClick === undefined ? {} : { onClick })}
@@ -46,7 +49,15 @@ interface ContainerTexture {
   readonly sheetHeight?: number;
   /** Where the window starts inside the panel. */
   readonly offsetY?: number;
+  /**
+   * Height of the part above the player inventory. Without the inventory only this part and the
+   * window's bottom edge are drawn, like the game's own split blits.
+   */
+  readonly cut?: number;
 }
+
+/** Height of the window's bottom edge kept when the inventory part is cropped away. */
+const CONTAINER_BOTTOM_EDGE = 4;
 
 const CONTAINER_TEXTURES: Readonly<Record<string, ContainerTexture>> = {
   anvil: { texture: 'anvil', width: 176, height: 166 },
@@ -61,11 +72,12 @@ const CONTAINER_TEXTURES: Readonly<Record<string, ContainerTexture>> = {
     height: 136,
     offsetY: 28,
   },
-  dispenser: { texture: 'dispenser', width: 176, height: 166 },
+  dispenser: { texture: 'dispenser', width: 176, height: 166, cut: 73 },
   enchanting: { texture: 'enchanting_table', width: 176, height: 166 },
   furnace: { texture: 'furnace', width: 176, height: 166 },
   grindstone: { texture: 'grindstone', width: 176, height: 166 },
-  hopper: { texture: 'hopper', width: 176, height: 133 },
+  inventory: { texture: 'inventory', width: 176, height: 166 },
+  hopper: { texture: 'hopper', width: 176, height: 133, cut: 40 },
   loom: { texture: 'loom', width: 176, height: 166 },
   smithing: { texture: 'smithing', width: 176, height: 166 },
   smoker: { texture: 'smoker', width: 176, height: 166 },
@@ -86,23 +98,35 @@ export function useContainerBackground(
   width: number,
   height: number,
   enabled: boolean,
+  compact = false,
 ): {
   readonly width: number;
   readonly height: number;
   readonly style: CssVariables;
-  readonly attributes: { readonly 'data-container-background'?: '' };
+  readonly attributes: { readonly 'data-container-background'?: ''; readonly 'data-container-compact'?: '' };
 } {
   const info = CONTAINER_TEXTURES[name];
   const url = useTextureUrl(`gui/container/${info?.texture ?? ''}`);
   if (!enabled || info === undefined) return { width, height, style: {}, attributes: {} };
+  const cut = compact ? info.cut : undefined;
   const style: CssVariables = {
     '--cobble-container-width': info.width,
-    '--cobble-container-height': info.height,
+    '--cobble-container-height': cut ?? info.height,
+    '--cobble-container-full-height': info.height,
+    '--cobble-container-edge': CONTAINER_BOTTOM_EDGE,
     '--cobble-container-sheet-width': info.sheetWidth ?? 256,
     '--cobble-container-sheet-height': info.sheetHeight ?? 256,
     '--cobble-container-y': info.offsetY ?? 0,
     ...(url === undefined ? {} : { '--cobble-container-image': `url("${url}")` }),
   };
+  if (cut !== undefined) {
+    return {
+      width: info.width,
+      height: cut + CONTAINER_BOTTOM_EDGE,
+      style,
+      attributes: { 'data-container-background': '', 'data-container-compact': '' },
+    };
+  }
   return {
     width: Math.max(width, info.width),
     height: Math.max(height, info.height + (info.offsetY ?? 0) * 2),
@@ -120,9 +144,10 @@ export function usePanelRoot<E extends ElementType>(
   style: CSSProperties | undefined,
   rest: object,
   texture: ContainerBackgroundName = name.replace(/-panel$/, ''),
+  compact = false,
 ): { readonly Component: ElementType; readonly props: Record<string, unknown> } {
   const { background = true, ...others } = rest as { readonly background?: boolean };
-  const container = useContainerBackground(texture, width, height, background);
+  const container = useContainerBackground(texture, width, height, background, compact);
   const rootStyle: CssVariables = {
     '--cobble-width': container.width,
     '--cobble-height': container.height,

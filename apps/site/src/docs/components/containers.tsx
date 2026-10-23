@@ -1,4 +1,5 @@
 import {
+  type EffectId,
   AnvilPanel,
   BeaconButton,
   BeaconPanel,
@@ -639,14 +640,20 @@ export function BeaconButtonPage(): JSX.Element {
       }
       demo={
         <div className="site-row">
-          {['Speed', 'Haste', 'Resistance'].map((name, index) => (
+          {(
+            [
+              ['speed', 'Speed'],
+              ['haste', 'Haste'],
+              ['resistance', 'Resistance'],
+            ] as const
+          ).map(([id, name], index) => (
             <BeaconButton
               key={name}
               label={name}
               selected={index === selected}
               onClick={() => setSelected(index)}
             >
-              <EffectIcon name={name.toLowerCase()} />
+              <EffectIcon name={id} />
             </BeaconButton>
           ))}
           <BeaconButton label="Jump Boost" disabled />
@@ -860,7 +867,7 @@ export function CraftingGridPage(): JSX.Element {
             ]}
             result={{
               content: <ItemIcon name="crafting_table" />,
-              count: 4,
+              count: 1,
               label: 'Crafting Table',
             }}
           />
@@ -977,7 +984,11 @@ export function AnvilPanelPage(): JSX.Element {
             name={name}
             onNameChange={setName}
           />
-          <AnvilPanel left={{ content: <ItemIcon name="stick" />, label: 'Stick' }} error />
+          <AnvilPanel
+            left={{ content: <ItemIcon name="diamond_sword" />, label: 'Diamond Sword' }}
+            right={{ content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' }}
+            error
+          />
         </div>
       }
       code="<AnvilPanel left={a} right={b} result={out} name={name} onNameChange={setName} error={!ok} />"
@@ -1103,13 +1114,25 @@ export function FurnacePanelPage(): JSX.Element {
   );
 }
 
+/** What the stonecutter makes from one stone. */
+const STONE_RECIPES = [
+  ['Stone Slab', 'stone_slab'],
+  ['Stone Stairs', 'stone_stairs'],
+  ['Stone Bricks', 'stone_bricks'],
+  ['Stone Brick Slab', 'stone_brick_slab'],
+  ['Stone Brick Stairs', 'stone_brick_stairs'],
+  ['Stone Brick Wall', 'stone_brick_wall'],
+  ['Chiseled Stone Bricks', 'chiseled_stone_bricks'],
+] as const;
+
 export function StonecutterPanelPage(): JSX.Element {
   const [selected, setSelected] = useState<number | null>(1);
   const [scroll, setScroll] = useState(0);
-  const recipes = Array.from({ length: 16 }, (_, i) => ({
-    content: <ItemIcon name={demoItem(i)} />,
-    label: `Recipe ${String(i + 1)}`,
+  const recipes = STONE_RECIPES.map(([label, item]) => ({
+    content: <ItemIcon name={item} />,
+    label,
   }));
+  const chosen = selected === null ? undefined : STONE_RECIPES[selected];
   return (
     <ComponentDoc
       intro={
@@ -1122,6 +1145,11 @@ export function StonecutterPanelPage(): JSX.Element {
       demo={
         <StonecutterPanel
           input={{ content: <ItemIcon name="stone" />, count: 5, label: 'Stone' }}
+          result={
+            chosen === undefined
+              ? undefined
+              : { content: <ItemIcon name={chosen[1]} />, label: chosen[0] }
+          }
           recipes={recipes}
           selectedRecipe={selected}
           onRecipeClick={setSelected}
@@ -1149,25 +1177,60 @@ export function StonecutterPanelPage(): JSX.Element {
   );
 }
 
+/** The patterns the loom offers for a banner and a dye alone (the ones that need no pattern item). */
+const LOOM_PATTERNS = [
+  'Bottom Stripe',
+  'Top Stripe',
+  'Left Stripe',
+  'Right Stripe',
+  'Center Stripe',
+  'Middle Stripe',
+  'Down Right Stripe',
+  'Down Left Stripe',
+  'Small Stripes',
+  'Diagonal Left',
+  'Diagonal Right',
+  'Diagonal Up Left',
+  'Diagonal Up Right',
+  'Circle',
+  'Rhombus',
+  'Half Vertical',
+  'Half Horizontal',
+  'Half Vertical Right',
+  'Half Horizontal Bottom',
+  'Bottom Left Corner',
+  'Bottom Right Corner',
+  'Top Left Corner',
+  'Top Right Corner',
+  'Bottom Triangle',
+  'Top Triangle',
+  'Bottom Triangle Sawtooth',
+  'Top Triangle Sawtooth',
+  'Cross',
+  'Straight Cross',
+  'Gradient',
+  'Base Gradient',
+] as const;
+
 export function LoomPanelPage(): JSX.Element {
   const [selected, setSelected] = useState<number | null>(0);
   const [scroll, setScroll] = useState(0);
-  const patterns = Array.from({ length: 24 }, (_, i) => ({
-    content: <ItemIcon name={demoItem(i)} />,
-    label: `Pattern ${String(i + 1)}`,
-  }));
+  const patterns = LOOM_PATTERNS.map((label) => ({ label }));
   return (
     <ComponentDoc
       intro={
         <>
           The interactive part of the loom screen: banner, dye, pattern item and result slots, and
-          the 4×4 grid of pattern cells with its scroller. The grid scrolls by whole rows. {NOTE}
+          the 4×4 grid of pattern cells with its scroller. The grid scrolls by whole rows. Patterns
+          are labelled with the game&apos;s names; supply a banner preview as <Code>content</Code>{' '}
+          to draw them. {NOTE}
         </>
       }
       demo={
         <LoomPanel
-          banner={{ content: <ItemIcon name="white_wool" />, label: 'White Banner' }}
+          banner={{ content: <ItemIcon name="white_banner" />, label: 'White Banner' }}
           dye={{ content: <ItemIcon name="red_dye" />, label: 'Red Dye' }}
+          result={{ content: <ItemIcon name="white_banner" />, label: 'White Banner' }}
           patterns={patterns}
           selectedPattern={selected}
           onPatternClick={setSelected}
@@ -1212,14 +1275,31 @@ export function CartographyPanelPage(): JSX.Element {
       demo={
         <div className="site-stack">
           <CartographyPanel
-            map={{ content: <ItemIcon name="map" />, label: 'Map' }}
+            map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
             material={{ content: <ItemIcon name="paper" />, label: 'Paper' }}
+            result={{ content: <ItemIcon name="filled_map" />, label: 'Zoomed Map' }}
             preview="scaled"
           >
-            <ItemIcon name="map" />
+            <ItemIcon name="filled_map" />
           </CartographyPanel>
-          <CartographyPanel preview="duplicated" locked />
-          <CartographyPanel error />
+          <CartographyPanel
+            map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
+            material={{ content: <ItemIcon name="map" />, label: 'Empty Map' }}
+            result={{ content: <ItemIcon name="filled_map" />, count: 2, label: 'Copied Map' }}
+            preview="duplicated"
+          />
+          <CartographyPanel
+            map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
+            material={{ content: <ItemIcon name="glass_pane" />, label: 'Glass Pane' }}
+            result={{ content: <ItemIcon name="filled_map" />, label: 'Locked Map' }}
+            preview="map"
+            locked
+          />
+          <CartographyPanel
+            map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
+            material={{ content: <ItemIcon name="paper" />, label: 'Paper' }}
+            error
+          />
         </div>
       }
       code="<CartographyPanel map={m} material={p} preview='scaled' locked={l} error={!ok}><MapView /></CartographyPanel>"
@@ -1249,8 +1329,8 @@ export function GrindstonePanelPage(): JSX.Element {
       demo={
         <div className="site-stack">
           <GrindstonePanel
-            top={{ content: <ItemIcon name="diamond_sword" />, label: 'Enchanted Sword' }}
-            result={{ content: <ItemIcon name="iron_sword" />, label: 'Sword' }}
+            top={{ content: <ItemIcon name="diamond_sword" />, label: 'Enchanted Diamond Sword' }}
+            result={{ content: <ItemIcon name="diamond_sword" />, label: 'Diamond Sword' }}
           />
           <GrindstonePanel error />
         </div>
@@ -1276,7 +1356,8 @@ export function SmithingTablePanelPage(): JSX.Element {
       intro={
         <>
           The interactive part of the smithing table screen: template, base, addition and result
-          slots (the first three with their placeholder silhouettes) and the error cross. {NOTE}
+          slots (the first three with their placeholder silhouettes), the error cross and the armor
+          stand beside them (a flat stand-in for the game&apos;s 3D preview, without armor). {NOTE}
         </>
       }
       demo={
@@ -1306,14 +1387,23 @@ export function SmithingTablePanelPage(): JSX.Element {
           defaultValue: 'false',
           description: 'Draw the red cross.',
         },
+        {
+          name: 'armorStand',
+          type: 'boolean',
+          defaultValue: 'true',
+          description: 'Draw the armor stand preview (on by default when the background is drawn).',
+        },
         AS,
       ]}
     />
   );
 }
 
-function effect(label: string): { readonly content: JSX.Element; readonly label: string } {
-  return { content: <EffectIcon name={label.toLowerCase().replaceAll(' ', '_')} />, label };
+function effect(
+  id: EffectId,
+  label: string,
+): { readonly content: JSX.Element; readonly label: string } {
+  return { content: <EffectIcon name={id} />, label };
 }
 
 export function BeaconPanelPage(): JSX.Element {
@@ -1330,9 +1420,9 @@ export function BeaconPanelPage(): JSX.Element {
       demo={
         <BeaconPanel
           tiers={[
-            [effect('Speed'), effect('Haste')],
-            [effect('Resistance'), effect('Jump Boost')],
-            [effect('Strength')],
+            [effect('speed', 'Speed'), effect('haste', 'Haste')],
+            [effect('resistance', 'Resistance'), effect('jump_boost', 'Jump Boost')],
+            [effect('strength', 'Strength')],
           ]}
           selected={selected}
           onEffectClick={(tier, index) => setSelected([[tier, index]])}
@@ -1389,7 +1479,13 @@ export function CrafterPanelPage(): JSX.Element {
         <CrafterPanel
           disabledSlots={off}
           onSlotClick={(index) => setOff(off.map((value, i) => (i === index ? !value : value)))}
-          slots={[{ content: <ItemIcon name="stick" />, label: 'Stick' }]}
+          slots={[
+            { content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' },
+            undefined,
+            undefined,
+            { content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' },
+          ]}
+          result={{ content: <ItemIcon name="stick" />, count: 4, label: 'Stick' }}
           powered
         />
       }
@@ -1463,6 +1559,18 @@ export function VillagerTradePanelPage(): JSX.Element {
           description: 'The payment slots and the result.',
         },
         {
+          name: 'showInventory',
+          type: 'boolean',
+          defaultValue: 'true',
+          description:
+            'Show the player inventory under the slots. Without it the window is cropped to the container part.',
+        },
+        {
+          name: 'inventory / hotbar',
+          type: 'SlotGridItem[]',
+          description: 'Items of the player inventory.',
+        },
+        {
           name: 'levelProgress',
           type: 'number',
           description: 'Villager level progress; omit for a trader.',
@@ -1486,6 +1594,18 @@ export function HopperPanelPage(): JSX.Element {
       rows={[
         { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The five slots.' },
         {
+          name: 'showInventory',
+          type: 'boolean',
+          defaultValue: 'true',
+          description:
+            'Show the player inventory under the slots. Without it the window is cropped to the container part.',
+        },
+        {
+          name: 'inventory / hotbar',
+          type: 'SlotGridItem[]',
+          description: 'Items of the player inventory.',
+        },
+        {
           name: 'onSlotClick',
           type: '(index: number) => void',
           description: 'A slot was clicked.',
@@ -1508,6 +1628,18 @@ export function DispenserPanelPage(): JSX.Element {
       code="<DispenserPanel items={dispenser} onSlotClick={pickUp} />"
       rows={[
         { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The nine slots.' },
+        {
+          name: 'showInventory',
+          type: 'boolean',
+          defaultValue: 'true',
+          description:
+            'Show the player inventory under the slots. Without it the window is cropped to the container part.',
+        },
+        {
+          name: 'inventory / hotbar',
+          type: 'SlotGridItem[]',
+          description: 'Items of the player inventory.',
+        },
         {
           name: 'onSlotClick',
           type: '(index: number) => void',

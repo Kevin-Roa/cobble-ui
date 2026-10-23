@@ -8,7 +8,7 @@ export const MOJANG_VERSION_MANIFEST_URL =
   'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 export const MOJANG_RESOURCES_URL = 'https://resources.download.minecraft.net';
 
-const CACHE_NAME = 'cobble-ui-assets-v3';
+const CACHE_NAME = 'cobble-ui-assets-v4';
 const CACHE_ORIGIN = 'https://cobble-ui.invalid';
 
 /** Client files kept after the jar is downloaded. Everything else is discarded. */
@@ -23,6 +23,7 @@ const DEFAULT_INCLUDE = (path: string): boolean =>
   path === 'assets/minecraft/textures/misc/unknown_server.png' ||
   path === 'assets/minecraft/textures/misc/unknown_pack.png' ||
   path === 'assets/minecraft/textures/entity/player/wide/steve.png' ||
+  path === 'assets/minecraft/textures/entity/armorstand/wood.png' ||
   path === 'assets/minecraft/textures/font/ascii.png';
 
 /** Asset index objects that are kept (for sounds and the title panorama). */

@@ -12,6 +12,16 @@ const ALIGN: Record<LayoutAlign, 'flex-start' | 'center' | 'flex-end'> = {
   end: 'flex-end',
 };
 
+/** Grid alignment may also stretch the content across its cell (`fill`). */
+type GridAlign = LayoutAlign | 'stretch';
+
+const GRID_ALIGN: Record<GridAlign, 'start' | 'center' | 'end' | 'stretch'> = {
+  start: 'start',
+  center: 'center',
+  end: 'end',
+  stretch: 'stretch',
+};
+
 // ----------------------------------------------------------------------------- LinearLayout
 
 export interface LinearLayoutOwnProps {
@@ -19,9 +29,17 @@ export interface LinearLayoutOwnProps {
   /** `vertical` stacks children top to bottom, `horizontal` left to right. Defaults to `vertical`. */
   readonly orientation?: 'vertical' | 'horizontal';
   /** Gap between children in GUI units (`LinearLayout#spacing`). Defaults to 0. */
+  readonly gap?: number;
+  /** Alias of `gap`, named after the game's `spacing`. `gap` wins if both are given. */
   readonly spacing?: number;
   /** Where children sit across the layout's axis. Defaults to `start`. */
   readonly align?: LayoutAlign;
+  /**
+   * Size the children to the layout instead of themselves: in a row they share the width equally
+   * (minus the gaps), in a column each takes the full width. Widgets then need no `width` of
+   * their own; give the layout the width it should fill.
+   */
+  readonly fill?: boolean;
 }
 
 export type LinearLayoutProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -40,15 +58,17 @@ export function LinearLayout<E extends ElementType = 'div'>(
     as,
     children,
     orientation = 'vertical',
+    gap,
     spacing = 0,
     align = 'start',
+    fill = false,
     className,
     style,
     ...rest
   } = props as LinearLayoutProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const rootStyle: CssVariables = {
-    '--cobble-spacing': spacing,
+    '--cobble-spacing': gap ?? spacing,
     '--cobble-align': ALIGN[align],
     ...style,
   };
@@ -59,6 +79,7 @@ export function LinearLayout<E extends ElementType = 'div'>(
         rest,
       )}
       data-orientation={orientation}
+      data-fill={fill ? '' : undefined}
     >
       {children}
     </Component>
@@ -76,11 +97,18 @@ export interface GridLayoutOwnProps {
   /** Gap between rows in GUI units. Defaults to `spacing`. */
   readonly rowSpacing?: number;
   /** Gap in both directions (`GridLayout#spacing`). Defaults to 0. */
+  readonly gap?: number;
+  /** Alias of `gap`, named after the game's `spacing`. `gap` wins if both are given. */
   readonly spacing?: number;
-  /** How a cell's content sits in its cell, horizontally. Defaults to `start`. */
-  readonly alignX?: LayoutAlign;
+  /**
+   * Make the columns equally wide and stretch each cell's content across its cell, so the grid
+   * fills the width it is given and widgets need no `width` of their own.
+   */
+  readonly fill?: boolean;
+  /** How a cell's content sits in its cell, horizontally. Defaults to `start` (`stretch` with `fill`). */
+  readonly alignX?: GridAlign;
   /** How a cell's content sits in its cell, vertically. Defaults to `start`. */
-  readonly alignY?: LayoutAlign;
+  readonly alignY?: GridAlign;
 }
 
 export type GridLayoutProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -100,8 +128,10 @@ export function GridLayout<E extends ElementType = 'div'>(props: GridLayoutProps
     columns,
     columnSpacing,
     rowSpacing,
+    gap,
     spacing = 0,
-    alignX = 'start',
+    fill = false,
+    alignX = fill ? 'stretch' : 'start',
     alignY = 'start',
     className,
     style,
@@ -110,10 +140,10 @@ export function GridLayout<E extends ElementType = 'div'>(props: GridLayoutProps
   const Component: ElementType = as ?? 'div';
   const rootStyle: CssVariables = {
     '--cobble-columns': Math.max(Math.trunc(columns), 1),
-    '--cobble-column-spacing': columnSpacing ?? spacing,
-    '--cobble-row-spacing': rowSpacing ?? spacing,
-    '--cobble-align-x': ALIGN[alignX],
-    '--cobble-align-y': ALIGN[alignY],
+    '--cobble-column-spacing': columnSpacing ?? gap ?? spacing,
+    '--cobble-row-spacing': rowSpacing ?? gap ?? spacing,
+    '--cobble-align-x': GRID_ALIGN[alignX],
+    '--cobble-align-y': GRID_ALIGN[alignY],
     ...style,
   };
   return (
@@ -122,6 +152,7 @@ export function GridLayout<E extends ElementType = 'div'>(props: GridLayoutProps
         { className: cx('cobble-grid-layout', className), style: rootStyle },
         rest,
       )}
+      data-fill={fill ? '' : undefined}
     >
       {children}
     </Component>
@@ -134,8 +165,8 @@ export interface GridLayoutCellOwnProps {
   readonly colSpan?: number;
   /** Rows the cell covers. Defaults to 1. */
   readonly rowSpan?: number;
-  readonly alignX?: LayoutAlign;
-  readonly alignY?: LayoutAlign;
+  readonly alignX?: GridAlign;
+  readonly alignY?: GridAlign;
 }
 
 export type GridLayoutCellProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -164,8 +195,8 @@ export function GridLayoutCell<E extends ElementType = 'div'>(
     gridRow: `span ${String(Math.max(Math.trunc(rowSpan), 1))}`,
     ...style,
   };
-  if (alignX !== undefined) rootStyle['--cobble-align-x'] = ALIGN[alignX];
-  if (alignY !== undefined) rootStyle['--cobble-align-y'] = ALIGN[alignY];
+  if (alignX !== undefined) rootStyle['--cobble-align-x'] = GRID_ALIGN[alignX];
+  if (alignY !== undefined) rootStyle['--cobble-align-y'] = GRID_ALIGN[alignY];
   return (
     <Component
       {...mergeProps<'div'>(

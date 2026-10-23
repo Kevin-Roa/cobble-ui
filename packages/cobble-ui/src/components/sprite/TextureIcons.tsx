@@ -1,3 +1,4 @@
+import type { EffectId } from '../../assets/effect-ids.ts';
 import { useRef, type JSX, type Ref } from 'react';
 import { useIsomorphicLayoutEffect, useMergedRefs } from '../../internal/hooks.ts';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
@@ -7,6 +8,7 @@ import type { AssetStore } from '../../assets/store.ts';
 import { projectModel, resolveItem } from '../../render/item-model.ts';
 import { useAssetRevision, useTexture } from '../../provider/hooks.ts';
 import { cx } from '../shared.ts';
+import { PlayerAvatar } from '../player/PlayerAvatar.tsx';
 
 /** Size of an item in a slot, in GUI units. */
 export const ITEM_ICON_SIZE = 16;
@@ -199,8 +201,8 @@ function drawItem(
 }
 
 export interface EffectIconProps extends CanvasProps {
-  /** The effect's id: `speed` draws `textures/mob_effect/speed.png`. */
-  readonly name: string;
+  /** The effect's id: `speed` draws `textures/mob_effect/speed.png`. Typed, so a typo is a compile error. */
+  readonly name: EffectId;
 }
 
 /** A mob effect icon (`textures/mob_effect/*.png`, 18×18), as drawn in the inventory and the HUD. */
@@ -231,15 +233,31 @@ export function EffectIcon(props: EffectIconProps): JSX.Element {
 }
 
 export interface PlayerHeadProps extends CanvasProps {
+  /**
+   * Username or UUID. The face is fetched from mc-heads.net by the browser; the local `skin` is
+   * shown while it loads or if it fails.
+   */
+  readonly player?: string;
   /** Skin texture id, `entity/player/wide/steve` by default. Must be a 64×64 (or 64×32) skin. */
   readonly skin?: string;
   /** Size in GUI units. Defaults to 8. */
   readonly size?: number;
 }
 
-/** A player's face with the hat layer over it (`PlayerFaceExtractor`), cut from a skin texture. */
+/**
+ * A player's face with the hat layer over it (`PlayerFaceExtractor`). With `player` it is the
+ * real face from mc-heads.net; otherwise it is cut from a skin texture.
+ */
 export function PlayerHead(props: PlayerHeadProps): JSX.Element {
-  const { skin = DEFAULT_SKIN, size = PLAYER_HEAD_SIZE, ref, className, style, ...rest } = props;
+  const {
+    player,
+    skin = DEFAULT_SKIN,
+    size = PLAYER_HEAD_SIZE,
+    ref,
+    className,
+    style,
+    ...rest
+  } = props;
   const texture = useTexture(skin);
   const [drawRef, drawStyle] = useDrawing(
     size,
@@ -255,7 +273,7 @@ export function PlayerHead(props: PlayerHeadProps): JSX.Element {
     [texture],
     ref,
   );
-  return (
+  const canvas = (
     <canvas
       aria-hidden
       {...rest}
@@ -265,5 +283,19 @@ export function PlayerHead(props: PlayerHeadProps): JSX.Element {
       data-skin={skin}
       style={{ ...drawStyle, ...style }}
     />
+  );
+  if (player === undefined || player.trim() === '') return canvas;
+  return (
+    <span className="cobble-player-head" data-flow="" style={{ width: `calc(${String(size)} * var(--cobble-px))`, height: `calc(${String(size)} * var(--cobble-px))`, display: 'inline-block', position: 'relative' }}>
+      {canvas}
+      <PlayerAvatar
+        aria-hidden
+        player={player}
+        render="avatar"
+        width={size}
+        height={size}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+    </span>
   );
 }

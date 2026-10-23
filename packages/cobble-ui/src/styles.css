@@ -485,9 +485,26 @@
     isolation: isolate;
   }
 
-  :where(.cobble-screen-panorama, .cobble-screen-background, .cobble-screen-gradient) {
+  :where(
+      .cobble-screen-panorama,
+      .cobble-screen-background,
+      .cobble-screen-gradient,
+      .cobble-screen-world
+    ) {
     position: absolute;
     inset: 0;
+  }
+
+  /* Stand-in for the level behind an in-world menu: sky over grass over dirt. */
+  :where(.cobble-screen-world:empty) {
+    background: linear-gradient(
+      #78a7ff 0%,
+      #b9d3ff 52%,
+      #5d9b34 52%,
+      #5d9b34 56%,
+      #7a5436 56%,
+      #5a3d26 100%
+    );
   }
 
   :where(.cobble-screen-background) {
@@ -788,6 +805,15 @@
     color: var(--cobble-text-color);
     text-align: center;
     overflow-wrap: anywhere;
+  }
+
+  :where(.cobble-dialog-body:not(:empty)) {
+    margin-bottom: calc(14 * var(--cobble-px));
+  }
+
+  :where(.cobble-dialog-actions) {
+    position: relative;
+    justify-content: center;
   }
 
   /* Server list entry */
@@ -1221,6 +1247,13 @@
     pointer-events: none;
   }
 
+  /* Content that scales to fill its cell (stonecutter, loom, recipe book) */
+  :where(.cobble-fit-content > canvas, .cobble-fit-content > img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
   /* Crafting grid: the result slot sits to the right of the ingredients */
   :where(.cobble-crafting-grid) {
     position: relative;
@@ -1322,6 +1355,54 @@
     top: calc(var(--cobble-y) * var(--cobble-px));
   }
 
+  /* Window cropped above the player inventory: the top part plus the window's bottom edge. */
+  :where([data-container-compact])::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: calc(var(--cobble-container-height) * var(--cobble-px));
+    width: calc(var(--cobble-container-width) * var(--cobble-px));
+    height: calc(var(--cobble-container-edge) * var(--cobble-px));
+    background-image: var(--cobble-container-image, none);
+    background-repeat: no-repeat;
+    background-size: calc(var(--cobble-container-sheet-width) * var(--cobble-px))
+      calc(var(--cobble-container-sheet-height) * var(--cobble-px));
+    background-position: 0
+      calc(
+        (var(--cobble-container-edge) - var(--cobble-container-full-height)) * var(--cobble-px)
+      );
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  /* Creative tabs that are not selected sit behind the window, so its border overlaps them. */
+  :where(.cobble-station-panel .cobble-creative-tab:not([data-selected])) {
+    z-index: -2;
+  }
+
+  /* Trade offers: the cost and result items sit on the trade button, which is 88×20. */
+  :where(.cobble-trade-items) {
+    width: calc(88 * var(--cobble-px));
+    height: calc(20 * var(--cobble-px));
+    pointer-events: none;
+  }
+
+  :where(.cobble-trade-item) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+    width: calc(16 * var(--cobble-px));
+    height: calc(16 * var(--cobble-px));
+    overflow: hidden;
+  }
+
+  :where(.cobble-trade-arrow) {
+    position: absolute;
+    left: calc(var(--cobble-x) * var(--cobble-px));
+    top: calc(var(--cobble-y) * var(--cobble-px));
+  }
+
   /* Layouts: LinearLayout, GridLayout and FrameLayout */
   :where(.cobble-linear-layout) {
     display: flex;
@@ -1337,6 +1418,21 @@
     flex-direction: row;
   }
 
+  /* `fill`: children take their size from the layout, not from their own width */
+  :where(.cobble-linear-layout[data-fill][data-orientation='vertical']) {
+    align-items: stretch;
+  }
+
+  :where(.cobble-linear-layout[data-fill][data-orientation='vertical'] > *) {
+    width: auto;
+  }
+
+  :where(.cobble-linear-layout[data-fill][data-orientation='horizontal'] > *) {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+  }
+
   :where(.cobble-grid-layout) {
     display: grid;
     grid-template-columns: repeat(var(--cobble-columns, 1), max-content);
@@ -1347,6 +1443,18 @@
   :where(.cobble-grid-layout > *) {
     justify-self: var(--cobble-align-x, start);
     align-self: var(--cobble-align-y, start);
+  }
+
+  :where(.cobble-grid-layout[data-fill]) {
+    grid-template-columns: repeat(var(--cobble-columns, 1), minmax(0, 1fr));
+  }
+
+  :where(.cobble-grid-layout[data-fill] > *) {
+    width: auto;
+  }
+
+  :where(.cobble-grid-layout[data-fill] > .cobble-grid-layout-cell > *) {
+    width: 100%;
   }
 
   :where(.cobble-frame-layout) {
@@ -1493,6 +1601,17 @@
 
   :where(.cobble-chat-input) {
     background: rgb(0 0 0 / 50%);
+  }
+
+  /* Player preview: an mc-heads.net image fitted into the box */
+  :where(.cobble-player-renderer) {
+    display: inline-block;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+  }
+
+  :where(.cobble-player-renderer > img) {
+    display: block;
   }
 
   /* Honour the system's request for less motion: toasts appear without sliding and the bar does not sweep. */

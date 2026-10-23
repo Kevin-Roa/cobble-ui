@@ -1,3 +1,9 @@
+import {
+  ChestPanelPage,
+  HotbarWithStatsPage,
+  PlayerInventoryPage,
+  PlayerRendererPage,
+} from './components/players.tsx';
 import { ItemsPage } from './components/explorers.tsx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
@@ -30,12 +36,10 @@ import {
   CrafterRedstonePage,
   CrafterSlotPage,
   HorseChestSlotsPage,
-  MusicNotesPage,
   ItemIconPage,
   EffectIconPage,
   PlayerHeadPage,
   RecipeOverlayButtonPage,
-  TrialAvailableIconPage,
 } from './components/more.tsx';
 import {
   ContainerErrorPage,
@@ -263,6 +267,7 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('jump-bar', 'JumpBar', 'HUD', JumpBarPage),
   entry('locator-bar', 'LocatorBar', 'HUD', LocatorBarPage),
   entry('hotbar', 'Hotbar', 'HUD', HotbarPage),
+  entry('hotbar-with-stats', 'HotbarWithStats', 'HUD', HotbarWithStatsPage),
   entry('spectator-menu', 'SpectatorMenu', 'HUD', SpectatorMenuPage),
   entry('hearts', 'Hearts', 'HUD', HeartsPage),
   entry('hunger', 'Hunger', 'HUD', HungerPage),
@@ -317,6 +322,8 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('cartography-map', 'CartographyMap', 'Crafting', CartographyMapPage),
   entry('horse-chest-slots', 'HorseChestSlots', 'Containers & trading', HorseChestSlotsPage),
   entry('slot-grid', 'SlotGrid', 'Containers & trading', SlotGridPage),
+  entry('player-inventory', 'PlayerInventory', 'Containers & trading', PlayerInventoryPage),
+  entry('chest-panel', 'ChestPanel', 'Containers & trading', ChestPanelPage),
   entry(
     'player-inventory-grid',
     'PlayerInventoryGrid',
@@ -353,13 +360,12 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('text', 'Text', 'Text & sprites', TextPage),
   entry('loading-dots', 'LoadingDots', 'Text & sprites', LoadingDotsPage),
   entry('notification-badge', 'NotificationBadge', 'Text & sprites', NotificationBadgePage),
-  entry('music-notes', 'MusicNotes', 'Text & sprites', MusicNotesPage),
-  entry('trial-available-icon', 'TrialAvailableIcon', 'Text & sprites', TrialAvailableIconPage),
   entry('icon', 'Icon', 'Text & sprites', IconPage),
   entry('item-icon', 'ItemIcon', 'Text & sprites', ItemIconPage),
   entry('items', 'Items', 'Text & sprites', ItemsPage),
   entry('effect-icon', 'EffectIcon', 'Text & sprites', EffectIconPage),
   entry('player-head', 'PlayerHead', 'Text & sprites', PlayerHeadPage),
+  entry('player-renderer', 'PlayerRenderer', 'Text & sprites', PlayerRendererPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),
 ];

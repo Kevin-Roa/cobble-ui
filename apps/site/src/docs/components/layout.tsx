@@ -240,6 +240,12 @@ export function ScreenPage(): JSX.Element {
             description: 'What to draw behind the content.',
           },
           {
+            name: 'Screen: world',
+            type: 'ReactNode',
+            description:
+              'What shows through the translucent in-world menu style (provider `inWorld`). Defaults to a sky-and-ground stand-in for the game view; `null` draws nothing.',
+          },
+          {
             name: 'ScreenLayout: title / header / footer',
             type: 'ReactNode',
             description: 'Header and footer content.',

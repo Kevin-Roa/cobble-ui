@@ -25,6 +25,8 @@ export interface SlotGridOwnProps {
   readonly onSlotClick?: (index: number) => void;
   /** Accessible name of the grid, e.g. `Inventory`. */
   readonly label?: string;
+  /** Draw no slot sprites: the artwork underneath already has them. */
+  readonly bare?: boolean;
 }
 
 export type SlotGridProps<E extends ElementType = 'div'> = PolymorphicProps<E, SlotGridOwnProps>;
@@ -47,6 +49,7 @@ export function SlotGrid<E extends ElementType = 'div'>(props: SlotGridProps<E>)
     emptyIcon,
     onSlotClick,
     label,
+    bare = false,
     className,
     style,
     ...rest
@@ -79,6 +82,7 @@ export function SlotGrid<E extends ElementType = 'div'>(props: SlotGridProps<E>)
         };
         if (item?.count !== undefined) slotProps['count'] = item.count;
         if (emptyIcon !== undefined) slotProps['emptyIcon'] = emptyIcon;
+        if (bare) slotProps['bare'] = true;
         return (
           // oxlint-disable-next-line react/no-array-index-key -- slots are identified by position
           <InventorySlot key={index} {...slotProps}>
@@ -100,6 +104,8 @@ export interface PlayerInventoryGridOwnProps {
   readonly hotbar?: readonly (SlotGridItem | undefined)[];
   /** Called with `'main'` or `'hotbar'` and the slot's index within it. */
   readonly onSlotClick?: (area: 'main' | 'hotbar', index: number) => void;
+  /** Draw no slot sprites: the screen artwork underneath already has them. */
+  readonly bare?: boolean;
 }
 
 export type PlayerInventoryGridProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -114,8 +120,16 @@ export type PlayerInventoryGridProps<E extends ElementType = 'div'> = Polymorphi
 export function PlayerInventoryGrid<E extends ElementType = 'div'>(
   props: PlayerInventoryGridProps<E>,
 ): JSX.Element {
-  const { as, items, hotbar, onSlotClick, className, style, ...rest } =
-    props as PlayerInventoryGridProps<'div'>;
+  const {
+    as,
+    items,
+    hotbar,
+    onSlotClick,
+    bare = false,
+    className,
+    style,
+    ...rest
+  } = props as PlayerInventoryGridProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const rootStyle: CssVariables = {
     '--cobble-width': slotGridWidth(9),
@@ -132,6 +146,7 @@ export function PlayerInventoryGrid<E extends ElementType = 'div'>(
       <SlotGrid
         columns={9}
         rows={3}
+        bare={bare}
         label="Inventory"
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined
@@ -142,6 +157,7 @@ export function PlayerInventoryGrid<E extends ElementType = 'div'>(
         className="cobble-player-inventory-hotbar"
         columns={9}
         rows={1}
+        bare={bare}
         label="Hotbar"
         {...(hotbar === undefined ? {} : { items: hotbar })}
         {...(onSlotClick === undefined

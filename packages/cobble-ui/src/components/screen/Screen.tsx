@@ -39,6 +39,8 @@ export interface ScreenSlotProps {
   readonly panorama?: Partial<PanoramaProps>;
   /** The blur + menu background layer. */
   readonly background?: SlotProps<'div'>;
+  /** The stand-in game view drawn under in-world menus. */
+  readonly world?: SlotProps<'div'>;
   /** The element children are rendered in. */
   readonly content?: SlotProps<'div'>;
 }
@@ -53,6 +55,12 @@ export interface ScreenOwnProps {
    * - `"none"`: nothing.
    */
   readonly background?: ScreenBackground;
+  /**
+   * What shows through an in-world menu (`inWorld` on the provider). In the game this is the
+   * blurred level; there is none here, so by default a plain sky-and-ground stand-in is drawn
+   * instead of a black void. Pass your own node, or `null` for nothing.
+   */
+  readonly world?: ReactNode;
   /**
    * Called when Escape is pressed, like `Screen#onClose` (go back, or close the menu). Ignored while
    * a dialog is open, so Escape closes the topmost layer first, and when another handler has already
@@ -73,6 +81,7 @@ export function Screen<E extends ElementType = 'div'>(props: ScreenProps<E>): JS
     as,
     children,
     background = 'menu',
+    world,
     onClose,
     slotProps,
     className,
@@ -106,6 +115,15 @@ export function Screen<E extends ElementType = 'div'>(props: ScreenProps<E>): JS
       )}
       data-background={background}
     >
+      {inWorld && world !== null && (background === 'menu' || background === 'transparent') ? (
+        <div
+          {...slotProps?.world}
+          className={cx('cobble-screen-world', slotProps?.world?.className)}
+          aria-hidden
+        >
+          {world}
+        </div>
+      ) : null}
       {showPanorama ? (
         <Panorama
           {...slotProps?.panorama}

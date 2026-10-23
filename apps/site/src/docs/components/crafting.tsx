@@ -27,17 +27,17 @@ export function StonecutterRecipeButtonPage(): JSX.Element {
       intro={
         <>
           A recipe cell of the stonecutter: <Code>container/stonecutter/recipe</Code>, 16×18, lit
-          when hovered or focused and dark when it is the chosen recipe. The result item goes
-          inside, in a 16×16 area one unit down.
+          when hovered or focused and dark when it is the chosen recipe. The result item goes inside
+          and scales to fit the cell, with 2 units of padding around it.
         </>
       }
       demo={
         <div className="site-row">
           {[
-            ['Stone Stairs', 'stone'],
-            ['Stone Slab', 'cobblestone'],
+            ['Stone Stairs', 'stone_stairs'],
+            ['Stone Slab', 'stone_slab'],
             ['Stone Bricks', 'stone_bricks'],
-            ['Stone Pressure Plate', 'andesite'],
+            ['Stone Brick Wall', 'stone_brick_wall'],
           ].map(([name, item], index) => (
             <StonecutterRecipeButton
               key={name}
@@ -78,16 +78,16 @@ export function LoomPatternButtonPage(): JSX.Element {
       intro={
         <>
           A banner pattern cell of the loom: <Code>container/loom/pattern</Code>, 14×14, with
-          highlighted and selected states. The pattern preview goes inside; its offset is an
-          approximation of the game&apos;s.
+          highlighted and selected states. The pattern preview goes inside and scales to fit the
+          cell, with 2 units of padding around it.
         </>
       }
       demo={
         <div className="site-row">
-          {[0, 1, 2, 3, 4].map((index) => (
+          {['Bordure', 'Bricks', 'Circle', 'Creeper Charge', 'Flower Charge'].map((name, index) => (
             <LoomPatternButton
-              key={index}
-              label={`Pattern ${String(index + 1)}`}
+              key={name}
+              label={name}
               selected={index === selected}
               onClick={() => setSelected(index)}
             />
@@ -329,8 +329,8 @@ export function RecipeBookSlotPage(): JSX.Element {
       intro={
         <>
           One result slot of the recipe book: 25×25, with a different background for recipes you can
-          craft now and ones you cannot, and for slots that stand for several recipes. The item is
-          inset by 4.
+          craft now and ones you cannot, and for slots that stand for several recipes. The item
+          scales to fit, inset by 4.
         </>
       }
       demo={
@@ -341,7 +341,7 @@ export function RecipeBookSlotPage(): JSX.Element {
           <RecipeBookSlot label="Planks" many>
             <ItemIcon name="oak_planks" />
           </RecipeBookSlot>
-          <RecipeBookSlot label="Chest" craftable={false}>
+          <RecipeBookSlot label="Barrel" craftable={false}>
             <ItemIcon name="barrel" />
           </RecipeBookSlot>
           <RecipeBookSlot label="Boats" craftable={false} many>

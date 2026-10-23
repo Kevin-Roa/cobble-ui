@@ -1,5 +1,7 @@
 import {
   AnimatedSprite,
+  EFFECT_IDS,
+  EffectIcon,
   ICON_NAMES,
   Icon,
   ItemIcon,
@@ -13,11 +15,13 @@ import {
   useCobble,
   useSprite,
   useSpriteSize,
+  type EffectId,
   type IconName,
 } from 'cobble-ui';
-import { useState, type JSX } from 'react';
+import { useMemo, useState, type JSX } from 'react';
 import { Explorer } from '../../components/Explorer.tsx';
 import { Code, H2, P } from '../../components/Prose.tsx';
+import { sortItemIds } from './item-order.ts';
 
 const SPRITES = 'assets/minecraft/textures/gui/sprites/';
 
@@ -44,7 +48,7 @@ function SpriteTile({ id }: { readonly id: string }): JSX.Element | null {
   if (!size) return null;
   return (
     <span className="site-explorer-sprite">
-      <Sprite sprite={asSpriteId(id)} width={size.width} height={size.height} />
+      <Sprite sprite={asSpriteId(id)} width={size.width} height={size.height} data-flow="" />
     </span>
   );
 }
@@ -177,16 +181,19 @@ const ITEMS = 'assets/minecraft/items/';
 
 /** Every item the game defines, drawn from its own models. */
 export function ItemsPage(): JSX.Element {
-  const ids = useAssetPaths(ITEMS, '.json').map((path) =>
-    path.slice(ITEMS.length, path.length - '.json'.length),
+  const paths = useAssetPaths(ITEMS, '.json');
+  const ids = useMemo(
+    () => sortItemIds(paths.map((path) => path.slice(ITEMS.length, path.length - '.json'.length))),
+    [paths],
   );
   return (
     <>
       <P>
-        Every item in the game, drawn by <Code>ItemIcon</Code> from the game&apos;s own item
-        definitions and models: flat sprites, isometric blocks with the inventory lighting, and
-        models such as torches, stairs and fences. Items the game draws with code (chests, beds,
-        banners, shields, heads) have no model to read, so they are blank or approximated.
+        Every item in the game, ordered roughly like the creative inventory (by tab, then material),
+        drawn by <Code>ItemIcon</Code> from the game&apos;s own item definitions and models: flat
+        sprites, isometric blocks with the inventory lighting, and models such as torches, stairs
+        and fences. Items the game draws with code (chests, beds, banners, shields, heads) have no
+        model to read, so they are blank or approximated.
       </P>
       <Explorer
         ids={ids}
@@ -202,6 +209,34 @@ export function ItemsPage(): JSX.Element {
           </div>
         )}
         snippet={(id) => `<ItemIcon name="${id}" />`}
+      />
+    </>
+  );
+}
+
+/** Browse every mob effect icon. */
+export function EffectExplorer(): JSX.Element {
+  return (
+    <>
+      <H2>Explorer</H2>
+      <P>
+        Every effect <Code>EffectIcon</Code> accepts. The name is typed as <Code>EffectId</Code>, so
+        a typo is a compile error. Click one to copy its snippet.
+      </P>
+      <Explorer
+        ids={EFFECT_IDS}
+        noun="effects"
+        tileSize={32}
+        renderTile={(id) => <EffectIcon name={id as EffectId} />}
+        renderDetail={(id) => (
+          <div className="site-explorer-preview">
+            <Text color="yellow">{id}</Text>
+            <div className="site-explorer-stage">
+              <EffectIcon name={id as EffectId} />
+            </div>
+          </div>
+        )}
+        snippet={(id) => `<EffectIcon name="${id}" />`}
       />
     </>
   );

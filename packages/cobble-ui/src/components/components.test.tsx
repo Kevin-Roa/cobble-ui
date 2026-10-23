@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
+import { ChestPanel, HotbarWithStats, PlayerHead, PlayerInventory, PlayerRenderer, mcHeadsUrl } from '../index.ts';
 import {
   ASSET_PHASE_LABELS,
   Air,
@@ -79,9 +80,7 @@ import {
   CrafterRedstone,
   CrafterSlot,
   HorseChestSlots,
-  MusicNotes,
   RecipeOverlayButton,
-  TrialAvailableIcon,
   brewBubbleLength,
   cartographyMapSize,
   crafterSlotSprite,
@@ -1928,7 +1927,11 @@ describe('stonecutter, loom and recipe book controls', () => {
     const button = screen.getByRole('button', { name: 'Stone Stairs' });
     expect(button).toHaveStyle({ '--cobble-width': '16', '--cobble-height': '18' });
     expect(button).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText('stairs').parentElement).toHaveStyle({ '--cobble-y': '1' });
+    const content = screen.getByText('stairs').parentElement;
+    expect(content).toHaveClass('cobble-fit-content');
+    expect(content?.style.width).toBe('calc(12 * var(--cobble-px))');
+    expect(content?.style.height).toBe('calc(14 * var(--cobble-px))');
+    expect(content?.style.left).toBe('calc(2 * var(--cobble-px))');
     expect(slotSprites(container)).toEqual(['container/stonecutter/recipe']);
     await user.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -1939,6 +1942,17 @@ describe('stonecutter, loom and recipe book controls', () => {
       </CobbleProvider>,
     );
     expect(slotSprites(container)).toEqual(['container/stonecutter/recipe_selected']);
+  });
+
+  it('fits loom pattern content inside the cell with padding', () => {
+    renderWithProvider(
+      <LoomPatternButton label="Border">
+        <span>preview</span>
+      </LoomPatternButton>,
+    );
+    const content = screen.getByText('preview').parentElement;
+    expect(content?.style.width).toBe('calc(10 * var(--cobble-px))');
+    expect(content?.style.height).toBe('calc(10 * var(--cobble-px))');
   });
 
   it('draws loom patterns at 14x14', () => {
@@ -2006,10 +2020,9 @@ describe('stonecutter, loom and recipe book controls', () => {
       '--cobble-width': '12',
       '--cobble-height': '17',
     });
-    expect(screen.getByText('torch').parentElement).toHaveStyle({
-      '--cobble-x': '4',
-      '--cobble-y': '4',
-    });
+    const torch = screen.getByText('torch').parentElement;
+    expect(torch?.style.left).toBe('calc(4 * var(--cobble-px))');
+    expect(torch?.style.width).toBe('calc(17 * var(--cobble-px))');
   });
 
   it('draws the right red mark and size for each screen', () => {
@@ -2153,11 +2166,11 @@ describe('anvil field, brewing bubbles and container parts', () => {
     expect(slotSprites(container)).toEqual(['container/horse/chest_slots']);
   });
 
-  it('draws the animated icons from their sheets', async () => {
+  it('reads animated sprite sizes from their sheets', async () => {
     const { container } = renderAnimated(
       <>
-        <MusicNotes />
-        <TrialAvailableIcon />
+        <AnimatedSprite sprite="icon/music_notes" />
+        <AnimatedSprite sprite="icon/trial_available" />
       </>,
     );
     expect(slotSprites(container)).toEqual(['icon/music_notes', 'icon/trial_available']);
@@ -2655,6 +2668,25 @@ describe('loom, cartography, grindstone, smithing, beacon and crafter panels', (
     });
   });
 
+  it('draws the armor stand beside the smithing slots unless turned off', () => {
+    const { container, rerender } = renderWithProvider(<SmithingTablePanel />);
+    const stand = container.querySelector('.cobble-armor-stand');
+    expect(stand).not.toBeNull();
+    expect(stand).toHaveStyle({ '--cobble-x': '130.5', '--cobble-y': '28.5' });
+    rerender(
+      <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }}>
+        <SmithingTablePanel armorStand={false} />
+      </CobbleProvider>,
+    );
+    expect(container.querySelector('.cobble-armor-stand')).toBeNull();
+    rerender(
+      <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }}>
+        <SmithingTablePanel background={false} />
+      </CobbleProvider>,
+    );
+    expect(container.querySelector('.cobble-armor-stand')).toBeNull();
+  });
+
   it('centres the beacon effect buttons in each tier', async () => {
     expect(beaconEffectX(0, 1)).toBe(65);
     expect(beaconEffectX(0, 2)).toBe(53);
@@ -2767,8 +2799,8 @@ describe('trading, hopper, dispenser and creative inventory panels', () => {
     const user = userEvent.setup();
     renderWithProvider(
       <>
-        <HopperPanel onSlotClick={onSlotClick} />
-        <DispenserPanel />
+        <HopperPanel showInventory={false} onSlotClick={onSlotClick} />
+        <DispenserPanel showInventory={false} />
       </>,
     );
     expect(screen.getAllByRole('button')).toHaveLength(5 + 9);
@@ -2776,13 +2808,43 @@ describe('trading, hopper, dispenser and creative inventory panels', () => {
     expect(screen.getByRole('group', { name: 'Dispenser' })).toHaveStyle({
       '--cobble-columns': '3',
       '--cobble-x': '61',
+      '--cobble-y': '16',
     });
+    expect(screen.getByRole('group', { name: 'Hopper' })).toHaveStyle({ '--cobble-y': '19' });
     await user.click(
       within(screen.getByRole('group', { name: 'Hopper' })).getAllByRole(
         'button',
       )[3] as HTMLElement,
     );
     expect(onSlotClick).toHaveBeenCalledWith(3);
+  });
+
+  it('shows the player inventory under the panels unless told not to', () => {
+    const shown = renderWithProvider(<DispenserPanel />);
+    expect(screen.getAllByRole('button')).toHaveLength(9 + 36);
+    expect(screen.getByRole('group', { name: 'Inventory' })).toBeInTheDocument();
+    shown.unmount();
+    renderWithProvider(
+      <>
+        <DispenserPanel showInventory={false} />
+        <VillagerTradePanel showInventory={false} />
+      </>,
+    );
+    expect(screen.queryByRole('group', { name: 'Inventory' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Hotbar' })).toBeNull();
+  });
+
+  it('draws a bare slot without its own sprite', () => {
+    const { container } = renderWithProvider(
+      <>
+        <InventorySlot aria-label="Plain" />
+        <InventorySlot aria-label="Bare" bare />
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Bare' })).toHaveAttribute('data-bare');
+    expect(screen.getByRole('button', { name: 'Bare' }).querySelector('canvas')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Plain' }).querySelector('canvas')).not.toBeNull();
+    expect(container).toBeTruthy();
   });
 
   it('places the creative tabs in two rows around the item grid', async () => {
@@ -3370,5 +3432,108 @@ describe('usePrefersReducedMotion', () => {
     unmount();
     renderWithProvider(<Panorama respectReducedMotion={false} />);
     expect(frames.length).toBeGreaterThan(0);
+  });
+});
+
+
+describe('player components', () => {
+  it('builds mc-heads.net urls', () => {
+    expect(mcHeadsUrl('avatar', 'Notch', 16)).toBe('https://mc-heads.net/avatar/Notch/16');
+    expect(mcHeadsUrl('body', 'a b')).toBe('https://mc-heads.net/body/a%20b');
+  });
+
+  it('PlayerHead fetches the real face only when given a player', () => {
+    const plain = renderWithProvider(<PlayerHead />);
+    expect(plain.container.querySelector('img')).toBeNull();
+    const real = renderWithProvider(<PlayerHead player="Notch" />);
+    expect(real.container.querySelector('img')?.getAttribute('src')).toContain('/avatar/Notch/');
+  });
+
+  it('PlayerRenderer shows the body render with a name', () => {
+    renderWithProvider(<PlayerRenderer player="jeb_" />);
+    expect(screen.getByRole('img', { name: 'jeb_ skin' })).toBeInTheDocument();
+  });
+
+  it('PlayerInventory reports clicks by area', async () => {
+    const onSlotClick = vi.fn<(area: string, index: number) => void>();
+    renderWithProvider(<PlayerInventory onSlotClick={onSlotClick} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Boots' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Crafting result' }));
+    expect(onSlotClick).toHaveBeenNthCalledWith(1, 'armor', 3);
+    expect(onSlotClick).toHaveBeenNthCalledWith(2, 'result', 0);
+  });
+
+  it('ChestPanel has one slot per cell and can hide the inventory', () => {
+    const full = renderWithProvider(<ChestPanel rows={2} />);
+    expect(full.container.querySelectorAll('button')).toHaveLength(18 + 27 + 9);
+    const bare = renderWithProvider(<ChestPanel rows={2} showInventory={false} />);
+    expect(bare.container.querySelectorAll('button')).toHaveLength(18);
+  });
+
+  it('HotbarWithStats hides armor at 0 and air when full', () => {
+    const idle = renderWithProvider(<HotbarWithStats />);
+    expect(idle.container.querySelector('[aria-label*="Armor" i]')).toBeNull();
+    expect(idle.container.querySelector('[aria-label*="Air" i]')).toBeNull();
+    const busy = renderWithProvider(<HotbarWithStats armor={10} air={100} />);
+    expect(busy.container.querySelector('[aria-label*="Armor" i]')).not.toBeNull();
+    expect(busy.container.querySelector('[aria-label*="Air" i]')).not.toBeNull();
+  });
+});
+
+describe('layout gap and fill', () => {
+  it('prefers gap over the spacing alias and marks fill layouts', () => {
+    renderWithProvider(
+      <>
+        <LinearLayout data-testid="a" gap={6} spacing={2} fill />
+        <LinearLayout data-testid="b" spacing={2} />
+        <GridLayout data-testid="grid" columns={2} gap={3} fill />
+      </>,
+    );
+    expect(screen.getByTestId('a')).toHaveStyle({ '--cobble-spacing': '6' });
+    expect(screen.getByTestId('a')).toHaveAttribute('data-fill');
+    expect(screen.getByTestId('b')).toHaveStyle({ '--cobble-spacing': '2' });
+    expect(screen.getByTestId('b')).not.toHaveAttribute('data-fill');
+    expect(screen.getByTestId('grid')).toHaveAttribute('data-fill');
+    expect(screen.getByTestId('grid')).toHaveStyle({
+      '--cobble-column-spacing': '3',
+      '--cobble-align-x': 'stretch',
+    });
+  });
+});
+
+describe('Dialog actions', () => {
+  it('renders the actions in a filled, gapped row', () => {
+    renderWithProvider(
+      <Dialog defaultOpen title="Sure?" actions={<button type="button">Delete</button>}>
+        Lost forever
+      </Dialog>,
+    );
+    const row = document.querySelector('.cobble-dialog-actions');
+    expect(row).not.toBeNull();
+    expect(row).toHaveAttribute('data-fill');
+    expect(row).toHaveStyle({ '--cobble-spacing': '4' });
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+});
+
+const inWorldView = (inWorld: boolean, world?: null) => (
+  <CobbleProvider
+    assets={testAssets()}
+    guiScale={2}
+    sound={{ enabled: false }}
+    inWorld={inWorld}
+  >
+    {world === null ? <Screen world={null} /> : <Screen />}
+  </CobbleProvider>
+);
+
+describe('Screen in-world backdrop', () => {
+  it('draws a stand-in world only for in-world menus, and not when world is null', () => {
+    const { container, rerender } = renderPlain(inWorldView(false));
+    expect(container.querySelector('.cobble-screen-world')).toBeNull();
+    rerender(inWorldView(true));
+    expect(container.querySelector('.cobble-screen-world')).not.toBeNull();
+    rerender(inWorldView(true, null));
+    expect(container.querySelector('.cobble-screen-world')).toBeNull();
   });
 });

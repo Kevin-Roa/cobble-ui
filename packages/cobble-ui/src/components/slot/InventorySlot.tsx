@@ -59,6 +59,11 @@ export interface InventorySlotOwnProps {
   /** Icon shown while the slot is empty, like the armor slots' silhouettes. */
   readonly emptyIcon?: EmptySlotIcon;
   readonly disabled?: boolean;
+  /**
+   * Draw no slot sprite, only the item and the hover highlight. For slots that sit on artwork
+   * which already has the slot drawn (a container screen's background).
+   */
+  readonly bare?: boolean;
   readonly slotProps?: InventorySlotSlotProps;
 }
 
@@ -93,6 +98,7 @@ export function InventorySlot<E extends ElementType = 'button'>(
     emptyIcon,
     count,
     disabled = false,
+    bare = false,
     slotProps,
     className,
     style,
@@ -121,13 +127,16 @@ export function InventorySlot<E extends ElementType = 'button'>(
       )}
       data-highlighted={highlighted ? '' : undefined}
       data-empty={empty ? '' : undefined}
+      data-bare={bare ? '' : undefined}
     >
-      <Sprite
-        {...slotProps?.background}
-        sprite="container/slot"
-        width={SLOT_SIZE}
-        height={SLOT_SIZE}
-      />
+      {bare ? null : (
+        <Sprite
+          {...slotProps?.background}
+          sprite="container/slot"
+          width={SLOT_SIZE}
+          height={SLOT_SIZE}
+        />
+      )}
       {highlighted ? <SlotHighlight kind="back" /> : null}
       {empty && emptyIcon !== undefined ? (
         <Sprite

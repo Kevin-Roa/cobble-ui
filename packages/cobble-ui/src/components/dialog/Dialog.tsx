@@ -4,12 +4,16 @@ import { useElementState, useGuiSize } from '../../internal/hooks.ts';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
 import { useCobble } from '../../provider/context.ts';
 import { cx } from '../shared.ts';
+import { LinearLayout } from '../layout/Layouts.tsx';
 import { Sprite } from '../sprite/Sprite.tsx';
 
 /** Width of the popup panel, in GUI units. */
 export const DIALOG_WIDTH = 250;
 /** Padding between the panel edge and its contents, in GUI units. */
 export const DIALOG_PADDING = 18;
+
+/** Gap between the action buttons, in GUI units (`ConfirmScreen` places its buttons 4 apart). */
+export const DIALOG_ACTION_GAP = 4;
 
 export interface DialogSlotProps {
   /** The dimmed backdrop behind the panel. */
@@ -20,6 +24,8 @@ export interface DialogSlotProps {
   readonly title?: SlotProps<'h2'>;
   /** The element the children are rendered in. */
   readonly body?: SlotProps<'div'>;
+  /** The row the `actions` are rendered in. */
+  readonly actions?: SlotProps<'div'>;
 }
 
 export interface DialogProps {
@@ -28,8 +34,13 @@ export interface DialogProps {
   readonly onOpenChange?: (open: boolean) => void;
   /** Heading, drawn centred in white. */
   readonly title?: ReactNode;
-  /** Contents: text, and typically a row of `Button`s. */
+  /** Contents, centred: usually the message. */
   readonly children?: ReactNode;
+  /**
+   * Buttons, laid out in one centred row that splits the panel width equally, with the gap
+   * `ConfirmScreen` leaves between its buttons. They need no `width` of their own.
+   */
+  readonly actions?: ReactNode;
   /** Panel width in GUI units. Defaults to 250. */
   readonly width?: number;
   /** Closes when the backdrop is clicked. Vanilla popups only close through their buttons. */
@@ -50,6 +61,7 @@ export function Dialog(props: DialogProps): JSX.Element {
     onOpenChange,
     title,
     children,
+    actions,
     width = DIALOG_WIDTH,
     dismissOnBackdrop = false,
     slotProps,
@@ -101,6 +113,17 @@ export function Dialog(props: DialogProps): JSX.Element {
           >
             {children}
           </div>
+          {actions === undefined ? null : (
+            <LinearLayout
+              orientation="horizontal"
+              gap={DIALOG_ACTION_GAP}
+              fill
+              {...slotProps?.actions}
+              className={cx('cobble-dialog-actions', slotProps?.actions?.className)}
+            >
+              {actions}
+            </LinearLayout>
+          )}
         </BaseDialog.Popup>
       </BaseDialog.Portal>
     </BaseDialog.Root>

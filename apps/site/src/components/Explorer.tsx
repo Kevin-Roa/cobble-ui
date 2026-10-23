@@ -1,13 +1,19 @@
-import { Button, Text, TextField } from 'cobble-ui';
+import { Text, TextField, useCobble } from 'cobble-ui';
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 import { CodeBlock } from './Prose.tsx';
 
+/** Gap between tiles and padding around the grid, in GUI units. */
+const GRID_GAP = 2;
+const GRID_PADDING = 3;
+/** Rows rendered beyond the visible ones, so fast scrolling does not show blanks. */
+const OVERSCAN_ROWS = 2;
+
 export interface ExplorerProps {
-  /** Every id that can be browsed. */
+  /** Every id that can be browsed, in display order. */
   readonly ids: readonly string[];
   /** Name of the thing being browsed, for labels: `sprites`, `items`, … */
   readonly noun: string;
-  /** What a tile shows for an id. Only rendered once the tile scrolls into view. */
+  /** What a tile shows for an id. Only rendered for tiles near the viewport. */
   readonly renderTile: (id: string) => ReactNode;
   /** The selected id drawn larger, plus any facts about it. */
   readonly renderDetail: (id: string) => ReactNode;
@@ -17,49 +23,47 @@ export interface ExplorerProps {
   readonly tileSize?: number;
 }
 
-/** Renders its children only once it has been near the viewport, so huge lists stay cheap. */
-function Lazy({
-  children,
-  placeholderSize,
-}: {
-  readonly children: ReactNode;
-  readonly placeholderSize: number;
-}): JSX.Element {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const element = ref.current;
-    if (!element || seen) return undefined;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) setSeen(true);
-      },
-      { rootMargin: '200px' },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [seen]);
-  return (
-    <span
-      ref={ref}
-      className="site-explorer-lazy"
-      style={{ width: `calc(${String(placeholderSize)} * var(--cobble-px))` }}
-    >
-      {seen ? children : null}
-    </span>
-  );
-}
-
-/** A searchable grid of everything of one kind in the game files, with a detail view. */
+/**
+ * A searchable, virtualized grid of everything of one kind in the game files, with a detail view.
+ * Only the rows near the scroll position exist in the DOM, so thousands of tiles cost the same as
+ * a screenful.
+ */
 export function Explorer(props: ExplorerProps): JSX.Element {
   const { ids, noun, renderTile, renderDetail, snippet, tileSize = 48 } = props;
+  const { unit } = useCobble();
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
-  const [limit, setLimit] = useState(300);
   const needle = query.trim().toLowerCase();
   const matches = needle === '' ? ids : ids.filter((id) => id.toLowerCase().includes(needle));
-  const shown = matches.slice(0, limit);
   const active = selected !== null && ids.includes(selected) ? selected : null;
+
+  const viewport = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ width: 0, height: 0 });
+  const [scrollTop, setScrollTop] = useState(0);
+  useEffect(() => {
+    const element = viewport.current;
+    if (!element) return undefined;
+    const measure = (): void =>
+      setBox({ width: element.clientWidth, height: element.clientHeight });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const gap = GRID_GAP * unit;
+  const padding = GRID_PADDING * unit;
+  const cell = tileSize * unit;
+  const stride = cell + gap;
+  const columns = Math.max(Math.floor((box.width - 2 * padding + gap) / stride), 1);
+  const rowCount = Math.ceil(matches.length / columns);
+  const first = Math.max(Math.floor((scrollTop - padding) / stride) - OVERSCAN_ROWS, 0);
+  const last = Math.min(
+    Math.ceil((scrollTop + box.height - padding) / stride) + OVERSCAN_ROWS,
+    rowCount,
+  );
+  const shown = matches.slice(first * columns, last * columns);
+
   return (
     <div className="site-explorer">
       <div className="site-explorer-bar">
@@ -71,7 +75,8 @@ export function Explorer(props: ExplorerProps): JSX.Element {
           value={query}
           onValueChange={(value) => {
             setQuery(value);
-            setLimit(300);
+            setScrollTop(0);
+            if (viewport.current) viewport.current.scrollTop = 0;
           }}
         />
         <Text color="gray">
@@ -86,31 +91,44 @@ export function Explorer(props: ExplorerProps): JSX.Element {
           <CodeBlock code={snippet(active)} />
         </div>
       )}
-      <div className="site-explorer-grid" role="listbox" aria-label={`All ${noun}`}>
-        {shown.map((id) => (
-          <button
-            key={id}
-            type="button"
-            role="option"
-            aria-selected={id === active}
-            title={id}
-            className="site-explorer-tile"
-            data-selected={id === active ? '' : undefined}
+      <div
+        ref={viewport}
+        className="site-explorer-grid"
+        role="listbox"
+        aria-label={`All ${noun}`}
+        onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+      >
+        <div
+          className="site-explorer-sizer"
+          style={{ height: Math.max(rowCount * stride - gap, 0) + 2 * padding }}
+        >
+          <div
+            className="site-explorer-window"
             style={{
-              width: `calc(${String(tileSize)} * var(--cobble-px))`,
-              height: `calc(${String(tileSize)} * var(--cobble-px))`,
+              top: padding + first * stride,
+              left: padding,
+              gridTemplateColumns: `repeat(${String(columns)}, ${String(cell)}px)`,
+              gap,
             }}
-            onClick={() => setSelected(id)}
           >
-            <Lazy placeholderSize={tileSize}>{renderTile(id)}</Lazy>
-          </button>
-        ))}
+            {shown.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="option"
+                aria-selected={id === active}
+                title={id}
+                className="site-explorer-tile"
+                data-selected={id === active ? '' : undefined}
+                style={{ width: cell, height: cell }}
+                onClick={() => setSelected(id)}
+              >
+                {renderTile(id)}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      {matches.length > shown.length ? (
-        <Button width={150} onClick={() => setLimit(limit + 300)}>
-          Show more
-        </Button>
-      ) : null}
       {matches.length === 0 ? <Text color="gray">Nothing matches.</Text> : null}
     </div>
   );

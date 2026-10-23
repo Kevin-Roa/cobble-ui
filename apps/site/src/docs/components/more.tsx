@@ -7,19 +7,17 @@ import {
   CrafterSlot,
   HorseChestSlots,
   ItemIcon,
-  MusicNotes,
   PlayerPingIcon,
   ProgressBar,
   RealmsButton,
   RecipeOverlayButton,
   Text,
-  TrialAvailableIcon,
   useToasts,
   EffectIcon,
   PlayerHead,
 } from "cobble-ui";
 import { useState, type JSX } from "react";
-import { IconExplorer } from "./explorers.tsx";
+import { EffectExplorer, IconExplorer } from "./explorers.tsx";
 import { Code, ComponentDoc } from "../../components/Prose.tsx";
 
 const AS = {
@@ -307,40 +305,6 @@ export function HorseChestSlotsPage(): JSX.Element {
         },
         AS,
       ]}
-    />
-  );
-}
-
-export function MusicNotesPage(): JSX.Element {
-  return (
-    <ComponentDoc
-      intro={
-        <>
-          The bobbing notes beside the &quot;now playing&quot; toast:{" "}
-          <Code>icon/music_notes</Code>, 16×16, eight frames at two ticks each.
-          A ready-made use of <Code>AnimatedSprite</Code>.
-        </>
-      }
-      demo={<MusicNotes />}
-      code="<MusicNotes />"
-      rows={[]}
-    />
-  );
-}
-
-export function TrialAvailableIconPage(): JSX.Element {
-  return (
-    <ComponentDoc
-      intro={
-        <>
-          The sparkling marker for an available trial realm:{" "}
-          <Code>icon/trial_available</Code>, 8×8, a long rest then a quick
-          shine, using the sheet&apos;s own frame timing.
-        </>
-      }
-      demo={<TrialAvailableIcon />}
-      code="<TrialAvailableIcon />"
-      rows={[]}
     />
   );
 }
@@ -715,21 +679,26 @@ export function EffectIconPage(): JSX.Element {
       }
       demo={
         <div className="site-row">
-          {[
+          {([
             "speed",
             "haste",
             "strength",
             "regeneration",
             "resistance",
             "jump_boost",
-          ].map((name) => (
+          ] as const).map((name) => (
             <EffectIcon key={name} name={name} />
           ))}
         </div>
       }
       code="<EffectIcon name='speed' />"
+      after={<EffectExplorer />}
       rows={[
-        { name: "name", type: "string", description: "Effect id, like speed." },
+        {
+          name: "name",
+          type: "EffectId",
+          description: "Effect id, like speed. A union of every effect icon in the game.",
+        },
       ]}
     />
   );
@@ -741,20 +710,28 @@ export function PlayerHeadPage(): JSX.Element {
       intro={
         <>
           A player&apos;s face with the hat layer, cut from a skin texture.
-          Defaults to the Steve skin that ships with the game; pass{" "}
-          <Code>skin</Code> to use another texture.{" "}
+          Pass <Code>player</Code> (a username or UUID) for the real face,
+          fetched from mc-heads.net by the browser; otherwise it uses the Steve
+          skin that ships with the game, or <Code>skin</Code> for another
+          texture.{" "}
           <Code>SocialPlayerEntry</Code> shows it when it has no children.
         </>
       }
       demo={
         <div className="site-row">
-          <PlayerHead />
-          <PlayerHead size={16} />
+          <PlayerHead player="Notch" />
+          <PlayerHead player="jeb_" size={16} />
+          <PlayerHead player="Dinnerbone" size={32} />
           <PlayerHead size={32} />
         </div>
       }
       code="<PlayerHead size={16} />"
       rows={[
+        {
+          name: "player",
+          type: "string",
+          description: "Username or UUID, fetched from mc-heads.net.",
+        },
         {
           name: "skin",
           type: "string",

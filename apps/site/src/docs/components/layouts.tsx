@@ -35,24 +35,28 @@ export function LinearLayoutPage(): JSX.Element {
       }
       demo={
         <div className="site-stack">
-          <LinearLayout
-            spacing={4}
-            align="center"
-            style={{ width: 'calc(210 * var(--cobble-px))' }}
-          >
-            <Button width={200}>Singleplayer</Button>
-            <Button width={200}>Multiplayer</Button>
-            <Button width={120}>Centred, narrower</Button>
+          <LinearLayout gap={4} fill style={{ width: 'calc(200 * var(--cobble-px))' }}>
+            <Button>Singleplayer</Button>
+            <Button>Multiplayer</Button>
+            <LinearLayout orientation="horizontal" gap={4} fill>
+              <Button>Options...</Button>
+              <Button>Quit Game</Button>
+            </LinearLayout>
           </LinearLayout>
-          <LinearLayout orientation="horizontal" spacing={4}>
-            <Button width={98}>Options...</Button>
-            <Button width={98}>Quit Game</Button>
+          <LinearLayout gap={4} align="center" style={{ width: 'calc(210 * var(--cobble-px))' }}>
+            <Button width={200}>Own width</Button>
+            <Button width={120}>Centred, narrower</Button>
           </LinearLayout>
         </div>
       }
-      code={`<LinearLayout spacing={4} align="center">
-  <Button width={200}>Singleplayer</Button>
-  <Button width={200}>Multiplayer</Button>
+      code={`// Children share the layout's width; no width on each button.
+<LinearLayout gap={4} fill style={{ width: 200 * unit }}>
+  <Button>Singleplayer</Button>
+  <Button>Multiplayer</Button>
+  <LinearLayout orientation="horizontal" gap={4} fill>
+    <Button>Options...</Button>
+    <Button>Quit Game</Button>
+  </LinearLayout>
 </LinearLayout>`}
       rows={[
         {
@@ -62,10 +66,17 @@ export function LinearLayoutPage(): JSX.Element {
           description: 'Column or row.',
         },
         {
-          name: 'spacing',
+          name: 'gap',
           type: 'number',
           defaultValue: '0',
-          description: 'Gap between children, in GUI units.',
+          description: 'Gap between children, in GUI units. `spacing` is an alias.',
+        },
+        {
+          name: 'fill',
+          type: 'boolean',
+          defaultValue: 'false',
+          description:
+            'Children take their size from the layout: a row splits its width equally after the gaps, a column gives each the full width.',
         },
         {
           name: 'align',
@@ -84,32 +95,39 @@ export function GridLayoutPage(): JSX.Element {
     <ComponentDoc
       intro={
         <>
-          A grid whose columns are as wide as their widest cell and whose rows are as tall as their
-          tallest, like <Code>GridLayout</Code>. Wrap a child in <Code>GridLayoutCell</Code> to span
-          columns or rows, or to align it differently.
+          A grid whose columns are as wide as their widest cell (or, with <Code>fill</Code>, equally
+          wide across the width you give it) and whose rows are as tall as their tallest, like{' '}
+          <Code>GridLayout</Code>. Wrap a child in <Code>GridLayoutCell</Code> to span columns or
+          rows, or to align it differently.
         </>
       }
       demo={
-        <GridLayout columns={2} spacing={4}>
-          <Button width={98}>Skin</Button>
-          <Button width={98}>Cape</Button>
-          <GridLayoutCell colSpan={2} alignX="center">
-            <Button width={200}>Done</Button>
+        <GridLayout columns={2} gap={4} fill style={{ width: 'calc(204 * var(--cobble-px))' }}>
+          <Button>Skin</Button>
+          <Button>Cape</Button>
+          <GridLayoutCell colSpan={2}>
+            <Button>Done</Button>
           </GridLayoutCell>
         </GridLayout>
       }
-      code={`<GridLayout columns={2} spacing={4}>
-  <Button width={98}>Skin</Button>
-  <Button width={98}>Cape</Button>
-  <GridLayoutCell colSpan={2} alignX="center"><Button width={200}>Done</Button></GridLayoutCell>
+      code={`<GridLayout columns={2} gap={4} fill style={{ width: 204 * unit }}>
+  <Button>Skin</Button>
+  <Button>Cape</Button>
+  <GridLayoutCell colSpan={2}><Button>Done</Button></GridLayoutCell>
 </GridLayout>`}
       rows={[
         { name: 'columns', type: 'number', description: 'Number of columns.' },
         {
-          name: 'spacing',
+          name: 'gap',
           type: 'number',
           defaultValue: '0',
-          description: 'Gap in both directions.',
+          description: 'Gap in both directions. `spacing` is an alias.',
+        },
+        {
+          name: 'fill',
+          type: 'boolean',
+          defaultValue: 'false',
+          description: 'Equal-width columns, with each cell’s content stretched across its cell.',
         },
         {
           name: 'columnSpacing / rowSpacing',

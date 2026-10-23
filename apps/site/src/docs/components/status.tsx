@@ -2,12 +2,13 @@ import {
   Air,
   Armor,
   AttackIndicator,
+  Button,
   Hearts,
   Hunger,
   SpectatorMenu,
   VehicleHearts,
 } from 'cobble-ui';
-import { useState, type JSX } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { Code, ComponentDoc } from '../../components/Prose.tsx';
 
 const AS = {
@@ -146,6 +147,45 @@ export function ArmorPage(): JSX.Element {
   );
 }
 
+/** Air as the game changes it: 1 tick lost per tick under water, 4 regained per tick breathing. */
+function AirPlayer(): JSX.Element {
+  const [state, setState] = useState({ air: 300, breathing: false });
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!playing) return undefined;
+    // One game tick is 50 ms.
+    const timer = setInterval(() => {
+      setState(({ air, breathing }) => {
+        if (breathing) {
+          const next = Math.min(air + 4, 300);
+          return { air: next, breathing: next < 300 };
+        }
+        return air <= 0 ? { air: 0, breathing: true } : { air: air - 1, breathing };
+      });
+    }, 50);
+    return () => clearInterval(timer);
+  }, [playing]);
+  return (
+    <div className="site-stack">
+      <Air value={state.air} />
+      <div className="site-row">
+        <Button width={100} onClick={() => setPlaying(!playing)}>
+          {playing ? 'Pause' : 'Play'}
+        </Button>
+        <Button
+          width={100}
+          onClick={() => {
+            setPlaying(false);
+            setState({ air: 300, breathing: false });
+          }}
+        >
+          Reset
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function AirPage(): JSX.Element {
   return (
     <ComponentDoc
@@ -157,13 +197,13 @@ export function AirPage(): JSX.Element {
       }
       demo={
         <div className="site-stack">
-          <Air value={300} />
+          <AirPlayer />
           <Air value={140} />
           <Air value={20} />
           <Air value={2} />
         </div>
       }
-      code="<Air value={140} />"
+      code="<Air value={air} />"
       rows={[
         { name: 'value', type: 'number', description: 'Remaining air in ticks.' },
         { name: 'max', type: 'number', defaultValue: '300', description: 'Maximum air in ticks.' },

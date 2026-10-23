@@ -15,6 +15,8 @@ export type {
 } from './assets/types.ts';
 export type { AssetState, AssetStatus } from './assets/store.ts';
 
+export { EFFECT_IDS } from './assets/effect-ids.ts';
+export type { EffectId } from './assets/effect-ids.ts';
 export { asSpriteId } from './assets/sprite-id.ts';
 export type { SpriteId } from './assets/sprite-id.ts';
 
@@ -279,7 +281,13 @@ export type {
   HungerProps,
   StatusIconLayers,
 } from './components/status/StatusIcons.tsx';
-export { Dialog, DialogClose, DIALOG_PADDING, DIALOG_WIDTH } from './components/dialog/Dialog.tsx';
+export {
+  Dialog,
+  DialogClose,
+  DIALOG_ACTION_GAP,
+  DIALOG_PADDING,
+  DIALOG_WIDTH,
+} from './components/dialog/Dialog.tsx';
 export type { DialogProps, DialogSlotProps } from './components/dialog/Dialog.tsx';
 export {
   ServerListEntry,
@@ -647,6 +655,7 @@ export type {
   EnchantmentSlotSlotProps,
 } from './components/slot/EnchantmentSlot.tsx';
 export {
+  CONTAINER_BUTTON_PADDING,
   CONTAINER_SCROLLER_HEIGHT,
   LOOM_BUTTON_SIZE,
   LoomPatternButton,
@@ -724,12 +733,6 @@ export type {
   RecipeOverlayButtonProps,
   RecipeOverlayStation,
 } from './components/slot/ContainerParts.tsx';
-export {
-  MUSIC_NOTES_SIZE,
-  MusicNotes,
-  TRIAL_ICON_SIZE,
-  TrialAvailableIcon,
-} from './components/sprite/AnimatedIcons.tsx';
 export {
   DEFAULT_SKIN,
   EFFECT_ICON_SIZE,
@@ -809,6 +812,12 @@ export type {
   StonecutterPanelProps,
   StonecutterRecipe,
 } from './components/slot/StationPanels.tsx';
+export {
+  ARMOR_STAND_HEIGHT,
+  ARMOR_STAND_WIDTH,
+  ArmorStand,
+} from './components/slot/ArmorStand.tsx';
+export type { ArmorStandProps } from './components/slot/ArmorStand.tsx';
 export {
   BeaconPanel,
   CartographyPanel,
@@ -940,3 +949,29 @@ export type { ChatLogOwnProps, ChatLogProps, ChatMessage } from './components/ch
 export { CHAT_HISTORY_LIMIT, CHAT_MAX_LENGTH, ChatInput } from './components/chat/ChatInput.tsx';
 export type { ChatInputOwnProps, ChatInputProps } from './components/chat/ChatInput.tsx';
 export { usePrefersReducedMotion } from './internal/hooks.ts';
+export { MCHEADS_URL, mcHeadsUrl } from './components/player/mcheads.ts';
+export type { McHeadsRender } from './components/player/mcheads.ts';
+export { PlayerRenderer } from './components/player/PlayerRenderer.tsx';
+export type {
+  PlayerRendererOwnProps,
+  PlayerRendererProps,
+  PlayerView,
+} from './components/player/PlayerRenderer.tsx';
+export { ARMOR_SLOTS, PlayerInventory } from './components/player/PlayerInventory.tsx';
+export type {
+  ArmorSlot,
+  PlayerInventoryArea,
+  PlayerInventoryOwnProps,
+  PlayerInventoryProps,
+} from './components/player/PlayerInventory.tsx';
+export { CHEST_MAX_ROWS, ChestPanel } from './components/player/ChestPanel.tsx';
+export type {
+  ChestArea,
+  ChestPanelOwnProps,
+  ChestPanelProps,
+} from './components/player/ChestPanel.tsx';
+export { HOTBAR_STATS_HEIGHT, HotbarWithStats } from './components/hotbar/HotbarWithStats.tsx';
+export type {
+  HotbarWithStatsOwnProps,
+  HotbarWithStatsProps,
+} from './components/hotbar/HotbarWithStats.tsx';

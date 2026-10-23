@@ -4,7 +4,7 @@ import { Button } from '../button/Button.tsx';
 import { VillagerScroller } from '../trade/VillagerScroller.tsx';
 import { TradeArrow, VillagerXpBar } from '../trade/Trade.tsx';
 import { placeAt } from '../shared.ts';
-import { SlotGrid, type SlotGridItem } from './SlotGrid.tsx';
+import { PlayerInventoryGrid, SlotGrid, type SlotGridItem } from './SlotGrid.tsx';
 import { StationSlot, usePanelRoot } from './StationPanels.tsx';
 
 // --------------------------------------------------------------------------------- villager
@@ -52,6 +52,11 @@ export interface VillagerTradePanelOwnProps {
   /** Progress through the villager's level, 0 to 1. Omitted for a wandering trader. */
   readonly levelProgress?: number;
   readonly onSlotClick?: (slot: 'payment-1' | 'payment-2' | 'result') => void;
+  /** Show the player's inventory under the trades. Defaults to true. */
+  readonly showInventory?: boolean;
+  /** Items in the player's 27 main slots and 9 hotbar slots. */
+  readonly inventory?: readonly (SlotGridItem | undefined)[];
+  readonly hotbar?: readonly (SlotGridItem | undefined)[];
 }
 
 export type VillagerTradePanelProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -78,19 +83,18 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
     result,
     levelProgress,
     onSlotClick,
+    showInventory = true,
+    inventory,
+    hotbar,
+    background = true,
     className,
     style,
     ...rest
   } = props as VillagerTradePanelProps<'div'>;
-  const { Component, props: root } = usePanelRoot(
-    as,
-    'trade-panel',
-    240,
-    158,
-    className,
-    style,
-    rest,
-  );
+  const { Component, props: root } = usePanelRoot(as, 'trade-panel', 240, 158, className, style, {
+    ...rest,
+    background,
+  });
   const start = tradeStartIndex(scroll, offers.length);
   const visible = offers.slice(start, start + TRADE_VISIBLE_ROWS);
   const click = (slot: 'payment-1' | 'payment-2' | 'result'): { readonly onClick?: () => void } =>
@@ -149,15 +153,39 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
           progress={levelProgress}
         />
       )}
-      <StationSlot x={136} y={37} label="First payment" item={payment[0]} {...click('payment-1')} />
+      <StationSlot
+        x={136}
+        y={37}
+        label="First payment"
+        item={payment[0]}
+        bare={background}
+        {...click('payment-1')}
+      />
       <StationSlot
         x={162}
         y={37}
         label="Second payment"
         item={payment[1]}
+        bare={background}
         {...click('payment-2')}
       />
-      <StationSlot x={220} y={37} label="Trade result" item={result} {...click('result')} />
+      <StationSlot
+        x={220}
+        y={37}
+        label="Trade result"
+        item={result}
+        bare={background}
+        {...click('result')}
+      />
+      {showInventory ? (
+        <PlayerInventoryGrid
+          className="cobble-placed"
+          style={placeAt(107, 83)}
+          bare={background}
+          {...(inventory === undefined ? {} : { items: inventory })}
+          {...(hotbar === undefined ? {} : { hotbar })}
+        />
+      ) : null}
     </Component>
   );
 }
@@ -169,6 +197,11 @@ export interface SlotsPanelOwnProps {
   readonly background?: boolean;
   readonly items?: readonly (SlotGridItem | undefined)[];
   readonly onSlotClick?: (index: number) => void;
+  /** Show the player's inventory under the slots. Defaults to true. */
+  readonly showInventory?: boolean;
+  /** Items in the player's 27 main slots and 9 hotbar slots. */
+  readonly inventory?: readonly (SlotGridItem | undefined)[];
+  readonly hotbar?: readonly (SlotGridItem | undefined)[];
 }
 
 export type HopperPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -184,27 +217,50 @@ export type DispenserPanelProps<E extends ElementType = 'div'> = PolymorphicProp
 export function HopperPanel<E extends ElementType = 'div'>(
   props: HopperPanelProps<E>,
 ): JSX.Element {
-  const { as, items, onSlotClick, className, style, ...rest } = props as HopperPanelProps<'div'>;
+  const {
+    as,
+    items,
+    onSlotClick,
+    showInventory = true,
+    inventory,
+    hotbar,
+    background = true,
+    className,
+    style,
+    ...rest
+  } = props as HopperPanelProps<'div'>;
   const { Component, props: root } = usePanelRoot(
     as,
     'hopper-panel',
-    106,
-    18,
+    176,
+    showInventory ? 133 : 40,
     className,
     style,
-    rest,
+    { ...rest, background },
+    undefined,
+    !showInventory,
   );
   return (
     <Component {...root}>
       <SlotGrid
         className="cobble-placed"
-        style={placeAt(43, 0)}
+        style={placeAt(43, 19)}
+        bare={background}
         columns={5}
         rows={1}
         label="Hopper"
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
+      {showInventory ? (
+        <PlayerInventoryGrid
+          className="cobble-placed"
+          style={placeAt(7, 50)}
+          bare={background}
+          {...(inventory === undefined ? {} : { items: inventory })}
+          {...(hotbar === undefined ? {} : { hotbar })}
+        />
+      ) : null}
     </Component>
   );
 }
@@ -213,27 +269,50 @@ export function HopperPanel<E extends ElementType = 'div'>(
 export function DispenserPanel<E extends ElementType = 'div'>(
   props: DispenserPanelProps<E>,
 ): JSX.Element {
-  const { as, items, onSlotClick, className, style, ...rest } = props as DispenserPanelProps<'div'>;
+  const {
+    as,
+    items,
+    onSlotClick,
+    showInventory = true,
+    inventory,
+    hotbar,
+    background = true,
+    className,
+    style,
+    ...rest
+  } = props as DispenserPanelProps<'div'>;
   const { Component, props: root } = usePanelRoot(
     as,
     'dispenser-panel',
-    116,
-    54,
+    176,
+    showInventory ? 166 : 73,
     className,
     style,
-    rest,
+    { ...rest, background },
+    undefined,
+    !showInventory,
   );
   return (
     <Component {...root}>
       <SlotGrid
         className="cobble-placed"
-        style={placeAt(61, 0)}
+        style={placeAt(61, 16)}
+        bare={background}
         columns={3}
         rows={3}
         label="Dispenser"
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
+      {showInventory ? (
+        <PlayerInventoryGrid
+          className="cobble-placed"
+          style={placeAt(7, 83)}
+          bare={background}
+          {...(inventory === undefined ? {} : { items: inventory })}
+          {...(hotbar === undefined ? {} : { hotbar })}
+        />
+      ) : null}
     </Component>
   );
 }
