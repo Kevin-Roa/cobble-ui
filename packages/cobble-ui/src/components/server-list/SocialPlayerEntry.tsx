@@ -11,9 +11,9 @@ import { Sprite } from '../sprite/Sprite.tsx';
 export const SOCIAL_ENTRY_WIDTH = 236;
 export const SOCIAL_ENTRY_HEIGHT = 34;
 /** Gap between the sprite's border and the row's content. */
-const CONTENT_INSET = 2;
+export const SOCIAL_ENTRY_CONTENT_INSET = 2;
 /** Left edge of the name: the face (24 wide) and a 4 gap after the content's 4 inset. */
-const NAME_X = CONTENT_INSET + 4 + 24 + 4;
+export const SOCIAL_ENTRY_NAME_X: number = SOCIAL_ENTRY_CONTENT_INSET + 4 + 24 + 4;
 
 export interface SocialPlayerEntrySlotProps {
   readonly head?: SlotProps<'span'>;
@@ -72,7 +72,7 @@ export function SocialPlayerEntry<E extends ElementType = 'div'>(
   };
   // The row's content area is inset 2 units from the sprite's border (`getContentX`/`getContentRight`),
   // with 4 more between it and the face and the buttons.
-  const reportX = width - CONTENT_INSET - 4 - 20;
+  const reportX = width - SOCIAL_ENTRY_CONTENT_INSET - 4 - 20;
   const muteX = onReport === undefined ? reportX : reportX - 24;
   const muteProps: Record<string, unknown> = {};
   if (muted !== undefined) muteProps['muted'] = muted;
@@ -88,14 +88,14 @@ export function SocialPlayerEntry<E extends ElementType = 'div'>(
       <span
         {...slotProps?.head}
         className={cx('cobble-social-entry-head', slotProps?.head?.className)}
-        style={placeAt(CONTENT_INSET + 4, 5, slotProps?.head?.style)}
+        style={placeAt(SOCIAL_ENTRY_CONTENT_INSET + 4, 5, slotProps?.head?.style)}
       >
         {children ?? <PlayerHead size={24} />}
       </span>
       <span
         {...slotProps?.name}
         className={cx('cobble-social-entry-name', 'cobble-text', slotProps?.name?.className)}
-        style={placeAt(NAME_X, status === undefined ? 12 : 8, slotProps?.name?.style)}
+        style={placeAt(SOCIAL_ENTRY_NAME_X, status === undefined ? 12 : 8, slotProps?.name?.style)}
         data-shadow=""
       >
         {name}
@@ -104,7 +104,7 @@ export function SocialPlayerEntry<E extends ElementType = 'div'>(
         <span
           {...slotProps?.status}
           className={cx('cobble-social-entry-status', 'cobble-text', slotProps?.status?.className)}
-          style={placeAt(NAME_X, 20, slotProps?.status?.style)}
+          style={placeAt(SOCIAL_ENTRY_NAME_X, 20, slotProps?.status?.style)}
           data-shadow=""
         >
           {status}
