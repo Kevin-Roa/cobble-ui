@@ -8,6 +8,9 @@ import { INVENTORY_HOTBAR_GAP, SlotGrid, type SlotGridItem } from '../slot/SlotG
 
 export const CHEST_MAX_ROWS = 6;
 
+/** Height of the window's bottom border kept when isolated (last rows of `generic_54`'s inventory part). */
+const CHEST_BOTTOM_EDGE = 4;
+
 export type ChestArea = 'chest' | 'main' | 'hotbar';
 
 export interface ChestPanelOwnProps {
@@ -21,8 +24,11 @@ export interface ChestPanelOwnProps {
   readonly inventoryTitle?: ReactNode;
   /** Slots of the container, in reading order. */
   readonly items?: readonly (SlotGridItem | undefined)[];
-  /** Show the player's inventory under the container. Defaults to true. */
-  readonly showInventory?: boolean;
+  /**
+   * Render only the container, without the player's inventory; the window's bottom border is
+   * kept. Defaults to false.
+   */
+  readonly isolate?: boolean;
   readonly inventory?: readonly (SlotGridItem | undefined)[];
   readonly hotbar?: readonly (SlotGridItem | undefined)[];
   readonly onSlotClick?: (area: ChestArea, index: number) => void;
@@ -46,7 +52,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
     title,
     inventoryTitle = 'Inventory',
     items,
-    showInventory = true,
+    isolate = false,
     inventory,
     hotbar,
     onSlotClick,
@@ -60,7 +66,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
   // `ContainerScreen`: imageHeight = 114 + rows * 18, with the inventory part always 96 tall.
   const top = rows * 18 + 17;
   const inventoryTop = top;
-  const height = showInventory ? 114 + rows * 18 : top + 1;
+  const height = isolate ? top + CHEST_BOTTOM_EDGE : 114 + rows * 18;
   const layer = (y: number, h: number, sourceY: number): CSSProperties => ({
     position: 'absolute',
     left: 0,
@@ -81,9 +87,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
     ...style,
   };
   const click = (area: ChestArea) =>
-    onSlotClick === undefined
-      ? {}
-      : { onSlotClick: (index: number) => onSlotClick(area, index) };
+    onSlotClick === undefined ? {} : { onSlotClick: (index: number) => onSlotClick(area, index) };
   return (
     <Component
       {...mergeProps<'div'>(
@@ -94,7 +98,11 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
       {background ? (
         <>
           <span aria-hidden style={layer(0, top, 0)} />
-          {showInventory ? <span aria-hidden style={layer(inventoryTop, 96, 126)} /> : null}
+          {isolate ? (
+            <span aria-hidden data-chest-edge="" style={layer(top, CHEST_BOTTOM_EDGE, 218)} />
+          ) : (
+            <span aria-hidden style={layer(inventoryTop, 96, 126)} />
+          )}
         </>
       ) : null}
       {title === undefined ? null : (
@@ -111,7 +119,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
         {...(items === undefined ? {} : { items })}
         {...click('chest')}
       />
-      {showInventory ? (
+      {!isolate ? (
         <>
           {inventoryTitle === null ? null : (
             <Text

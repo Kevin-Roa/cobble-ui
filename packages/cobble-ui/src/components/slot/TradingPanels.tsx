@@ -52,8 +52,11 @@ export interface VillagerTradePanelOwnProps {
   /** Progress through the villager's level, 0 to 1. Omitted for a wandering trader. */
   readonly levelProgress?: number;
   readonly onSlotClick?: (slot: 'payment-1' | 'payment-2' | 'result') => void;
-  /** Show the player's inventory under the trades. Defaults to true. */
-  readonly showInventory?: boolean;
+  /**
+   * Hide the player's inventory slots. The villager texture has no single crop line (the trade
+   * list runs the full height), so the full window with its bottom border is kept. Defaults to false.
+   */
+  readonly isolate?: boolean;
   /** Items in the player's 27 main slots and 9 hotbar slots. */
   readonly inventory?: readonly (SlotGridItem | undefined)[];
   readonly hotbar?: readonly (SlotGridItem | undefined)[];
@@ -83,7 +86,7 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
     result,
     levelProgress,
     onSlotClick,
-    showInventory = true,
+    isolate = false,
     inventory,
     hotbar,
     background = true,
@@ -177,7 +180,7 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
         bare={background}
         {...click('result')}
       />
-      {showInventory ? (
+      {!isolate ? (
         <PlayerInventoryGrid
           className="cobble-placed"
           style={placeAt(107, 83)}
@@ -197,8 +200,8 @@ export interface SlotsPanelOwnProps {
   readonly background?: boolean;
   readonly items?: readonly (SlotGridItem | undefined)[];
   readonly onSlotClick?: (index: number) => void;
-  /** Show the player's inventory under the slots. Defaults to true. */
-  readonly showInventory?: boolean;
+  /** Render only the slots, without the player's inventory; the window's bottom border is kept. Defaults to false. */
+  readonly isolate?: boolean;
   /** Items in the player's 27 main slots and 9 hotbar slots. */
   readonly inventory?: readonly (SlotGridItem | undefined)[];
   readonly hotbar?: readonly (SlotGridItem | undefined)[];
@@ -221,7 +224,7 @@ export function HopperPanel<E extends ElementType = 'div'>(
     as,
     items,
     onSlotClick,
-    showInventory = true,
+    isolate = false,
     inventory,
     hotbar,
     background = true,
@@ -233,12 +236,12 @@ export function HopperPanel<E extends ElementType = 'div'>(
     as,
     'hopper-panel',
     176,
-    showInventory ? 133 : 40,
+    isolate ? 40 : 133,
     className,
     style,
     { ...rest, background },
     undefined,
-    !showInventory,
+    isolate,
   );
   return (
     <Component {...root}>
@@ -252,7 +255,7 @@ export function HopperPanel<E extends ElementType = 'div'>(
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
-      {showInventory ? (
+      {!isolate ? (
         <PlayerInventoryGrid
           className="cobble-placed"
           style={placeAt(7, 50)}
@@ -273,7 +276,7 @@ export function DispenserPanel<E extends ElementType = 'div'>(
     as,
     items,
     onSlotClick,
-    showInventory = true,
+    isolate = false,
     inventory,
     hotbar,
     background = true,
@@ -285,12 +288,12 @@ export function DispenserPanel<E extends ElementType = 'div'>(
     as,
     'dispenser-panel',
     176,
-    showInventory ? 166 : 73,
+    isolate ? 73 : 166,
     className,
     style,
     { ...rest, background },
     undefined,
-    !showInventory,
+    isolate,
   );
   return (
     <Component {...root}>
@@ -304,7 +307,7 @@ export function DispenserPanel<E extends ElementType = 'div'>(
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
-      {showInventory ? (
+      {!isolate ? (
         <PlayerInventoryGrid
           className="cobble-placed"
           style={placeAt(7, 83)}
