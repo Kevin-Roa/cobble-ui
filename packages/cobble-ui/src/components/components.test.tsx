@@ -3454,15 +3454,15 @@ describe('usePrefersReducedMotion', () => {
 
 describe('player components', () => {
   it('builds mc-heads.net urls', () => {
-    expect(mcHeadsUrl('avatar', 'Notch', 16)).toBe('https://mc-heads.net/avatar/Notch/16');
+    expect(mcHeadsUrl('avatar', 'Steve', 16)).toBe('https://mc-heads.net/avatar/Steve/16');
     expect(mcHeadsUrl('body', 'a b')).toBe('https://mc-heads.net/body/a%20b');
   });
 
   it('PlayerHead fetches the real face only when given a player', () => {
     const plain = renderWithProvider(<PlayerHead />);
     expect(plain.container.querySelector('img')).toBeNull();
-    const real = renderWithProvider(<PlayerHead player="Notch" />);
-    expect(real.container.querySelector('img')?.getAttribute('src')).toContain('/avatar/Notch/');
+    const real = renderWithProvider(<PlayerHead player="Steve" />);
+    expect(real.container.querySelector('img')?.getAttribute('src')).toContain('/avatar/Steve/');
   });
 
   it('PlayerRenderer shows the body render with a name', () => {

@@ -9,6 +9,7 @@ import {
 } from "cobble-ui";
 import { useEffect, useState, type JSX } from "react";
 import { Code, ComponentDoc } from "../../components/Prose.tsx";
+import { useDefaultPlayer } from "../../settings.tsx";
 
 function item(name: string, label: string, count?: number): SlotGridItem {
   return {
@@ -27,6 +28,7 @@ const HOTBAR: readonly SlotGridItem[] = [
 ];
 
 export function PlayerRendererPage(): JSX.Element {
+  const player = useDefaultPlayer();
   return (
     <ComponentDoc
       intro={
@@ -39,12 +41,12 @@ export function PlayerRendererPage(): JSX.Element {
       }
       demo={
         <div className="site-row">
-          <PlayerRenderer player="Notch" />
+          <PlayerRenderer player={player} />
           <PlayerRenderer player="jeb_" view="player" height={100} />
           <PlayerRenderer player="Dinnerbone" view="head" height={50} />
         </div>
       }
-      code="<PlayerRenderer player='Notch' view='body' height={70} />"
+      code={`<PlayerRenderer player='${player.replaceAll("'", "\\'")}' view='body' height={70} />`}
       rows={[
         { name: "player", type: "string", description: "Username or UUID." },
         {
@@ -71,6 +73,7 @@ export function PlayerRendererPage(): JSX.Element {
 }
 
 export function PlayerInventoryPage(): JSX.Element {
+  const player = useDefaultPlayer();
   const [hotbar, setHotbar] =
     useState<readonly (SlotGridItem | undefined)[]>(HOTBAR);
   return (
@@ -87,7 +90,7 @@ export function PlayerInventoryPage(): JSX.Element {
       }
       demo={
         <PlayerInventory
-          player="Notch"
+          player={player}
           armor={{ head: item("diamond_helmet", "Diamond Helmet") }}
           offhand={item("shield", "Shield")}
           hotbar={hotbar}
@@ -104,7 +107,7 @@ export function PlayerInventoryPage(): JSX.Element {
           }}
         />
       }
-      code="<PlayerInventory player='Notch' armor={{ head }} hotbar={hotbar} items={items} />"
+      code={`<PlayerInventory player='${player.replaceAll("'", "\\'")}' armor={{ head }} hotbar={hotbar} items={items} />`}
       rows={[
         {
           name: "player",

@@ -19,6 +19,7 @@ import {
 import { useState, type JSX } from "react";
 import { EffectExplorer, IconExplorer } from "./explorers.tsx";
 import { Code, ComponentDoc } from "../../components/Prose.tsx";
+import { useDefaultPlayer } from "../../settings.tsx";
 
 const AS = {
   name: "as",
@@ -705,6 +706,7 @@ export function EffectIconPage(): JSX.Element {
 }
 
 export function PlayerHeadPage(): JSX.Element {
+  const player = useDefaultPlayer();
   return (
     <ComponentDoc
       intro={
@@ -719,13 +721,13 @@ export function PlayerHeadPage(): JSX.Element {
       }
       demo={
         <div className="site-row">
-          <PlayerHead player="Notch" />
+          <PlayerHead player={player} />
           <PlayerHead player="jeb_" size={16} />
           <PlayerHead player="Dinnerbone" size={32} />
           <PlayerHead size={32} />
         </div>
       }
-      code="<PlayerHead size={16} />"
+      code={`<PlayerHead player='${player}' size={16} />`}
       rows={[
         {
           name: "player",

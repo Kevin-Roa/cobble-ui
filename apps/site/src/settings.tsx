@@ -15,7 +15,11 @@ export interface SiteSettings {
   readonly menuBlur: number;
   readonly panoramaSpeed: number;
   readonly inWorld: boolean;
+  /** Username or UUID the player docs examples render. */
+  readonly defaultPlayer: string;
 }
+
+export const FALLBACK_PLAYER = 'steve';
 
 const DEFAULTS: SiteSettings = {
   guiScale: 2,
@@ -24,13 +28,18 @@ const DEFAULTS: SiteSettings = {
   menuBlur: 5,
   panoramaSpeed: 1,
   inWorld: false,
+  defaultPlayer: FALLBACK_PLAYER,
 };
 const STORAGE_KEY = 'cobble-ui-site-settings';
 
 function load(): SiteSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw === null ? DEFAULTS : { ...DEFAULTS, ...(JSON.parse(raw) as Partial<SiteSettings>) };
+    if (raw === null) return DEFAULTS;
+    const merged = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<SiteSettings>) };
+    return typeof merged.defaultPlayer === 'string'
+      ? merged
+      : { ...merged, defaultPlayer: FALLBACK_PLAYER };
   } catch {
     return DEFAULTS;
   }
@@ -58,6 +67,12 @@ export function SettingsProvider({ children }: { readonly children: ReactNode })
     [settings],
   );
   return <SettingsContext value={value}>{children}</SettingsContext>;
+}
+
+/** The player the docs examples render; an empty setting falls back to Steve. */
+export function useDefaultPlayer(): string {
+  const value = useSettings().settings.defaultPlayer;
+  return typeof value === 'string' && value.trim() !== '' ? value.trim() : FALLBACK_PLAYER;
 }
 
 export function useSettings(): SettingsContextValue {
