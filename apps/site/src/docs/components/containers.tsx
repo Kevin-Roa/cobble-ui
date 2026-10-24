@@ -1559,11 +1559,11 @@ export function VillagerTradePanelPage(): JSX.Element {
           description: 'The payment slots and the result.',
         },
         {
-          name: 'showInventory',
+          name: 'isolate',
           type: 'boolean',
-          defaultValue: 'true',
+          defaultValue: 'false',
           description:
-            'Show the player inventory under the slots. Without it the window is cropped to the container part.',
+            'Hide the player inventory slots. The villager window has no single crop line, so the full window with its bottom border is kept.',
         },
         {
           name: 'inventory / hotbar',
@@ -1594,11 +1594,11 @@ export function HopperPanelPage(): JSX.Element {
       rows={[
         { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The five slots.' },
         {
-          name: 'showInventory',
+          name: 'isolate',
           type: 'boolean',
-          defaultValue: 'true',
+          defaultValue: 'false',
           description:
-            'Show the player inventory under the slots. Without it the window is cropped to the container part.',
+            'Render only the container content, without the player inventory. The bottom border is kept.',
         },
         {
           name: 'inventory / hotbar',
@@ -1629,11 +1629,11 @@ export function DispenserPanelPage(): JSX.Element {
       rows={[
         { name: 'items', type: '(SlotGridItem | undefined)[]', description: 'The nine slots.' },
         {
-          name: 'showInventory',
+          name: 'isolate',
           type: 'boolean',
-          defaultValue: 'true',
+          defaultValue: 'false',
           description:
-            'Show the player inventory under the slots. Without it the window is cropped to the container part.',
+            'Render only the container content, without the player inventory. The bottom border is kept.',
         },
         {
           name: 'inventory / hotbar',

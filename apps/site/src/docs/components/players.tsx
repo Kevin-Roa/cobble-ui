@@ -248,7 +248,7 @@ export function ChestPanelPage(): JSX.Element {
       intro={
         <>
           A generic container screen: a title, one to six rows of nine slots
-          and, unless <Code>showInventory</Code> is false, the player&apos;s
+          and, unless <Code>isolate</Code> is set, the player&apos;s
           inventory below. Three rows is a chest; six is a double chest.
         </>
       }
@@ -261,7 +261,7 @@ export function ChestPanelPage(): JSX.Element {
               item("iron_ingot", "Iron Ingot", 24),
             ]}
           />
-          <ChestPanel rows={3} title="Ender Chest" showInventory={false} />
+          <ChestPanel rows={3} title="Ender Chest" isolate />
         </div>
       }
       code="<ChestPanel rows={3} title='Chest' items={items} />"
@@ -283,10 +283,10 @@ export function ChestPanelPage(): JSX.Element {
           description: "Container slots.",
         },
         {
-          name: "showInventory",
+          name: "isolate",
           type: "boolean",
-          defaultValue: "true",
-          description: "Show the player inventory and hotbar.",
+          defaultValue: "false",
+          description: "Render only the container, without the player inventory; the bottom border is kept.",
         },
         {
           name: "inventory",

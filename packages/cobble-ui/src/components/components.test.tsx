@@ -12,7 +12,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
-import { ChestPanel, HotbarWithStats, PlayerHead, PlayerInventory, PlayerRenderer, ThreeViewport, mcHeadsUrl } from '../index.ts';
+import {
+  ChestPanel,
+  HotbarWithStats,
+  PlayerHead,
+  PlayerInventory,
+  PlayerRenderer,
+  ThreeViewport,
+  mcHeadsUrl,
+} from '../index.ts';
 import {
   ASSET_PHASE_LABELS,
   Air,
@@ -2807,8 +2815,8 @@ describe('trading, hopper, dispenser and creative inventory panels', () => {
     const user = userEvent.setup();
     renderWithProvider(
       <>
-        <HopperPanel showInventory={false} onSlotClick={onSlotClick} />
-        <DispenserPanel showInventory={false} />
+        <HopperPanel isolate onSlotClick={onSlotClick} />
+        <DispenserPanel isolate />
       </>,
     );
     expect(screen.getAllByRole('button')).toHaveLength(5 + 9);
@@ -2834,11 +2842,12 @@ describe('trading, hopper, dispenser and creative inventory panels', () => {
     shown.unmount();
     renderWithProvider(
       <>
-        <DispenserPanel showInventory={false} />
-        <VillagerTradePanel showInventory={false} />
+        <DispenserPanel isolate />
+        <VillagerTradePanel isolate />
       </>,
     );
     expect(screen.queryByRole('group', { name: 'Inventory' })).toBeNull();
+    expect(document.querySelectorAll('[data-container-compact]')).toHaveLength(1);
     expect(screen.queryByRole('group', { name: 'Hotbar' })).toBeNull();
   });
 
@@ -3443,7 +3452,6 @@ describe('usePrefersReducedMotion', () => {
   });
 });
 
-
 describe('player components', () => {
   it('builds mc-heads.net urls', () => {
     expect(mcHeadsUrl('avatar', 'Notch', 16)).toBe('https://mc-heads.net/avatar/Notch/16');
@@ -3492,8 +3500,10 @@ describe('player components', () => {
   it('ChestPanel has one slot per cell and can hide the inventory', () => {
     const full = renderWithProvider(<ChestPanel rows={2} />);
     expect(full.container.querySelectorAll('button')).toHaveLength(18 + 27 + 9);
-    const bare = renderWithProvider(<ChestPanel rows={2} showInventory={false} />);
+    const bare = renderWithProvider(<ChestPanel rows={2} isolate />);
     expect(bare.container.querySelectorAll('button')).toHaveLength(18);
+    expect(bare.container.querySelector('[data-chest-edge]')).not.toBeNull();
+    expect(full.container.querySelector('[data-chest-edge]')).toBeNull();
   });
 
   it('HotbarWithStats hides armor at 0 and air when full', () => {
@@ -3543,12 +3553,7 @@ describe('Dialog actions', () => {
 });
 
 const inWorldView = (inWorld: boolean, world?: null) => (
-  <CobbleProvider
-    assets={testAssets()}
-    guiScale={2}
-    sound={{ enabled: false }}
-    inWorld={inWorld}
-  >
+  <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }} inWorld={inWorld}>
     {world === null ? <Screen world={null} /> : <Screen />}
   </CobbleProvider>
 );
