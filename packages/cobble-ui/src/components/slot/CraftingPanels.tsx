@@ -1,19 +1,26 @@
-import type { ElementType, JSX, ReactNode } from 'react';
-import type { PolymorphicProps } from '../../internal/polymorphic.ts';
-import { LoomPatternButton, LoomScroller } from '../button/ContainerButtons.tsx';
-import { BeaconButton } from './BeaconButton.tsx';
-import { placeAt } from '../shared.ts';
+import type { ElementType, JSX, ReactNode } from "react";
+import type { PolymorphicProps } from "../../internal/polymorphic.ts";
+import {
+  LoomPatternButton,
+  LoomScroller,
+} from "../button/ContainerButtons.tsx";
+import { BeaconButton } from "./BeaconButton.tsx";
+import { placeAt } from "../shared.ts";
 import {
   ARMOR_STAND_VIEWPORT_FEET,
   ARMOR_STAND_VIEWPORT_WIDTH,
   ArmorStand,
   SMITHING_ARMOR_STAND_X,
   SMITHING_ARMOR_STAND_Y,
-} from './ArmorStand.tsx';
-import { CartographyMap, CrafterRedstone, CrafterSlot } from './ContainerParts.tsx';
-import { ContainerError } from '../sprite/ContainerError.tsx';
-import type { SlotGridItem } from './SlotGrid.tsx';
-import { StationSlot, usePanelRoot } from './StationPanels.tsx';
+} from "./ArmorStand.tsx";
+import {
+  CartographyMap,
+  CrafterRedstone,
+  CrafterSlot,
+} from "./ContainerParts.tsx";
+import { ContainerError } from "../sprite/ContainerError.tsx";
+import type { SlotGridItem } from "./SlotGrid.tsx";
+import { StationSlot, usePanelRoot } from "./StationPanels.tsx";
 
 // -------------------------------------------------------------------------------------- loom
 
@@ -36,10 +43,15 @@ export interface LoomPanelOwnProps {
   /** Scroll position of the pattern grid, 0 to 1. */
   readonly scroll?: number;
   readonly onScrollChange?: (scroll: number) => void;
-  readonly onSlotClick?: (slot: 'banner' | 'dye' | 'patternItem' | 'result') => void;
+  readonly onSlotClick?: (
+    slot: "banner" | "dye" | "patternItem" | "result",
+  ) => void;
 }
 
-export type LoomPanelProps<E extends ElementType = 'div'> = PolymorphicProps<E, LoomPanelOwnProps>;
+export type LoomPanelProps<E extends ElementType = "div"> = PolymorphicProps<
+  E,
+  LoomPanelOwnProps
+>;
 
 /** Columns and visible rows of the loom's pattern grid. */
 export const LOOM_COLUMNS = 4;
@@ -52,7 +64,10 @@ export const LOOM_VISIBLE_ROWS = 4;
 export function loomStartIndex(scroll: number, patternCount: number): number {
   const rows = Math.ceil(patternCount / LOOM_COLUMNS);
   const offscreen = Math.max(rows - LOOM_VISIBLE_ROWS, 0);
-  const clamped = Math.min(Math.max(Number.isFinite(scroll) ? scroll : 0, 0), 1);
+  const clamped = Math.min(
+    Math.max(Number.isFinite(scroll) ? scroll : 0, 0),
+    1,
+  );
   return Math.floor(clamped * offscreen + 0.5) * LOOM_COLUMNS;
 }
 
@@ -61,7 +76,9 @@ export function loomStartIndex(scroll: number, patternCount: number): number {
  * grid of pattern cells with its scroller. Coordinates are recalled from vanilla and are
  * approximations; the screen's artwork is drawn behind it unless `background` is false.
  */
-export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E>): JSX.Element {
+export function LoomPanel<E extends ElementType = "div">(
+  props: LoomPanelProps<E>,
+): JSX.Element {
   const {
     as,
     banner,
@@ -77,10 +94,10 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
     className,
     style,
     ...rest
-  } = props as LoomPanelProps<'div'>;
+  } = props as LoomPanelProps<"div">;
   const { Component, props: root } = usePanelRoot(
     as,
-    'loom-panel',
+    "loom-panel",
     161,
     76,
     className,
@@ -88,23 +105,39 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
     rest,
   );
   const click = (
-    slot: 'banner' | 'dye' | 'patternItem' | 'result',
+    slot: "banner" | "dye" | "patternItem" | "result",
   ): { readonly onClick?: () => void } =>
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   const start = loomStartIndex(scroll, patterns.length);
-  const visible = patterns.slice(start, start + LOOM_COLUMNS * LOOM_VISIBLE_ROWS);
+  const visible = patterns.slice(
+    start,
+    start + LOOM_COLUMNS * LOOM_VISIBLE_ROWS,
+  );
   return (
     <Component {...root}>
-      <StationSlot x={13} y={26} label="Banner" item={banner} {...click('banner')} />
-      <StationSlot x={33} y={26} label="Dye" item={dye} {...click('dye')} />
+      <StationSlot
+        x={13}
+        y={26}
+        label="Banner"
+        item={banner}
+        {...click("banner")}
+      />
+      <StationSlot x={33} y={26} label="Dye" item={dye} {...click("dye")} />
       <StationSlot
         x={23}
         y={45}
         label="Banner pattern"
         item={patternItem}
-        {...click('patternItem')}
+        {...click("patternItem")}
       />
-      <StationSlot x={143} y={58} label="Loom result" item={result} {...click('result')} />
+      <StationSlot
+        x={143}
+        y={57}
+        label="Loom result"
+        item={result}
+        {...click("result")}
+        bare
+      />
       {visible.map((pattern, offset) => {
         const index = start + offset;
         return (
@@ -117,7 +150,9 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
             )}
             label={pattern.label}
             selected={index === selectedPattern}
-            {...(onPatternClick === undefined ? {} : { onClick: () => onPatternClick(index) })}
+            {...(onPatternClick === undefined
+              ? {}
+              : { onClick: () => onPatternClick(index) })}
           >
             {pattern.content}
           </LoomPatternButton>
@@ -128,7 +163,9 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
         style={placeAt(119, 12)}
         disabled={patterns.length <= LOOM_COLUMNS * LOOM_VISIBLE_ROWS}
         value={scroll}
-        {...(onScrollChange === undefined ? {} : { onValueChange: onScrollChange })}
+        {...(onScrollChange === undefined
+          ? {}
+          : { onValueChange: onScrollChange })}
       />
     </Component>
   );
@@ -143,27 +180,25 @@ export interface CartographyPanelOwnProps {
   readonly material?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
   /** What the preview frame shows; omit for none. */
-  readonly preview?: 'map' | 'scaled' | 'duplicated' | undefined;
+  readonly preview?: "map" | "scaled" | "duplicated" | undefined;
   /** The map is locked: the small padlock is drawn. */
   readonly locked?: boolean;
   /** The combination is not allowed: draws the red cross. */
   readonly error?: boolean;
   /** The map preview contents, drawn inside the frame. Supply your own. */
   readonly children?: ReactNode;
-  readonly onSlotClick?: (slot: 'map' | 'material' | 'result') => void;
+  readonly onSlotClick?: (slot: "map" | "material" | "result") => void;
 }
 
-export type CartographyPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
-  E,
-  CartographyPanelOwnProps
->;
+export type CartographyPanelProps<E extends ElementType = "div"> =
+  PolymorphicProps<E, CartographyPanelOwnProps>;
 
 /**
  * The interactive part of the cartography table screen: map, material and result slots, the
  * preview frame (plain, zoomed out or copied) with the padlock, and the error cross. Coordinates
  * are recalled from vanilla and are approximations.
  */
-export function CartographyPanel<E extends ElementType = 'div'>(
+export function CartographyPanel<E extends ElementType = "div">(
   props: CartographyPanelProps<E>,
 ): JSX.Element {
   const {
@@ -179,28 +214,43 @@ export function CartographyPanel<E extends ElementType = 'div'>(
     className,
     style,
     ...rest
-  } = props as CartographyPanelProps<'div'>;
+  } = props as CartographyPanelProps<"div">;
   const { Component, props: root } = usePanelRoot(
     as,
-    'cartography-panel',
+    "cartography-panel",
     165,
     80,
     className,
     style,
     rest,
   );
-  const click = (slot: 'map' | 'material' | 'result'): { readonly onClick?: () => void } =>
+  const click = (
+    slot: "map" | "material" | "result",
+  ): { readonly onClick?: () => void } =>
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   return (
     <Component {...root}>
-      <StationSlot x={15} y={15} label="Map" item={map} {...click('map')} />
-      <StationSlot x={15} y={52} label="Material" item={material} {...click('material')} />
-      <StationSlot x={147} y={37} label="Cartography result" item={result} {...click('result')} />
+      <StationSlot x={15} y={15} label="Map" item={map} {...click("map")} />
+      <StationSlot
+        x={15}
+        y={52}
+        label="Material"
+        item={material}
+        {...click("material")}
+      />
+      <StationSlot
+        x={145}
+        y={39}
+        label="Cartography result"
+        item={result}
+        {...click("result")}
+        bare
+      />
       {preview === undefined ? null : (
         <CartographyMap
           className="cobble-placed"
           kind={preview}
-          style={placeAt(preview === 'duplicated' ? 75 : 67, 13)}
+          style={placeAt(preview === "duplicated" ? 75 : 67, 13)}
         />
       )}
       {children === undefined ? null : (
@@ -209,7 +259,11 @@ export function CartographyPanel<E extends ElementType = 'div'>(
         </span>
       )}
       {locked ? (
-        <CartographyMap className="cobble-placed" kind="locked" style={placeAt(114, 66)} />
+        <CartographyMap
+          className="cobble-placed"
+          kind="locked"
+          style={placeAt(114, 66)}
+        />
       ) : null}
       {error ? (
         <ContainerError
@@ -231,19 +285,17 @@ export interface GrindstonePanelOwnProps {
   readonly bottom?: SlotGridItem | undefined;
   readonly result?: SlotGridItem | undefined;
   readonly error?: boolean;
-  readonly onSlotClick?: (slot: 'top' | 'bottom' | 'result') => void;
+  readonly onSlotClick?: (slot: "top" | "bottom" | "result") => void;
 }
 
-export type GrindstonePanelProps<E extends ElementType = 'div'> = PolymorphicProps<
-  E,
-  GrindstonePanelOwnProps
->;
+export type GrindstonePanelProps<E extends ElementType = "div"> =
+  PolymorphicProps<E, GrindstonePanelOwnProps>;
 
 /**
  * The interactive part of the grindstone screen: two input slots, the result and the error cross.
  * Coordinates are recalled from vanilla and are approximations.
  */
-export function GrindstonePanel<E extends ElementType = 'div'>(
+export function GrindstonePanel<E extends ElementType = "div">(
   props: GrindstonePanelProps<E>,
 ): JSX.Element {
   const {
@@ -256,31 +308,49 @@ export function GrindstonePanel<E extends ElementType = 'div'>(
     className,
     style,
     ...rest
-  } = props as GrindstonePanelProps<'div'>;
+  } = props as GrindstonePanelProps<"div">;
   const { Component, props: root } = usePanelRoot(
     as,
-    'grindstone-panel',
+    "grindstone-panel",
     147,
     58,
     className,
     style,
     rest,
   );
-  const click = (slot: 'top' | 'bottom' | 'result'): { readonly onClick?: () => void } =>
+  const click = (
+    slot: "top" | "bottom" | "result",
+  ): { readonly onClick?: () => void } =>
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   return (
     <Component {...root}>
-      <StationSlot x={49} y={19} label="Grindstone top input" item={top} {...click('top')} />
+      <StationSlot
+        x={49}
+        y={19}
+        label="Grindstone top input"
+        item={top}
+        {...click("top")}
+      />
       <StationSlot
         x={49}
         y={40}
         label="Grindstone bottom input"
         item={bottom}
-        {...click('bottom')}
+        {...click("bottom")}
       />
-      <StationSlot x={129} y={34} label="Grindstone result" item={result} {...click('result')} />
+      <StationSlot
+        x={129}
+        y={34}
+        label="Grindstone result"
+        item={result}
+        {...click("result")}
+      />
       {error ? (
-        <ContainerError className="cobble-placed" kind="grindstone" style={placeAt(92, 31)} />
+        <ContainerError
+          className="cobble-placed"
+          kind="grindstone"
+          style={placeAt(92, 31)}
+        />
       ) : null}
     </Component>
   );
@@ -298,13 +368,13 @@ export interface SmithingTablePanelOwnProps {
   readonly error?: boolean;
   /** Show the armor stand preview. Defaults to true when the background is drawn. */
   readonly armorStand?: boolean;
-  readonly onSlotClick?: (slot: 'template' | 'base' | 'addition' | 'result') => void;
+  readonly onSlotClick?: (
+    slot: "template" | "base" | "addition" | "result",
+  ) => void;
 }
 
-export type SmithingTablePanelProps<E extends ElementType = 'div'> = PolymorphicProps<
-  E,
-  SmithingTablePanelOwnProps
->;
+export type SmithingTablePanelProps<E extends ElementType = "div"> =
+  PolymorphicProps<E, SmithingTablePanelOwnProps>;
 
 /**
  * The interactive part of the smithing table screen: template, base, addition and result slots
@@ -312,7 +382,7 @@ export type SmithingTablePanelProps<E extends ElementType = 'div'> = Polymorphic
  * recalled from vanilla and are approximations. The armor stand is a 3D model (drag to turn it)
  * without armor.
  */
-export function SmithingTablePanel<E extends ElementType = 'div'>(
+export function SmithingTablePanel<E extends ElementType = "div">(
   props: SmithingTablePanelProps<E>,
 ): JSX.Element {
   const {
@@ -328,13 +398,21 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
     className,
     style,
     ...rest
-  } = props as SmithingTablePanelProps<'div'>;
-  const { Component, props: root } = usePanelRoot(as, 'smithing-panel', 116, 67, className, style, {
-    ...rest,
-    background,
-  });
+  } = props as SmithingTablePanelProps<"div">;
+  const { Component, props: root } = usePanelRoot(
+    as,
+    "smithing-panel",
+    116,
+    67,
+    className,
+    style,
+    {
+      ...rest,
+      background,
+    },
+  );
   const click = (
-    slot: 'template' | 'base' | 'addition' | 'result',
+    slot: "template" | "base" | "addition" | "result",
   ): { readonly onClick?: () => void } =>
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   return (
@@ -345,7 +423,7 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
         label="Smithing template"
         item={template}
         emptyIcon="smithing_template_armor_trim"
-        {...click('template')}
+        {...click("template")}
       />
       <StationSlot
         x={26}
@@ -353,7 +431,7 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
         label="Smithing base"
         item={base}
         emptyIcon="chestplate"
-        {...click('base')}
+        {...click("base")}
       />
       <StationSlot
         x={44}
@@ -361,9 +439,15 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
         label="Smithing addition"
         item={addition}
         emptyIcon="ingot"
-        {...click('addition')}
+        {...click("addition")}
       />
-      <StationSlot x={98} y={48} label="Smithing result" item={result} {...click('result')} />
+      <StationSlot
+        x={98}
+        y={48}
+        label="Smithing result"
+        item={result}
+        {...click("result")}
+      />
       {armorStand ? (
         <ArmorStand
           className="cobble-placed"
@@ -372,12 +456,16 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
             SMITHING_ARMOR_STAND_X - (ARMOR_STAND_VIEWPORT_WIDTH * 1.5) / 2,
             SMITHING_ARMOR_STAND_Y - ARMOR_STAND_VIEWPORT_FEET * 1.5,
           )}
-          initialYaw={30}
-          initialPitch={25}
+          initialYaw={-30}
+          initialPitch={5}
         />
       ) : null}
       {error ? (
-        <ContainerError className="cobble-placed" kind="smithing" style={placeAt(65, 46)} />
+        <ContainerError
+          className="cobble-placed"
+          kind="smithing"
+          style={placeAt(65, 46)}
+        />
       ) : null}
     </Component>
   );
@@ -410,7 +498,7 @@ export interface BeaconPanelOwnProps {
   readonly onPaymentClick?: () => void;
 }
 
-export type BeaconPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
+export type BeaconPanelProps<E extends ElementType = "div"> = PolymorphicProps<
   E,
   BeaconPanelOwnProps
 >;
@@ -425,7 +513,7 @@ export function beaconEffectX(index: number, count: number): number {
  * the payment slot and the confirm and cancel buttons. Coordinates are recalled from vanilla and
  * are approximations.
  */
-export function BeaconPanel<E extends ElementType = 'div'>(
+export function BeaconPanel<E extends ElementType = "div">(
   props: BeaconPanelProps<E>,
 ): JSX.Element {
   const {
@@ -441,10 +529,10 @@ export function BeaconPanel<E extends ElementType = 'div'>(
     className,
     style,
     ...rest
-  } = props as BeaconPanelProps<'div'>;
+  } = props as BeaconPanelProps<"div">;
   const { Component, props: root } = usePanelRoot(
     as,
-    'beacon-panel',
+    "beacon-panel",
     212,
     134,
     className,
@@ -459,7 +547,10 @@ export function BeaconPanel<E extends ElementType = 'div'>(
             // oxlint-disable-next-line react/no-array-index-key -- effects are identified by position
             key={`${String(tierIndex)}:${String(index)}`}
             className="cobble-placed"
-            style={placeAt(beaconEffectX(index, tier.length), 22 + tierIndex * 25)}
+            style={placeAt(
+              beaconEffectX(index, tier.length),
+              22 + tierIndex * 25,
+            )}
             label={effect.label}
             selected={selected.some(([t, i]) => t === tierIndex && i === index)}
             disabled={effect.disabled === true}
@@ -512,7 +603,7 @@ export interface CrafterPanelOwnProps {
   readonly onResultClick?: () => void;
 }
 
-export type CrafterPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
+export type CrafterPanelProps<E extends ElementType = "div"> = PolymorphicProps<
   E,
   CrafterPanelOwnProps
 >;
@@ -522,7 +613,7 @@ export type CrafterPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
  * the result slot and the redstone indicator. Coordinates are recalled from vanilla and are
  * approximations.
  */
-export function CrafterPanel<E extends ElementType = 'div'>(
+export function CrafterPanel<E extends ElementType = "div">(
   props: CrafterPanelProps<E>,
 ): JSX.Element {
   const {
@@ -536,10 +627,10 @@ export function CrafterPanel<E extends ElementType = 'div'>(
     className,
     style,
     ...rest
-  } = props as CrafterPanelProps<'div'>;
+  } = props as CrafterPanelProps<"div">;
   const { Component, props: root } = usePanelRoot(
     as,
-    'crafter-panel',
+    "crafter-panel",
     152,
     71,
     className,
@@ -555,16 +646,25 @@ export function CrafterPanel<E extends ElementType = 'div'>(
             // oxlint-disable-next-line react/no-array-index-key -- slots are identified by position
             key={index}
             className="cobble-placed"
-            style={placeAt(26 + (index % 3) * 18, 17 + Math.floor(index / 3) * 18)}
+            style={placeAt(
+              26 + (index % 3) * 18,
+              17 + Math.floor(index / 3) * 18,
+            )}
             label={item?.label ?? `Crafter slot ${String(index + 1)}`}
             slotDisabled={disabledSlots[index] === true}
-            {...(onSlotClick === undefined ? {} : { onClick: () => onSlotClick(index) })}
+            {...(onSlotClick === undefined
+              ? {}
+              : { onClick: () => onSlotClick(index) })}
           >
             {item?.content}
           </CrafterSlot>
         );
       })}
-      <CrafterRedstone className="cobble-placed" style={placeAt(97, 35)} powered={powered} />
+      <CrafterRedstone
+        className="cobble-placed"
+        style={placeAt(97, 35)}
+        powered={powered}
+      />
       <StationSlot
         x={134}
         y={35}

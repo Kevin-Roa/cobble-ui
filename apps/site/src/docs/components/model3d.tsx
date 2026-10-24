@@ -1,4 +1,10 @@
-import { BlockModel, ModelViewport, Node3D, createBoxQuads, type ModelSceneContext } from "cobble-ui";
+import {
+  BlockModel,
+  ModelViewport,
+  Node3D,
+  createBoxQuads,
+  type ModelSceneContext,
+} from "cobble-ui";
 import { useState, type JSX } from "react";
 import { Code, ComponentDoc } from "../../components/Prose.tsx";
 
@@ -52,12 +58,13 @@ export function ModelViewportPage(): JSX.Element {
       intro={
         <>
           A canvas for small 3D scenes, sized in GUI units and drawn at device
-          resolution by the library&apos;s own software renderer (no WebGL and no
-          dependencies). Textures come from the client files, sampled with
+          resolution by the library&apos;s own software renderer (no WebGL and
+          no dependencies). Textures come from the client files, sampled with
           nearest filtering. Rendering pauses off-screen and happens only when
           something changed. While loading, or if the browser cannot draw to a
-          canvas, the <Code>fallback</Code> is shown. Drag or use the arrow keys to rotate; tick the box to make the
-          model follow the cursor like the inventory player.
+          canvas, the <Code>fallback</Code> is shown. Drag or use the arrow keys
+          to rotate; tick the box to make the model follow the cursor like the
+          inventory player.
         </>
       }
       demo={
@@ -86,9 +93,23 @@ export function ModelViewportPage(): JSX.Element {
       }
       code={CODE}
       rows={[
-        { name: "aria-label", type: "string", description: "Accessible name. Required." },
-        { name: "width", type: "number", defaultValue: "64", description: "Width in GUI units." },
-        { name: "height", type: "number", defaultValue: "64", description: "Height in GUI units." },
+        {
+          name: "aria-label",
+          type: "string",
+          description: "Accessible name. Required.",
+        },
+        {
+          name: "width",
+          type: "number",
+          defaultValue: "64",
+          description: "Width in GUI units.",
+        },
+        {
+          name: "height",
+          type: "number",
+          defaultValue: "64",
+          description: "Height in GUI units.",
+        },
         {
           name: "textures",
           type: "string[]",
@@ -104,7 +125,8 @@ export function ModelViewportPage(): JSX.Element {
         {
           name: "onFrame",
           type: "(context, { delta, time }) => void",
-          description: "Called before each rendered frame. Combine with animated.",
+          description:
+            "Called before each rendered frame. Combine with animated.",
         },
         {
           name: "camera",
@@ -116,7 +138,8 @@ export function ModelViewportPage(): JSX.Element {
           name: "rotatable",
           type: "boolean",
           defaultValue: "false",
-          description: "Drag or press the arrow keys to rotate (pitch is clamped).",
+          description:
+            "Drag or press the arrow keys to rotate (pitch is clamped).",
         },
         {
           name: "followMouse",
@@ -153,7 +176,8 @@ export function ModelViewportPage(): JSX.Element {
         {
           name: "fallback",
           type: "ReactNode",
-          description: "Shown while loading and when canvas drawing is unavailable.",
+          description:
+            "Shown while loading and when canvas drawing is unavailable.",
         },
       ]}
     />
@@ -170,30 +194,34 @@ export function BlockModelPage(): JSX.Element {
     <ComponentDoc
       intro={
         <>
-          Any block or item model from the game files as real 3D geometry:
-          the elements of <Code>models/**.json</Code> with per-face uv and
-          rotation, element rotation, tints and the vanilla face shading (top
-          1.0, north/south 0.8, east/west 0.6, bottom 0.5). It resolves the item
+          Any block or item model from the game files as real 3D geometry: the
+          elements of <Code>models/**.json</Code> with per-face uv and rotation,
+          element rotation, tints and the vanilla face shading (top 1.0,
+          north/south 0.8, east/west 0.6, bottom 0.5). It resolves the item
           definition like <Code>ItemIcon</Code>, but without the inventory
           display transform so it can be turned freely. Drag or use the arrow
-          keys. While loading (or without canvas drawing) the flat <Code>ItemIcon</Code>{" "}
-          is shown.
+          keys. While loading (or without canvas drawing) the flat{" "}
+          <Code>ItemIcon</Code> is shown.
         </>
       }
       demo={
         <>
           <div className="site-row">
-            {["stone", "grass_block", "furnace", "oak_log", "crafting_table", "torch", "oak_stairs"].map(
-              (name) => (
-                <BlockModel
-                  key={name}
-                  name={name}
-                  rotatable={!follow}
-                  followMouse={follow}
-                  initialYaw={follow ? 0 : -35}
-                />
-              ),
-            )}
+            {[
+              "stone",
+              "grass_block",
+              "furnace",
+              "oak_log",
+              "crafting_table",
+              "oak_stairs",
+            ].map((name) => (
+              <BlockModel
+                key={name}
+                name={name}
+                rotatable={!follow}
+                followMouse={follow}
+              />
+            ))}
           </div>
           <label>
             <input
@@ -207,14 +235,52 @@ export function BlockModelPage(): JSX.Element {
       }
       code={BLOCK_CODE}
       rows={[
-        { name: "name", type: "string", description: "Item or block id: stone, furnace, oak_stairs, ..." },
-        { name: "aria-label", type: "string", description: "Accessible name. Defaults to the id." },
-        { name: "width / height", type: "number", defaultValue: "64", description: "Size in GUI units." },
-        { name: "rotatable", type: "boolean", defaultValue: "true", description: "Drag or press the arrow keys to turn the model." },
-        { name: "followMouse", type: "boolean", defaultValue: "false", description: "Turns toward the cursor." },
-        { name: "autoRotate", type: "boolean | number", defaultValue: "false", description: "Spin around the vertical axis." },
-        { name: "initialYaw / initialPitch", type: "number", defaultValue: "-35 / 25", description: "Starting rotation in degrees." },
-        { name: "camera", type: "{ fov?, position?, target? }", defaultValue: "{ position: [0, 0, 4.2] }", description: "Camera setup, as for ModelViewport." },
+        {
+          name: "name",
+          type: "string",
+          description: "Item or block id: stone, furnace, oak_stairs, ...",
+        },
+        {
+          name: "aria-label",
+          type: "string",
+          description: "Accessible name. Defaults to the id.",
+        },
+        {
+          name: "width / height",
+          type: "number",
+          defaultValue: "64",
+          description: "Size in GUI units.",
+        },
+        {
+          name: "rotatable",
+          type: "boolean",
+          defaultValue: "true",
+          description: "Drag or press the arrow keys to turn the model.",
+        },
+        {
+          name: "followMouse",
+          type: "boolean",
+          defaultValue: "false",
+          description: "Turns toward the cursor.",
+        },
+        {
+          name: "autoRotate",
+          type: "boolean | number",
+          defaultValue: "false",
+          description: "Spin around the vertical axis.",
+        },
+        {
+          name: "initialYaw / initialPitch",
+          type: "number",
+          defaultValue: "-35 / 25",
+          description: "Starting rotation in degrees.",
+        },
+        {
+          name: "camera",
+          type: "{ fov?, position?, target? }",
+          defaultValue: "{ position: [0, 0, 4.2] }",
+          description: "Camera setup, as for ModelViewport.",
+        },
       ]}
     />
   );

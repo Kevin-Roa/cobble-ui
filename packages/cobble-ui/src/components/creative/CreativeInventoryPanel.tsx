@@ -1,10 +1,10 @@
-import type { ElementType, JSX, ReactNode } from 'react';
-import type { PolymorphicProps } from '../../internal/polymorphic.ts';
-import { placeAt } from '../shared.ts';
-import { SlotGrid, type SlotGridItem } from '../slot/SlotGrid.tsx';
-import { usePanelRoot } from '../slot/StationPanels.tsx';
-import { CreativeScroller } from './CreativeScroller.tsx';
-import { CreativeTab, type CreativeTabColumn } from './CreativeTab.tsx';
+import type { ElementType, JSX, ReactNode } from "react";
+import type { PolymorphicProps } from "../../internal/polymorphic.ts";
+import { placeAt } from "../shared.ts";
+import { SlotGrid, type SlotGridItem } from "../slot/SlotGrid.tsx";
+import { usePanelRoot } from "../slot/StationPanels.tsx";
+import { CreativeScroller } from "./CreativeScroller.tsx";
+import { CreativeTab, type CreativeTabColumn } from "./CreativeTab.tsx";
 
 /** Size of the creative inventory window itself, without its tabs. */
 export const CREATIVE_WINDOW_WIDTH = 195;
@@ -35,20 +35,18 @@ export interface CreativeInventoryPanelOwnProps {
   readonly onScrollChange?: (scroll: number) => void;
   /** The grid scrolls only when there are more items than slots. */
   readonly scrollable?: boolean;
-  readonly onSlotClick?: (area: 'items' | 'hotbar', index: number) => void;
+  readonly onSlotClick?: (area: "items" | "hotbar", index: number) => void;
 }
 
-export type CreativeInventoryPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
-  E,
-  CreativeInventoryPanelOwnProps
->;
+export type CreativeInventoryPanelProps<E extends ElementType = "div"> =
+  PolymorphicProps<E, CreativeInventoryPanelOwnProps>;
 
 /**
  * The interactive part of the creative inventory screen: the tabs along the top and bottom, the
  * 9×5 item grid with its scroller, and the hotbar row. Coordinates are recalled from vanilla and
  * are approximations; the window's artwork is drawn behind it unless `background` is false.
  */
-export function CreativeInventoryPanel<E extends ElementType = 'div'>(
+export function CreativeInventoryPanel<E extends ElementType = "div">(
   props: CreativeInventoryPanelProps<E>,
 ): JSX.Element {
   const {
@@ -66,10 +64,10 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
     className,
     style,
     ...rest
-  } = props as CreativeInventoryPanelProps<'div'>;
+  } = props as CreativeInventoryPanelProps<"div">;
   const { Component, props: root } = usePanelRoot(
     as,
-    'creative-panel',
+    "creative-panel",
     CREATIVE_WINDOW_WIDTH,
     CREATIVE_WINDOW_HEIGHT + 2 * TAB_MARGIN,
     className,
@@ -86,12 +84,17 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
             // oxlint-disable-next-line react/no-array-index-key -- tabs are identified by position
             key={index}
             className="cobble-placed"
-            style={placeAt(27 * (index % 7), top ? 0 : TAB_MARGIN + CREATIVE_WINDOW_HEIGHT - 4)}
+            style={placeAt(
+              27 * (index % 7),
+              top ? 0 : TAB_MARGIN + CREATIVE_WINDOW_HEIGHT - 4,
+            )}
             label={tab.label}
-            row={top ? 'top' : 'bottom'}
+            row={top ? "top" : "bottom"}
             column={column}
             selected={index === selectedTab}
-            {...(onTabClick === undefined ? {} : { onClick: () => onTabClick(index) })}
+            {...(onTabClick === undefined
+              ? {}
+              : { onClick: () => onTabClick(index) })}
           >
             {tab.icon}
           </CreativeTab>
@@ -99,7 +102,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
       })}
       <SlotGrid
         className="cobble-placed"
-        style={placeAt(9, TAB_MARGIN + 18)}
+        style={placeAt(8, TAB_MARGIN + 17)}
         bare={background}
         columns={9}
         rows={5}
@@ -107,7 +110,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined
           ? {}
-          : { onSlotClick: (i: number) => onSlotClick('items', i) })}
+          : { onSlotClick: (i: number) => onSlotClick("items", i) })}
       />
       <CreativeScroller
         className="cobble-placed"
@@ -115,7 +118,9 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         aria-label="Scroll items"
         disabled={!scrollable}
         value={scroll}
-        {...(onScrollChange === undefined ? {} : { onValueChange: onScrollChange })}
+        {...(onScrollChange === undefined
+          ? {}
+          : { onValueChange: onScrollChange })}
       />
       <SlotGrid
         className="cobble-placed"
@@ -127,7 +132,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         {...(hotbar === undefined ? {} : { items: hotbar })}
         {...(onSlotClick === undefined
           ? {}
-          : { onSlotClick: (i: number) => onSlotClick('hotbar', i) })}
+          : { onSlotClick: (i: number) => onSlotClick("hotbar", i) })}
       />
     </Component>
   );
