@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
-import { ChestPanel, HotbarWithStats, PlayerHead, PlayerInventory, PlayerRenderer, ThreeViewport, mcHeadsUrl } from '../index.ts';
+import { ArmorStand, ChestPanel, HotbarWithStats, PlayerHead, PlayerInventory, PlayerRenderer, ThreeViewport, mcHeadsUrl } from '../index.ts';
 import {
   ASSET_PHASE_LABELS,
   Air,
@@ -2672,7 +2672,11 @@ describe('loom, cartography, grindstone, smithing, beacon and crafter panels', (
     const { container, rerender } = renderWithProvider(<SmithingTablePanel />);
     const stand = container.querySelector('.cobble-armor-stand');
     expect(stand).not.toBeNull();
-    expect(stand).toHaveStyle({ '--cobble-x': '130.5', '--cobble-y': '28.5' });
+    expect(stand).toHaveStyle({ '--cobble-x': '123', '--cobble-y': '24.75' });
+    // Without WebGL the viewport is still a named, rotatable image.
+    expect(stand).toHaveAttribute('role', 'img');
+    expect(stand).toHaveAttribute('aria-label', 'Armor stand');
+    expect(stand).toHaveAttribute('tabindex', '0');
     rerender(
       <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }}>
         <SmithingTablePanel armorStand={false} />
@@ -3465,6 +3469,19 @@ describe('player components', () => {
     viewport.focus();
     await userEvent.keyboard('{ArrowLeft}{ArrowDown}');
     expect(viewport).toBeInTheDocument();
+  });
+
+  it('ArmorStand is a rotatable image by default and sizes from its scale', () => {
+    const { rerender } = renderWithProvider(<ArmorStand aria-label="Stand" scale={2} />);
+    const stand = screen.getByRole('img', { name: 'Stand' });
+    expect(stand).toHaveStyle({ '--cobble-width': '48', '--cobble-height': '72' });
+    expect(stand).toHaveAttribute('tabindex', '0');
+    rerender(
+      <CobbleProvider assets={testAssets()} guiScale={2} sound={{ enabled: false }}>
+        <ArmorStand aria-label="Stand" rotatable={false} />
+      </CobbleProvider>,
+    );
+    expect(screen.getByRole('img', { name: 'Stand' })).not.toHaveAttribute('tabindex');
   });
 
   it('ThreeViewport is not focusable unless rotatable', () => {

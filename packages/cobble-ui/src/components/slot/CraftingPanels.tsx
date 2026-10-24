@@ -4,8 +4,8 @@ import { LoomPatternButton, LoomScroller } from '../button/ContainerButtons.tsx'
 import { BeaconButton } from './BeaconButton.tsx';
 import { placeAt } from '../shared.ts';
 import {
-  ARMOR_STAND_HEIGHT,
-  ARMOR_STAND_WIDTH,
+  ARMOR_STAND_VIEWPORT_FEET,
+  ARMOR_STAND_VIEWPORT_WIDTH,
   ArmorStand,
   SMITHING_ARMOR_STAND_X,
   SMITHING_ARMOR_STAND_Y,
@@ -309,8 +309,8 @@ export type SmithingTablePanelProps<E extends ElementType = 'div'> = Polymorphic
 /**
  * The interactive part of the smithing table screen: template, base, addition and result slots
  * (the first three with their placeholder silhouettes) and the error cross. Coordinates are
- * recalled from vanilla and are approximations. The armor stand is a flat stand-in for the game's
- * entity renderer.
+ * recalled from vanilla and are approximations. The armor stand is a 3D three.js model (drag to turn it)
+ * without armor.
  */
 export function SmithingTablePanel<E extends ElementType = 'div'>(
   props: SmithingTablePanelProps<E>,
@@ -367,10 +367,13 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
       {armorStand ? (
         <ArmorStand
           className="cobble-placed"
+          // The feet stay where `SmithingScreen` puts them; the viewport has room around the stand.
           style={placeAt(
-            SMITHING_ARMOR_STAND_X - (ARMOR_STAND_WIDTH * 1.5) / 2,
-            SMITHING_ARMOR_STAND_Y - ARMOR_STAND_HEIGHT * 1.5,
+            SMITHING_ARMOR_STAND_X - (ARMOR_STAND_VIEWPORT_WIDTH * 1.5) / 2,
+            SMITHING_ARMOR_STAND_Y - ARMOR_STAND_VIEWPORT_FEET * 1.5,
           )}
+          initialYaw={30}
+          initialPitch={25}
         />
       ) : null}
       {error ? (

@@ -1357,7 +1357,7 @@ export function SmithingTablePanelPage(): JSX.Element {
         <>
           The interactive part of the smithing table screen: template, base, addition and result
           slots (the first three with their placeholder silhouettes), the error cross and the armor
-          stand beside them (a flat stand-in for the game&apos;s 3D preview, without armor). {NOTE}
+          stand beside them (a 3D three.js model you can drag to turn, without armor). {NOTE}
         </>
       }
       demo={
