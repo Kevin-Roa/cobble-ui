@@ -30,7 +30,10 @@ export type PlayerInventoryArea = 'armor' | 'offhand' | 'crafting' | 'result' | 
 export interface PlayerInventoryOwnProps {
   /** Draw the screen's own artwork behind the slots. Defaults to true. */
   readonly background?: boolean;
-  /** The figure on the left: a username/UUID (fetched from mc-heads.net), or a node of your own. */
+  /**
+   * The figure on the left: a username/UUID (a 3D `PlayerRenderer` that follows the cursor like
+   * the real screen, skin fetched from mc-heads.net), or a node of your own.
+   */
   readonly player?: string | ReactNode;
   /** Items in the equipment slots. */
   readonly armor?: Readonly<Partial<Record<ArmorSlot, SlotGridItem>>>;
@@ -87,7 +90,7 @@ export function PlayerInventory<E extends ElementType = 'div'>(
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(area, index) };
   const figure =
     typeof player === 'string' && player.trim() !== '' ? (
-      <PlayerRenderer player={player} width={49} height={70} />
+      <PlayerRenderer player={player} width={49} height={70} followMouse />
     ) : typeof player === 'string' ? null : (
       player
     );

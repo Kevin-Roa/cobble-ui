@@ -955,7 +955,8 @@ export { PlayerRenderer } from './components/player/PlayerRenderer.tsx';
 export type {
   PlayerRendererOwnProps,
   PlayerRendererProps,
-  PlayerView,
+  PlayerModelType,
+  PlayerPose,
 } from './components/player/PlayerRenderer.tsx';
 export { ARMOR_SLOTS, PlayerInventory } from './components/player/PlayerInventory.tsx';
 export type {

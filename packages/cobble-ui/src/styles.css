@@ -1603,7 +1603,7 @@
     background: rgb(0 0 0 / 50%);
   }
 
-  /* Player preview: an mc-heads.net image fitted into the box */
+  /* Player preview: a three.js model, or an mc-heads.net image fitted into the box */
   :where(.cobble-player-renderer) {
     display: inline-block;
     width: calc(var(--cobble-width) * var(--cobble-px));
@@ -1612,6 +1612,14 @@
 
   :where(.cobble-player-renderer > img) {
     display: block;
+  }
+
+  :where(.cobble-player-loading) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
   }
 
   /* three.js viewport: a WebGL canvas sized in GUI units */

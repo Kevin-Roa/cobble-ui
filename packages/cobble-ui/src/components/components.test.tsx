@@ -3466,9 +3466,19 @@ describe('player components', () => {
     expect(real.container.querySelector('img')?.getAttribute('src')).toContain('/avatar/Steve/');
   });
 
-  it('PlayerRenderer shows the body render with a name', () => {
+  it('PlayerRenderer shows the mc-heads.net render while the skin loads', () => {
     renderWithProvider(<PlayerRenderer player="jeb_" />);
-    expect(screen.getByRole('img', { name: 'jeb_ skin' })).toBeInTheDocument();
+    const figure = screen.getByRole('img', { name: 'jeb_ skin' });
+    expect(figure.querySelector('img')?.getAttribute('src')).toContain('/body/jeb_/');
+  });
+
+  it('PlayerRenderer is a rotatable viewport without WebGL', () => {
+    renderWithProvider(<PlayerRenderer label="Steve" followMouse />);
+    const viewport = screen.getByRole('img', { name: 'Steve' });
+    expect(viewport).toHaveAttribute('data-status', 'unsupported');
+    expect(viewport).toHaveAttribute('tabindex', '0');
+    const fixed = renderWithProvider(<PlayerRenderer label="Fixed" rotatable={false} />);
+    expect(fixed.getByRole('img', { name: 'Fixed' })).not.toHaveAttribute('tabindex');
   });
 
   it('ThreeViewport shows its fallback without WebGL and takes arrow keys when rotatable', async () => {
