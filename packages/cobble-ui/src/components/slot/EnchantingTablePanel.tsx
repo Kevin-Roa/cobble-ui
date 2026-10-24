@@ -9,7 +9,11 @@ import {
   type EnchantmentOption,
 } from './EnchantmentSlot.tsx';
 import { InventorySlot } from './InventorySlot.tsx';
-import { useContainerBackground } from './StationPanels.tsx';
+import {
+  ContainerChrome,
+  useContainerBackground,
+  type ContainerChromeOwnProps,
+} from './StationPanels.tsx';
 import type { SlotGridItem } from './SlotGrid.tsx';
 
 /** Where the slots sit, in the enchanting screen's own coordinates (`EnchantmentMenu`). */
@@ -36,7 +40,7 @@ export interface EnchantingOption {
   readonly label?: string;
 }
 
-export interface EnchantingTablePanelOwnProps {
+export interface EnchantingTablePanelOwnProps extends ContainerChromeOwnProps {
   /** Draw the screen's own artwork behind the slots. Defaults to true. */
   readonly background?: boolean;
   /** The item to enchant. */
@@ -75,6 +79,12 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
     onLapisClick,
     onOptionClick,
     background = true,
+    title = 'Enchant',
+    inventoryTitle,
+    isolate,
+    inventory,
+    hotbar,
+    onInventoryClick,
     className,
     style,
     ...rest
@@ -97,7 +107,7 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
     <Component
       {...mergeProps<'div'>(
         {
-          className: cx('cobble-enchanting-panel', className),
+          className: cx('cobble-enchanting-panel', 'cobble-station-panel', className),
           style: rootStyle,
           ...container.attributes,
         },
@@ -140,6 +150,12 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
           </EnchantmentSlot>
         );
       })}
+      <ContainerChrome
+        background={background}
+        {...{ title, inventoryTitle, isolate, inventory, hotbar, onInventoryClick }}
+        titleX={12}
+        titleY={5}
+      />
     </Component>
   );
 }

@@ -11,6 +11,7 @@ anything it does not set and shares the already-loaded assets.
   menuBlur={5} // 0–10, like "Menu Background Blur"
   panoramaSpeed={1}
   inWorld={false} // use the in-world (translucent) textures
+  backgroundPreloadItems // true, or a list such as {['diamond_sword', 'torch']}
 >
   …
 </CobbleProvider>
@@ -20,6 +21,17 @@ anything it does not set and shares the already-loaded assets.
 
 `"auto"` mirrors the game: it picks the largest scale that keeps the viewport at least 320×240 units.
 Try changing it on the Settings screen of this site.
+
+## Item rendering and preloading
+
+Resolving an item's model, decoding its textures and rasterizing the icon is heavy, so `ItemIcon` does
+that work in a dedicated web worker (`ImageBitmap`s are transferred back). When the browser has no
+`Worker` or `OffscreenCanvas`, for example in jsdom tests, the same code runs on the main thread.
+
+`backgroundPreloadItems` rasterizes items ahead of time, in small idle-time slices, so icons are ready
+the moment a screen needs them. Pass `true` for every item in the game, or a list of item ids to preload just
+those. It is not inherited by nested providers (they share the parent's already-warm assets) and defaults to
+`false`. Without worker support only the item definitions and textures are loaded in advance.
 
 ## Hooks
 

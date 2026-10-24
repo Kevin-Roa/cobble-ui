@@ -20,6 +20,7 @@ import {
   CookingArrow,
   CrafterPanel,
   CraftingGrid,
+  CraftingTablePanel,
   CreativeInventoryPanel,
   CreativeScroller,
   CrossButton,
@@ -110,13 +111,13 @@ import {
   ModelViewport,
   BlockModel,
   PlayerInventory,
+  RecipeBook,
   ChestPanel,
   HotbarWithStats,
   Panel,
   PlayerActionButton,
   PlayerPingIcon,
   RealmStatusIcon,
-  RealmsButton,
   RecipeBookPageButton,
   RecipeOverlayButton,
   Separator,
@@ -277,6 +278,11 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['AnvilPanel', <AnvilPanel key="a" left={{ content: 'x', label: 'Sword' }} />],
   ['BeaconPanel', <BeaconPanel key="a" tiers={[[{ label: 'Speed' }]]} />],
   ['CartographyPanel', <CartographyPanel key="a" preview="map" />],
+  [
+    'CartographyPanel (duplicated, error)',
+    <CartographyPanel key="a" preview="duplicated" image="data:," error />,
+  ],
+  ['CraftingTablePanel', <CraftingTablePanel key="a" result={{ content: 'x', label: 'Table' }} />],
   ['CrafterPanel', <CrafterPanel key="a" powered />],
   ['EnchantingTablePanel', <EnchantingTablePanel key="a" />],
   ['LoomPanel', <LoomPanel key="a" patterns={[{ label: 'Border' }]} />],
@@ -286,6 +292,7 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
     <VillagerTradePanel key="a" offers={[{ label: 'Trade', buy: 'a', sell: 'b' }]} />,
   ],
   ['CreativeInventoryPanel', <CreativeInventoryPanel key="a" tabs={[{ label: 'Blocks' }]} />],
+  ['CreativeInventoryPanel (search tab)', <CreativeInventoryPanel key="a" selectedTab={6} />],
   ['ChatLog', <ChatLog key="a" now={0} messages={[{ id: 1, content: 'hi', timestamp: 0 }]} />],
   ['ChatInput', <ChatInput key="a" onSubmit={() => undefined} />],
   [
@@ -357,6 +364,18 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['BlockModel', <BlockModel key="a" name="stone" />],
   ['ModelViewport (rotatable)', <ModelViewport key="a" aria-label="Cube" rotatable />],
   ['PlayerInventory', <PlayerInventory key="a" player="Steve" />],
+  [
+    'PlayerInventory with recipe book',
+    <PlayerInventory key="a" player="Steve" recipeBook={{ defaultOpen: true }} />,
+  ],
+  [
+    'RecipeBook',
+    <RecipeBook
+      key="a"
+      categories={[{ id: 'all', label: 'All', icon: null, all: true }]}
+      recipes={[{ id: 'torch', label: 'Torch', content: null }]}
+    />,
+  ],
   ['ChestPanel', <ChestPanel key="a" title="Chest" />],
   ['HotbarWithStats', <HotbarWithStats key="a" armor={4} air={100} level={3} />],
   [
@@ -368,7 +387,12 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['PlayerActionButton', <PlayerActionButton key="a" action="remove_player" />],
   ['PlayerPingIcon', <PlayerPingIcon key="a" latency={30} />],
   ['RealmStatusIcon', <RealmStatusIcon key="a" status="expires_soon" />],
-  ['RealmsButton', <RealmsButton key="a">Play</RealmsButton>],
+  [
+    'Button (realms)',
+    <Button key="a" color="realms">
+      Play
+    </Button>,
+  ],
   ['RecipeBookPageButton', <RecipeBookPageButton key="a" direction="backward" />],
   ['RecipeOverlayButton', <RecipeOverlayButton key="a" label="Planks" craftable={false} />],
   ['Separator', <Separator key="a" />],

@@ -32,7 +32,6 @@ import {
   AssetLoadingOverlayPage,
   IconPage,
   PlayerPingIconPage,
-  RealmsButtonPage,
   BrewBubblesPage,
   CartographyMapPage,
   CrafterRedstonePage,
@@ -62,6 +61,7 @@ import {
   BeaconPanelPage,
   CartographyPanelPage,
   CrafterPanelPage,
+  CraftingTablePanelPage,
   GrindstonePanelPage,
   LoomPanelPage,
   SmithingTablePanelPage,
@@ -122,6 +122,7 @@ import {
   ToastPage,
 } from './components/hud.tsx';
 import { InventorySlotPage } from './components/inventory.tsx';
+import { RecipeBookPage } from './components/recipe-book.tsx';
 import {
   PanoramaPage,
   ScreenPage,
@@ -220,7 +221,6 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('player-action-button', 'PlayerActionButton', 'Buttons', PlayerActionButtonPage),
   entry('warning-button', 'WarningButton', 'Buttons', WarningButtonPage),
   entry('beacon-button', 'BeaconButton', 'Buttons', BeaconButtonPage),
-  entry('realms-button', 'RealmsButton', 'Buttons', RealmsButtonPage),
   entry('report-button', 'ReportButton', 'Buttons', ReportButtonPage),
   entry(
     'statistics-header-button',
@@ -293,6 +293,7 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('smithing-table-panel', 'SmithingTablePanel', 'Crafting', SmithingTablePanelPage),
   entry('beacon-panel', 'BeaconPanel', 'Crafting', BeaconPanelPage),
   entry('crafter-panel', 'CrafterPanel', 'Crafting', CrafterPanelPage),
+  entry('crafting-table-panel', 'CraftingTablePanel', 'Crafting', CraftingTablePanelPage),
   entry('enchantment-slot', 'EnchantmentSlot', 'Crafting', EnchantmentSlotPage),
   entry('cooking-arrow', 'CookingArrow', 'Crafting', CookingArrowPage),
   entry('fuel-flame', 'FuelFlame', 'Crafting', FuelFlamePage),
@@ -315,6 +316,7 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
     RecipeBookFilterButtonPage,
   ),
   entry('recipe-book-page-button', 'RecipeBookPageButton', 'Crafting', RecipeBookPageButtonPage),
+  entry('recipe-book', 'RecipeBook', 'Crafting', RecipeBookPage),
   entry('recipe-book-slot', 'RecipeBookSlot', 'Crafting', RecipeBookSlotPage),
   entry('container-error', 'ContainerError', 'Crafting', ContainerErrorPage),
   entry('brew-bubbles', 'BrewBubbles', 'Crafting', BrewBubblesPage),

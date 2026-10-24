@@ -31,6 +31,8 @@ export interface ModelLook {
   yaw: number;
   /** Pitch from dragging and the arrow keys. Positive looks down. */
   pitch: number;
+  /** Roll around the model's front axis (z), from `roll`, Shift+drag, Shift+arrows, the horizontal wheel and `initialRoll`. */
+  roll: number;
   /** Body yaw toward the cursor (`followMouse`), `0` when not following. */
   followYaw: number;
   /** Extra head yaw toward the cursor on top of `followYaw` (vanilla turns the head twice as far). */
@@ -87,7 +89,10 @@ export interface ModelViewportProps extends Omit<SlotProps<'div'>, 'children' | 
   readonly camera?: ModelCameraOptions;
   /** Scene lighting for quads with `lit`. */
   readonly lighting?: Lighting;
-  /** Dragging with the pointer or pressing the arrow keys rotates the model. Defaults to `false`. */
+  /**
+   * Dragging with the pointer or pressing the arrow keys rotates the model; hold Shift to roll it
+   * (see `onRollChange`). Defaults to `false`.
+   */
   readonly rotatable?: boolean;
   /**
    * The model turns toward the cursor like the inventory player
@@ -100,9 +105,23 @@ export interface ModelViewportProps extends Omit<SlotProps<'div'>, 'children' | 
   readonly autoRotate?: boolean | number;
   /** Render every frame while visible, instead of only when something changed. Needed for animation in `onFrame`. */
   readonly animated?: boolean;
-  /** Starting yaw and pitch in degrees. */
+  /** Starting yaw, pitch and roll in degrees. */
   readonly initialYaw?: number;
   readonly initialPitch?: number;
+  readonly initialRoll?: number;
+  /**
+   * Controlled roll in degrees, around the model's front axis (it is applied before pitch and yaw,
+   * so at the default view it tilts the model like a screen-space roll). While set, interaction
+   * only calls `onRollChange` and the model shows exactly this value. Leave it out for an
+   * uncontrolled roll that starts at `initialRoll`.
+   */
+  readonly roll?: number;
+  /**
+   * Called with the new roll in degrees (wrapped to -180..180) when the user rolls the model:
+   * hold Shift while dragging horizontally, press Shift+Left/Right, or scroll horizontally with
+   * two fingers (or Shift+wheel). Needs `rotatable`.
+   */
+  readonly onRollChange?: (roll: number) => void;
   /** Maximum pitch from dragging in degrees. Defaults to 80. */
   readonly pitchLimit?: number;
   /** Shown while loading and when canvas drawing is unavailable. */
@@ -112,6 +131,13 @@ export interface ModelViewportProps extends Omit<SlotProps<'div'>, 'children' | 
 const DEGREES = Math.PI / 180;
 const DRAG_RADIANS_PER_PIXEL = 0.01;
 const KEY_STEP = 0.15;
+const WHEEL_RADIANS_PER_PIXEL = 0.005;
+
+/** Wraps radians to -pi..pi. */
+function wrapAngle(radians: number): number {
+  const turn = Math.PI * 2;
+  return radians - turn * Math.round(radians / turn);
+}
 
 function noopSubscribe(): () => void {
   return () => undefined;
@@ -160,6 +186,9 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     animated = false,
     initialYaw = 0,
     initialPitch = 0,
+    initialRoll = 0,
+    roll: rollProp,
+    onRollChange,
     pitchLimit = 80,
     fallback,
     className,
@@ -178,12 +207,13 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     look: {
       yaw: initialYaw * DEGREES,
       pitch: initialPitch * DEGREES,
+      roll: (rollProp ?? initialRoll) * DEGREES,
       followYaw: 0,
       followHeadYaw: 0,
       followPitch: 0,
     } as ModelLook,
     mouse: null as { x: number; y: number } | null,
-    drag: null as { id: number; x: number; y: number } | null,
+    drag: null as { id: number; x: number; y: number; roll: boolean } | null,
   });
   const latest = useLatest({
     onSceneReady,
@@ -194,6 +224,8 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     autoRotate: reducedMotion ? false : autoRotate,
     animated,
     pitchLimit: pitchLimit * DEGREES,
+    roll: rollProp,
+    onRollChange,
     width,
     height,
     deviceScale,
@@ -222,7 +254,10 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
       if (!context2d) throw new Error('2D canvas is unavailable');
       host.append(canvas);
       const root = new Node3D();
-      root.rotationOrder = 'YXZ';
+      // Orbit order (`Rx * Ry * Rz`): yaw about the model's vertical axis first, then pitch about the
+      // screen's x axis, so dragging always tilts toward the viewer whatever the yaw is. With yaw
+      // applied last the pitch would roll the model sideways once it had been turned.
+      root.rotationOrder = 'XYZ';
 
       const textures: Record<string, RgbaImage> = {};
       for (const id of ids) {
@@ -286,6 +321,9 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
         const follow = settings.followMouse === true;
         root.rotation[1] = view.look.yaw + (follow ? view.look.followYaw : 0);
         root.rotation[0] = view.look.pitch + (follow ? view.look.followPitch : 0);
+        // Controlled roll always wins over the last interactive value.
+        if (settings.roll !== undefined) view.look.roll = settings.roll * DEGREES;
+        root.rotation[2] = view.look.roll;
 
         settings.onFrame?.(context, { delta, time: elapsed });
         renderScene(root, settings.camera ?? {}, target, settings.lighting);
@@ -409,18 +447,59 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     [latest],
   );
 
+  const rollBy = useCallback(
+    (delta: number): void => {
+      const look = viewRef.current.look;
+      const next = wrapAngle(look.roll + delta);
+      // Uncontrolled: the viewport keeps the value. Controlled: the parent decides.
+      if (latest.current.roll === undefined) look.roll = next;
+      latest.current.onRollChange?.(next / DEGREES);
+      runtimeRef.current?.invalidate();
+    },
+    [latest],
+  );
+
+  // A controlled roll redraws when it changes.
+  useEffect(() => {
+    runtimeRef.current?.invalidate();
+  }, [rollProp]);
+
+  // Horizontal two-finger scrolling (or Shift+wheel) rolls the model. A native listener, because
+  // React's wheel handlers are passive and could not stop the page from scrolling.
+  useEffect(() => {
+    const element = hostRef.current?.parentElement;
+    if (!rotatable || !element) return undefined;
+    const onWheel = (event: WheelEvent): void => {
+      const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      if (!event.shiftKey && !horizontal) return;
+      const amount = horizontal ? event.deltaX : event.deltaY;
+      event.preventDefault();
+      rollBy(amount * WHEEL_RADIANS_PER_PIXEL);
+    };
+    element.addEventListener('wheel', onWheel, { passive: false });
+    return () => element.removeEventListener('wheel', onWheel);
+  }, [rotatable, rollBy]);
+
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>): void => {
     if (!rotatable || event.button !== 0) return;
-    viewRef.current.drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    viewRef.current.drag = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      roll: event.shiftKey,
+    };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>): void => {
     const drag = viewRef.current.drag;
     if (!drag || drag.id !== event.pointerId) return;
-    move(
-      (event.clientX - drag.x) * DRAG_RADIANS_PER_PIXEL,
-      (event.clientY - drag.y) * DRAG_RADIANS_PER_PIXEL,
-    );
+    // Shift held when the drag started: horizontal movement rolls instead of turning.
+    if (drag.roll) rollBy((event.clientX - drag.x) * DRAG_RADIANS_PER_PIXEL);
+    else
+      move(
+        (event.clientX - drag.x) * DRAG_RADIANS_PER_PIXEL,
+        (event.clientY - drag.y) * DRAG_RADIANS_PER_PIXEL,
+      );
     drag.x = event.clientX;
     drag.y = event.clientY;
   };
@@ -434,10 +513,12 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     if (!rotatable) return;
     switch (event.key) {
       case 'ArrowLeft':
-        move(-KEY_STEP, 0);
+        if (event.shiftKey) rollBy(-KEY_STEP);
+        else move(-KEY_STEP, 0);
         break;
       case 'ArrowRight':
-        move(KEY_STEP, 0);
+        if (event.shiftKey) rollBy(KEY_STEP);
+        else move(KEY_STEP, 0);
         break;
       case 'ArrowUp':
         move(0, -KEY_STEP);

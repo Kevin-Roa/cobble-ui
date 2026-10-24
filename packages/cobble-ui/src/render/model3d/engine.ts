@@ -37,6 +37,12 @@ export interface Quad {
   readonly alphaTest?: number;
   /** Draw the back as well. Defaults to `false` (back faces are culled). */
   readonly doubleSided?: boolean;
+  /**
+   * Vanilla's translucent layer (stained glass, ice, ...): drawn after every opaque quad, back to
+   * front, alpha-blended over what is behind, depth-tested but not written, and never culled, so
+   * back faces show through the front ones.
+   */
+  readonly translucent?: boolean;
 }
 
 /** A transform node: moves, rotates and uniformly scales everything under it. */
@@ -196,6 +202,8 @@ function normalize(v: Vec3): [number, number, number] {
 }
 
 const NEAR = 0.05;
+/** Relative depth slack (on 1/w) within which a later quad replaces an earlier one. */
+const DEPTH_TIE = 1 - 1e-5;
 const DEGREES = Math.PI / 180;
 const DEFAULT_LIGHT: Vec3 = [-0.3, 0.6, 1];
 
@@ -210,7 +218,12 @@ function collect(node: Node3D, parent: Matrix, out: WorldQuad[]): void {
     const [a, b, c, d] = quad.corners;
     out.push({
       quad,
-      corners: [transform(matrix, a), transform(matrix, b), transform(matrix, c), transform(matrix, d)],
+      corners: [
+        transform(matrix, a),
+        transform(matrix, b),
+        transform(matrix, c),
+        transform(matrix, d),
+      ],
     });
   }
   for (const child of node.children) collect(child, matrix, out);
@@ -219,7 +232,8 @@ function collect(node: Node3D, parent: Matrix, out: WorldQuad[]): void {
 /**
  * Draws a scene. The target is cleared to transparent, then every quad is projected with a
  * perspective camera and rasterised with a depth test. The pixel at `(x, y)` samples the texture at
- * the pixel's centre, with no filtering.
+ * the pixel's centre, with no filtering. Quads at the same depth (coplanar faces) are won by the one
+ * added last.
  */
 export function renderScene(
   root: Node3D,
@@ -251,20 +265,46 @@ export function renderScene(
   const quads: WorldQuad[] = [];
   collect(root, IDENTITY, quads);
 
-  for (const { quad, corners } of quads) {
+  // Opaque quads first in insertion order, then translucent ones farthest first (a stable sort, so
+  // ties keep insertion order).
+  const depthOf = (world: WorldQuad): number =>
+    dot(
+      sub(
+        [
+          (world.corners[0][0] + world.corners[2][0]) / 2,
+          (world.corners[0][1] + world.corners[2][1]) / 2,
+          (world.corners[0][2] + world.corners[2][2]) / 2,
+        ],
+        eye,
+      ),
+      forward,
+    );
+  const ordered = [
+    ...quads.filter((world) => world.quad.translucent !== true),
+    ...quads
+      .filter((world) => world.quad.translucent === true)
+      .map((world) => ({ world, depth: depthOf(world) }))
+      .toSorted((a, b) => b.depth - a.depth)
+      .map(({ world }) => world),
+  ];
+
+  // Per pixel, the last translucent quad that blended there, so the two triangles of one quad (and
+  // their tolerance overlap) never blend the same pixel twice.
+  const blended = new Int32Array(width * height).fill(-1);
+  let quadIndex = -1;
+  for (const { quad, corners } of ordered) {
+    quadIndex++;
+    const translucent = quad.translucent === true;
     const normal = normalize(cross(sub(corners[1], corners[0]), sub(corners[3], corners[0])));
     const facing = dot(normal, sub(eye, corners[0]));
-    if (facing <= 0 && !quad.doubleSided) continue;
+    if (facing <= 0 && !quad.doubleSided && !translucent) continue;
 
     let red = quad.color?.[0] ?? 1;
     let green = quad.color?.[1] ?? 1;
     let blue = quad.color?.[2] ?? 1;
     if (quad.lit) {
       const side = facing < 0 ? -1 : 1;
-      const brightness = Math.min(
-        1,
-        ambient + diffuse * Math.max(0, dot(normal, light) * side),
-      );
+      const brightness = Math.min(1, ambient + diffuse * Math.max(0, dot(normal, light) * side));
       red *= brightness;
       green *= brightness;
       blue *= brightness;
@@ -328,7 +368,9 @@ export function renderScene(
           if (w0 < epsilon || w1 < epsilon || w2 < epsilon) continue;
           const inverseW = w0 * ia + w1 * ib + w2 * ic;
           const index = y * width + x;
-          if (inverseW <= (depth[index] as number)) continue;
+          // Nearer wins; (nearly) equal depth goes to the quad drawn later, like the game's
+          // LEQUAL test, so coplanar faces of overlapping elements resolve by element order.
+          if (inverseW < (depth[index] as number) * DEPTH_TIE) continue;
           const u = (w0 * ua + w1 * ub + w2 * uc) / inverseW;
           const v = (w0 * va + w1 * vb + w2 * vc) / inverseW;
           const tx = Math.min(texture.width - 1, Math.max(0, Math.floor(u * texture.width)));
@@ -336,8 +378,25 @@ export function renderScene(
           const t = (ty * texture.width + tx) * 4;
           const alpha = texture.data[t + 3] as number;
           if (alphaTest >= 0 && alpha < alphaTest) continue;
-          depth[index] = inverseW;
           const o = index * 4;
+          if (translucent) {
+            // Source-over on straight alpha; the depth buffer is left alone.
+            if (alpha === 0 || blended[index] === quadIndex) continue;
+            blended[index] = quadIndex;
+            const sa = alpha / 255;
+            const da = (data[o + 3] as number) / 255;
+            const outA = sa + da * (1 - sa);
+            const keep = (da * (1 - sa)) / outA;
+            const mix = sa / outA;
+            data[o] = (texture.data[t] as number) * red * mix + (data[o] as number) * keep;
+            data[o + 1] =
+              (texture.data[t + 1] as number) * green * mix + (data[o + 1] as number) * keep;
+            data[o + 2] =
+              (texture.data[t + 2] as number) * blue * mix + (data[o + 2] as number) * keep;
+            data[o + 3] = outA * 255;
+            continue;
+          }
+          depth[index] = inverseW;
           data[o] = (texture.data[t] as number) * red;
           data[o + 1] = (texture.data[t + 1] as number) * green;
           data[o + 2] = (texture.data[t + 2] as number) * blue;

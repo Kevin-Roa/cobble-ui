@@ -2,6 +2,8 @@ import { composeSprite, type RgbaImage, type Sprite } from '../render/blit.ts';
 import { decodePng } from '../render/png.ts';
 import { parseSpriteAnimation } from '../render/animation.ts';
 import { parseSpriteScaling } from '../render/scaling.ts';
+import { itemTextureIds } from '../render/item-raster.ts';
+import { ItemRasterizer, runPreload } from './item-rasterizer.ts';
 import type { AssetBundle, AssetLoadProgress, AssetSource } from './types.ts';
 
 export type AssetStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -50,6 +52,14 @@ export class AssetStore {
   private readonly json = new Map<string, Entry<unknown>>();
   private readonly blobUrls = new Map<string, string>();
   private readonly composed = new Map<string, RgbaImage>();
+  /** Rasterizes item icons in a web worker (see `ItemRasterizer#supported`). */
+  readonly items: ItemRasterizer = new ItemRasterizer({
+    file: (path) => this.state.bundle?.file(path),
+    ready: () => this.state.bundle !== undefined,
+    notify: () => {
+      this.emit();
+    },
+  });
   private controller: AbortController | undefined;
   private references = 0;
   private revision = 0;
@@ -96,6 +106,7 @@ export class AssetStore {
     this.textures.clear();
     this.json.clear();
     this.composed.clear();
+    this.items.reset();
     for (const url of this.blobUrls.values()) URL.revokeObjectURL(url);
     this.blobUrls.clear();
     this.load();
@@ -122,6 +133,42 @@ export class AssetStore {
           this.setState({ status: 'error', error });
         },
       );
+  }
+
+  /**
+   * Warms item icons in the background, in idle-time slices: rasterized by the worker when
+   * available, otherwise only their definitions and textures are loaded on the main thread.
+   * `true` means every item definition in the client. `unit` is device pixels per GUI unit.
+   * Returns a function that cancels what is left.
+   */
+  preloadItems(names: true | readonly string[], unit: number): () => void {
+    const list =
+      names === true
+        ? this.listPaths('assets/minecraft/items/', '.json').map((path) =>
+            path.slice('assets/minecraft/items/'.length, -'.json'.length),
+          )
+        : names;
+    if (this.items.supported) {
+      return runPreload({
+        names: list,
+        step: async (name) => {
+          await this.items.request(name, unit);
+        },
+      });
+    }
+    return runPreload({
+      names: list,
+      step: (name) => {
+        const ids = itemTextureIds(name, (path) => this.getJson(path));
+        if (ids === undefined) return false;
+        let ready = true;
+        for (const id of ids) {
+          if (!this.hasTexture(id)) continue;
+          if (this.getTexture(id) === undefined) ready = false;
+        }
+        return ready;
+      },
+    });
   }
 
   /** Returns a decoded GUI sprite, or `undefined` while it is not available (yet). */

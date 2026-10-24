@@ -11,6 +11,7 @@ import {
   CookingArrow,
   CrafterPanel,
   CraftingGrid,
+  CraftingTablePanel,
   CreativeInventoryPanel,
   CreativeScroller,
   CreativeTab,
@@ -57,21 +58,6 @@ const DEMO_ITEMS = [
 function demoItem(index: number): string {
   return DEMO_ITEMS[index % DEMO_ITEMS.length] ?? 'stone';
 }
-
-const CREATIVE_TAB_ITEMS = [
-  'bricks',
-  'red_dye',
-  'oak_log',
-  'crafting_table',
-  'redstone',
-  'iron_sword',
-  'apple',
-  'ender_pearl',
-  'lava_bucket',
-  'compass',
-  'chest',
-  'barrier',
-];
 
 const AS = {
   name: 'as',
@@ -965,6 +951,37 @@ const NOTE = (
   </>
 );
 
+/** Props every container panel shares for its labels and the player's inventory. */
+const CHROME_ROWS = [
+  {
+    name: 'title',
+    type: 'ReactNode',
+    description: 'The title label (dark grey, no shadow) at the vanilla position; null hides it.',
+  },
+  {
+    name: 'inventoryTitle',
+    type: 'ReactNode',
+    defaultValue: "'Inventory'",
+    description: 'The label above the player inventory; null hides it.',
+  },
+  {
+    name: 'inventory / hotbar',
+    type: '(SlotGridItem | undefined)[]',
+    description: 'The 27 main and 9 hotbar slots of the player.',
+  },
+  {
+    name: 'isolate',
+    type: 'boolean',
+    defaultValue: 'false',
+    description: 'Hide the player inventory slots and label.',
+  },
+  {
+    name: 'onInventoryClick',
+    type: "(area: 'main' | 'hotbar', index: number) => void",
+    description: 'A player inventory slot was clicked.',
+  },
+];
+
 export function AnvilPanelPage(): JSX.Element {
   const [name, setName] = useState('Excalibur');
   return (
@@ -1262,14 +1279,28 @@ export function LoomPanelPage(): JSX.Element {
   );
 }
 
+/** A made-up 128×128 map (flat colours; no game assets) for the cartography demos. */
+const DEMO_MAP = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" shape-rendering="crispEdges">' +
+    '<rect width="128" height="128" fill="#5d9a38"/>' +
+    '<rect x="8" y="12" width="40" height="24" fill="#3b5fd0"/>' +
+    '<rect x="84" y="64" width="36" height="40" fill="#3b5fd0"/>' +
+    '<rect x="20" y="76" width="32" height="28" fill="#437a2a"/>' +
+    '<rect x="64" y="8" width="24" height="16" fill="#b8a46a"/>' +
+    '<rect x="0" y="0" width="128" height="4" fill="#8a6a3a"/>' +
+    '</svg>',
+)}`;
+
 export function CartographyPanelPage(): JSX.Element {
   return (
     <ComponentDoc
       intro={
         <>
           The interactive part of the cartography table screen: map, material and result slots, the
-          preview frame (plain, zoomed out or copied), the padlock for a locked map, and the red
-          error cross. Draw the map itself as children. {NOTE}
+          map preview (plain, zoomed out or two offset copies), the padlock for a locked map, and
+          the red error arrow, which replaces the arrow of the artwork. Pass the map as{' '}
+          <Code>image</Code> (a URL, or any element) and it is drawn into the preview frame at the
+          game&apos;s positions and scales (<Code>CartographyTableScreen#renderMap</Code>). {NOTE}
         </>
       }
       demo={
@@ -1279,38 +1310,52 @@ export function CartographyPanelPage(): JSX.Element {
             material={{ content: <ItemIcon name="paper" />, label: 'Paper' }}
             result={{ content: <ItemIcon name="filled_map" />, label: 'Zoomed Map' }}
             preview="scaled"
-          >
-            <ItemIcon name="filled_map" />
-          </CartographyPanel>
+            image={DEMO_MAP}
+          />
           <CartographyPanel
             map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
             material={{ content: <ItemIcon name="map" />, label: 'Empty Map' }}
             result={{ content: <ItemIcon name="filled_map" />, count: 2, label: 'Copied Map' }}
             preview="duplicated"
+            image={DEMO_MAP}
           />
           <CartographyPanel
             map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
             material={{ content: <ItemIcon name="glass_pane" />, label: 'Glass Pane' }}
             result={{ content: <ItemIcon name="filled_map" />, label: 'Locked Map' }}
             preview="map"
+            image={DEMO_MAP}
             locked
           />
           <CartographyPanel
             map={{ content: <ItemIcon name="filled_map" />, label: 'Map' }}
             material={{ content: <ItemIcon name="paper" />, label: 'Paper' }}
+            preview="map"
+            image={DEMO_MAP}
             error
           />
         </div>
       }
-      code="<CartographyPanel map={m} material={p} preview='scaled' locked={l} error={!ok}><MapView /></CartographyPanel>"
+      code="<CartographyPanel map={m} material={p} preview='duplicated' image={mapUrl} locked={l} error={!ok} />"
       rows={[
         { name: 'map / material / result', type: 'SlotGridItem', description: 'The three slots.' },
         {
           name: 'preview',
           type: "'map' | 'scaled' | 'duplicated'",
-          description: 'The preview frame.',
+          description: 'The preview: one map, a zoomed-out one, or two offset copies.',
         },
-        { name: 'locked / error', type: 'boolean', description: 'Padlock and error cross.' },
+        {
+          name: 'image',
+          type: 'string | ReactNode',
+          description: 'The map drawn in the preview (an image URL or an element); also children.',
+        },
+        { name: 'locked', type: 'boolean', description: 'The padlock.' },
+        {
+          name: 'error',
+          type: 'boolean',
+          description: 'Replace the arrow with the red error arrow.',
+        },
+        ...CHROME_ROWS,
         AS,
       ]}
     />
@@ -1413,7 +1458,8 @@ export function BeaconPanelPage(): JSX.Element {
       intro={
         <>
           The interactive part of the beacon screen: the effect buttons in centred rows 25 units
-          apart (one row per unlocked pyramid tier), the payment slot, and the confirm and cancel
+          apart (one row per unlocked pyramid tier), the payment slot with the five payment items
+          (netherite, emerald, diamond, gold, iron) drawn beside it, and the confirm and cancel
           buttons. Row positions follow <Code>76 + index * 24 - rowWidth / 2</Code>. {NOTE}
         </>
       }
@@ -1444,11 +1490,61 @@ export function BeaconPanelPage(): JSX.Element {
           description: 'Handlers.',
         },
         {
+          name: 'paymentIcons',
+          type: 'boolean',
+          defaultValue: 'true',
+          description: 'Draw the payment items beside the payment slot.',
+        },
+        {
           name: 'confirmDisabled',
           type: 'boolean',
           defaultValue: 'false',
           description: 'Dim the confirm button.',
         },
+        AS,
+      ]}
+    />
+  );
+}
+
+export function CraftingTablePanelPage(): JSX.Element {
+  return (
+    <ComponentDoc
+      intro={
+        <>
+          The crafting table screen (<Code>CraftingScreen</Code>): the 3×3 grid, the result slot,
+          the <Code>Crafting</Code> title, the <Code>Inventory</Code> label and the player&apos;s
+          inventory and hotbar. The arrow is part of the artwork. {NOTE}
+        </>
+      }
+      demo={
+        <CraftingTablePanel
+          ingredients={[
+            { content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' },
+            { content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' },
+            undefined,
+            { content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' },
+            { content: <ItemIcon name="oak_planks" />, label: 'Oak Planks' },
+          ]}
+          result={{ content: <ItemIcon name="crafting_table" />, label: 'Crafting Table' }}
+          inventory={[{ content: <ItemIcon name="oak_log" />, count: 12, label: 'Oak Log' }]}
+          hotbar={[{ content: <ItemIcon name="iron_axe" />, label: 'Iron Axe' }]}
+        />
+      }
+      code="<CraftingTablePanel ingredients={grid} result={out} inventory={inv} hotbar={bar} />"
+      rows={[
+        {
+          name: 'ingredients',
+          type: '(SlotGridItem | undefined)[]',
+          description: 'The nine grid slots in reading order.',
+        },
+        { name: 'result', type: 'SlotGridItem', description: 'The result slot.' },
+        {
+          name: 'onIngredientClick / onResultClick',
+          type: 'function',
+          description: 'A slot was clicked.',
+        },
+        ...CHROME_ROWS,
         AS,
       ]}
     />
@@ -1656,51 +1752,40 @@ const CREATIVE_DEMO_ITEMS = Array.from({ length: 12 }, (_, i) => ({
   label: `Item ${String(i + 1)}`,
 }));
 
-const CREATIVE_DEMO_TABS = [
-  'Building Blocks',
-  'Colored Blocks',
-  'Natural Blocks',
-  'Functional Blocks',
-  'Redstone Blocks',
-  'Tools & Utilities',
-  'Combat',
-  'Food & Drinks',
-  'Ingredients',
-  'Spawn Eggs',
-  'Operator Utilities',
-  'Search Items',
-  'Saved Hotbars',
-  'Survival Inventory',
-].map((label, i) => ({
-  label,
-  icon: <ItemIcon name={CREATIVE_TAB_ITEMS[i % CREATIVE_TAB_ITEMS.length] ?? 'stone'} />,
-}));
-
 export function CreativeInventoryPanelPage(): JSX.Element {
   const [tab, setTab] = useState(0);
   const [scroll, setScroll] = useState(0);
+  const [search, setSearch] = useState('');
   return (
     <ComponentDoc
       intro={
         <>
-          The interactive part of the creative inventory screen: up to 14 tabs (seven along the top,
-          the rest along the bottom), the 9×5 item grid with its scroller, and the hotbar row.{' '}
-          {NOTE}
+          The interactive part of the creative inventory screen: the game's 14 tabs (seven along the
+          top, seven along the bottom, the last of each row offset right) with item icons and name
+          tooltips, the selected tab's name as the title, the search box on the search tab, the 9×5
+          item grid with its scroller, and the hotbar row. {NOTE}
         </>
       }
       demo={
         <CreativeInventoryPanel
-          tabs={CREATIVE_DEMO_TABS}
           selectedTab={tab}
           onTabClick={setTab}
           scroll={scroll}
           onScrollChange={setScroll}
           items={CREATIVE_DEMO_ITEMS}
+          search={search}
+          onSearchChange={setSearch}
         />
       }
       code="<CreativeInventoryPanel tabs={tabs} selectedTab={i} onTabClick={pick} items={page} scroll={s} />"
       rows={[
-        { name: 'tabs', type: '{ label, icon }[]', description: 'Up to 14 tabs.' },
+        {
+          name: 'tabs',
+          type: '{ label, item?, icon?, search? }[]',
+          defaultValue: 'CREATIVE_INVENTORY_TABS',
+          description: 'Up to 14 tabs; `item` is an item id drawn as the icon.',
+        },
+        { name: 'search / onSearchChange', type: 'string', description: 'Text of the search tab.' },
         { name: 'selectedTab / onTabClick', type: 'number', description: 'The open tab.' },
         {
           name: 'items / hotbar',

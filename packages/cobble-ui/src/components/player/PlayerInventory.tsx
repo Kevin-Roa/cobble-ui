@@ -1,6 +1,13 @@
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Text } from '../../text/Text.tsx';
+import { RecipeBookButton } from '../button/RecipeBookButton.tsx';
+import {
+  RECIPE_BOOK_SCREEN_GAP,
+  RecipeBook,
+  useControllable,
+  type RecipeBookOwnProps,
+} from '../recipe-book/RecipeBook.tsx';
 import { placeAt } from '../shared.ts';
 import type { EmptySlotIcon } from '../slot/InventorySlot.tsx';
 import { INVENTORY_HOTBAR_GAP, SlotGrid, type SlotGridItem } from '../slot/SlotGrid.tsx';
@@ -27,7 +34,17 @@ const ARMOR_LABELS: Readonly<Record<ArmorSlot, string>> = {
 
 export type PlayerInventoryArea = 'armor' | 'offhand' | 'crafting' | 'result' | 'main' | 'hotbar';
 
+/** The recipe book of the inventory: the book's own props (recipes, categories, open state, ...). */
+export type PlayerInventoryRecipeBook = Omit<RecipeBookOwnProps, 'background'>;
+
 export interface PlayerInventoryOwnProps {
+  /**
+   * Adds the recipe book: its toggle button beside the crafting grid (`InventoryScreen`, at 104,
+   * 61) and, while open, the book to the left with the screen shifted 77 units right, as in the
+   * game. Pass `true` for an empty book or the book's props. The open state is controlled with
+   * `open`/`onOpenChange` or left to the component (`defaultOpen`).
+   */
+  readonly recipeBook?: boolean | PlayerInventoryRecipeBook;
   /** Draw the screen's own artwork behind the slots. Defaults to true. */
   readonly background?: boolean;
   /**
@@ -72,10 +89,19 @@ export function PlayerInventory<E extends ElementType = 'div'>(
     items,
     hotbar,
     onSlotClick,
+    recipeBook,
     className,
     style,
     ...rest
   } = props as PlayerInventoryProps<'div'>;
+  const book: PlayerInventoryRecipeBook | undefined =
+    recipeBook === true ? {} : recipeBook === false ? undefined : recipeBook;
+  const [bookOpen, setBookOpen] = useControllable(
+    book?.open,
+    book?.defaultOpen ?? false,
+    book?.onOpenChange,
+  );
+  const showBook = book !== undefined && bookOpen;
   const { Component, props: root } = usePanelRoot(
     as,
     'player-inventory-panel',
@@ -83,7 +109,7 @@ export function PlayerInventory<E extends ElementType = 'div'>(
     166,
     className,
     style,
-    rest,
+    showBook ? { ...rest, 'data-recipe-book-open': '' } : rest,
     'inventory',
   );
   const click = (area: PlayerInventoryArea, index = 0): { readonly onClick?: () => void } =>
@@ -133,6 +159,22 @@ export function PlayerInventory<E extends ElementType = 'div'>(
           {...click('crafting', index)}
         />
       ))}
+      {book === undefined ? null : (
+        <>
+          <RecipeBookButton
+            className="cobble-placed"
+            style={placeAt(104, 61)}
+            aria-expanded={bookOpen}
+            onClick={() => setBookOpen(!bookOpen)}
+          />
+          <RecipeBook
+            {...book}
+            open={bookOpen}
+            className="cobble-placed"
+            style={placeAt(-RECIPE_BOOK_SCREEN_GAP, 0)}
+          />
+        </>
+      )}
       <StationSlot x={154} y={28} label="Crafting result" item={result} {...click('result')} />
       <SlotGrid
         className="cobble-placed"

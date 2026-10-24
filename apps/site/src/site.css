@@ -319,7 +319,6 @@ body {
 .site-explorer-grid {
   position: relative;
   height: calc(190 * var(--cobble-px));
-  overflow-y: auto;
   background: rgb(0 0 0 / 35%);
   box-shadow: inset 0 0 0 var(--cobble-px) #000;
 }

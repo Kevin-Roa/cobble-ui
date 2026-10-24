@@ -91,8 +91,10 @@ export {
   Button,
   BUTTON_DEFAULT_HEIGHT,
   BUTTON_DEFAULT_WIDTH,
+  REALMS_BUTTON_SPRITES,
 } from './components/button/Button.tsx';
 export type {
+  ButtonColor,
   ButtonIcon,
   ButtonOwnProps,
   ButtonProps,
@@ -751,8 +753,6 @@ export { ICON_NAMES, Icon, iconInfo } from './components/sprite/Icon.tsx';
 export type { IconName, IconProps } from './components/sprite/Icon.tsx';
 export { PlayerPingIcon, playerPingSprite } from './components/server-list/PlayerPingIcon.tsx';
 export type { PlayerPingIconProps } from './components/server-list/PlayerPingIcon.tsx';
-export { REALMS_BUTTON_SPRITES, RealmsButton } from './components/button/RealmsButton.tsx';
-export type { RealmsButtonProps } from './components/button/RealmsButton.tsx';
 export {
   INVENTORY_HOTBAR_GAP,
   PlayerInventoryGrid,
@@ -769,7 +769,11 @@ export type {
 export { CRAFTING_RESULT_OFFSET, CraftingGrid } from './components/slot/CraftingGrid.tsx';
 export type { CraftingGridOwnProps, CraftingGridProps } from './components/slot/CraftingGrid.tsx';
 export {
+  SOCIAL_ENTRY_BUTTON_SIZE,
   SOCIAL_ENTRY_HEIGHT,
+  SOCIAL_ENTRY_HIGHLIGHT_COLOR,
+  SOCIAL_ENTRY_PADDING,
+  SOCIAL_ENTRY_SKIN_SIZE,
   SOCIAL_ENTRY_WIDTH,
   SocialPlayerEntry,
 } from './components/server-list/SocialPlayerEntry.tsx';
@@ -790,6 +794,8 @@ export type {
 export {
   AnvilPanel,
   BREW_TOTAL_TICKS,
+  CONTAINER_LABEL_COLOR,
+  PanelLabel,
   BrewingStandPanel,
   FurnacePanel,
   STONECUTTER_COLUMNS,
@@ -799,6 +805,7 @@ export {
   stonecutterStartIndex,
 } from './components/slot/StationPanels.tsx';
 export type {
+  ContainerChromeOwnProps,
   AnvilPanelOwnProps,
   AnvilPanelProps,
   AnvilSlot,
@@ -821,9 +828,11 @@ export {
 } from './components/slot/ArmorStand.tsx';
 export type { ArmorStandProps } from './components/slot/ArmorStand.tsx';
 export {
+  BEACON_PAYMENT_ICONS,
   BeaconPanel,
   CartographyPanel,
   CrafterPanel,
+  CraftingTablePanel,
   GrindstonePanel,
   LOOM_COLUMNS,
   LOOM_VISIBLE_ROWS,
@@ -840,6 +849,8 @@ export type {
   CartographyPanelProps,
   CrafterPanelOwnProps,
   CrafterPanelProps,
+  CraftingTablePanelOwnProps,
+  CraftingTablePanelProps,
   GrindstonePanelOwnProps,
   GrindstonePanelProps,
   LoomPanelOwnProps,
@@ -866,9 +877,11 @@ export type {
   VillagerTradePanelProps,
 } from './components/slot/TradingPanels.tsx';
 export {
+  CREATIVE_INVENTORY_TABS,
   CREATIVE_WINDOW_HEIGHT,
   CREATIVE_WINDOW_WIDTH,
   CreativeInventoryPanel,
+  creativeTabX,
 } from './components/creative/CreativeInventoryPanel.tsx';
 export type {
   CreativeInventoryPanelOwnProps,
@@ -1009,3 +1022,20 @@ export type {
   RotationOrder,
   Vec3 as Model3DVec3,
 } from './render/model3d/engine.ts';
+export {
+  RECIPE_BOOK_HEIGHT,
+  RECIPE_BOOK_PAGE_SIZE,
+  RECIPE_BOOK_SCREEN_GAP,
+  RECIPE_BOOK_SCREEN_SHIFT,
+  RECIPE_BOOK_WIDTH,
+  RecipeBook,
+  filterRecipeBook,
+  recipeBookPageCount,
+} from './components/recipe-book/RecipeBook.tsx';
+export type {
+  RecipeBookCategory,
+  RecipeBookOwnProps,
+  RecipeBookProps,
+  RecipeBookRecipe,
+} from './components/recipe-book/RecipeBook.tsx';
+export type { PlayerInventoryRecipeBook } from './components/player/PlayerInventory.tsx';

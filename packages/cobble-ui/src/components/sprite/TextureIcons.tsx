@@ -5,7 +5,7 @@ import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
 import type { RgbaImage } from '../../render/blit.ts';
 import { useCobble } from '../../provider/context.ts';
 import type { AssetStore } from '../../assets/store.ts';
-import { projectModel, resolveItem } from '../../render/item-model.ts';
+import { drawItem, firstFrame, tintedCanvas, type Region } from '../../render/item-raster.ts';
 import { useAssetRevision, useTexture } from '../../provider/hooks.ts';
 import { cx } from '../shared.ts';
 import { PlayerAvatar } from '../player/PlayerAvatar.tsx';
@@ -21,41 +21,16 @@ export const DEFAULT_SKIN = 'entity/player/wide/steve';
 
 type CanvasProps = Omit<SlotProps<'canvas'>, 'width' | 'height' | 'children'>;
 
-interface Region {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
+const createDomCanvas = (width: number, height: number): HTMLCanvasElement => {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+};
 
 /** Copies a region of a decoded texture onto a canvas, optionally darkening it. */
 function toCanvas(image: RgbaImage, region: Region, shade = 1, tint?: number): HTMLCanvasElement {
-  const tr = tint === undefined ? 1 : ((tint >> 16) & 255) / 255;
-  const tg = tint === undefined ? 1 : ((tint >> 8) & 255) / 255;
-  const tb = tint === undefined ? 1 : (tint & 255) / 255;
-  const canvas = document.createElement('canvas');
-  canvas.width = region.width;
-  canvas.height = region.height;
-  const context = canvas.getContext('2d');
-  if (!context) return canvas;
-  const out = context.createImageData(region.width, region.height);
-  for (let y = 0; y < region.height; y++) {
-    for (let x = 0; x < region.width; x++) {
-      const source = ((region.y + y) * image.width + region.x + x) * 4;
-      const target = (y * region.width + x) * 4;
-      out.data[target] = (image.data[source] ?? 0) * shade * tr;
-      out.data[target + 1] = (image.data[source + 1] ?? 0) * shade * tg;
-      out.data[target + 2] = (image.data[source + 2] ?? 0) * shade * tb;
-      out.data[target + 3] = image.data[source + 3] ?? 0;
-    }
-  }
-  context.putImageData(out, 0, 0);
-  return canvas;
-}
-
-/** The first frame of a texture: animated sheets are stacked squares, so crop to a square. */
-function firstFrame(image: RgbaImage): Region {
-  return { x: 0, y: 0, width: image.width, height: Math.min(image.height, image.width) };
+  return tintedCanvas(image, region, shade, tint, createDomCanvas) as HTMLCanvasElement;
 }
 
 /** A canvas of `size` GUI units at device resolution, redrawn when `deps` change. */
@@ -113,7 +88,14 @@ export function ItemIcon(props: ItemIconProps): JSX.Element {
   const [drawRef, drawStyle] = useDrawing(
     size,
     (context, scale) => {
-      drawItem(context, store, name, (size * scale) / ITEM_ICON_SIZE);
+      const unit = (size * scale) / ITEM_ICON_SIZE;
+      if (store.items.supported) {
+        // Resolved, decoded and rasterized in the item worker; blank until the bitmap arrives.
+        const bitmap = store.items.get(name, unit);
+        if (bitmap) context.drawImage(bitmap, 0, 0, 16 * unit, 16 * unit);
+        return;
+      }
+      drawItemOnMainThread(context, store, name, unit);
     },
     [store, name, revision],
     ref,
@@ -131,73 +113,24 @@ export function ItemIcon(props: ItemIconProps): JSX.Element {
   );
 }
 
-/** Draws an item into a 16-unit square scaled by `unit` device pixels per unit. */
-function drawItem(
+/** Draws an item on the main thread; the fallback when no worker is available. */
+function drawItemOnMainThread(
   context: CanvasRenderingContext2D,
   store: AssetStore,
   name: string,
   unit: number,
 ): void {
-  const source = (path: string): unknown => store.getJson(path);
-  const parts = resolveItem(name, source);
-  if (!parts) {
-    // No definition (or still loading): fall back to the plain item texture.
-    const flat =
-      parts === null && store.hasTexture(`item/${name}`)
-        ? store.getTexture(`item/${name}`)
-        : undefined;
-    if (flat) context.drawImage(toCanvas(flat, firstFrame(flat)), 0, 0, 16 * unit, 16 * unit);
-    return;
-  }
-  for (const part of parts) {
-    const { model, tints } = part;
-    if (model.layers) {
-      model.layers.forEach((id, index) => {
-        const texture = store.getTexture(id);
-        if (!texture) return;
-        context.drawImage(
-          toCanvas(texture, firstFrame(texture), 1, tints[index]),
-          0,
-          0,
-          16 * unit,
-          16 * unit,
-        );
-      });
-      continue;
-    }
-    for (const face of projectModel(model, tints)) {
-      const texture = store.getTexture(face.texture);
-      if (!texture) continue;
-      const frame = firstFrame(texture);
-      const k = frame.width / 16;
-      const du = [face.uvTr[0] - face.uvTl[0], face.uvTr[1] - face.uvTl[1]] as const;
-      const dv = [face.uvBl[0] - face.uvTl[0], face.uvBl[1] - face.uvTl[1]] as const;
-      // Solve the affine map from texel space to slot space for the three known corners.
-      const det = du[0] * dv[1] - du[1] * dv[0];
-      if (Math.abs(det) < 1e-6) continue;
-      const inverse = [dv[1] / det, -du[1] / det, -dv[0] / det, du[0] / det] as const;
-      const a = (face.u[0] * inverse[0] + face.v[0] * inverse[1]) / k;
-      const b = (face.u[1] * inverse[0] + face.v[1] * inverse[1]) / k;
-      const c = (face.u[0] * inverse[2] + face.v[0] * inverse[3]) / k;
-      const d = (face.u[1] * inverse[2] + face.v[1] * inverse[3]) / k;
-      const e = face.origin[0] - (a * face.uvTl[0] + c * face.uvTl[1]) * k;
-      const f = face.origin[1] - (b * face.uvTl[0] + d * face.uvTl[1]) * k;
-      context.save();
-      context.beginPath();
-      context.moveTo(face.origin[0] * unit, face.origin[1] * unit);
-      context.lineTo((face.origin[0] + face.u[0]) * unit, (face.origin[1] + face.u[1]) * unit);
-      context.lineTo(
-        (face.origin[0] + face.u[0] + face.v[0]) * unit,
-        (face.origin[1] + face.u[1] + face.v[1]) * unit,
-      );
-      context.lineTo((face.origin[0] + face.v[0]) * unit, (face.origin[1] + face.v[1]) * unit);
-      context.closePath();
-      context.clip();
-      context.setTransform(a * unit, b * unit, c * unit, d * unit, e * unit, f * unit);
-      context.drawImage(toCanvas(texture, frame, face.shade, face.tint), 0, 0);
-      context.restore();
-    }
-  }
+  drawItem(
+    context,
+    {
+      json: (path) => store.getJson(path),
+      texture: (id) => store.getTexture(id),
+      hasTexture: (id) => store.hasTexture(id),
+      createCanvas: createDomCanvas,
+    },
+    name,
+    unit,
+  );
 }
 
 export interface EffectIconProps extends CanvasProps {
@@ -286,7 +219,16 @@ export function PlayerHead(props: PlayerHeadProps): JSX.Element {
   );
   if (player === undefined || player.trim() === '') return canvas;
   return (
-    <span className="cobble-player-head" data-flow="" style={{ width: `calc(${String(size)} * var(--cobble-px))`, height: `calc(${String(size)} * var(--cobble-px))`, display: 'inline-block', position: 'relative' }}>
+    <span
+      className="cobble-player-head"
+      data-flow=""
+      style={{
+        width: `calc(${String(size)} * var(--cobble-px))`,
+        height: `calc(${String(size)} * var(--cobble-px))`,
+        display: 'inline-block',
+        position: 'relative',
+      }}
+    >
       {canvas}
       <PlayerAvatar
         aria-hidden

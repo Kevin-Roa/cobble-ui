@@ -1,10 +1,12 @@
-import { Text, TextField, useCobble } from 'cobble-ui';
+import { ScrollArea, Text, TextField, useCobble } from 'cobble-ui';
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 import { CodeBlock } from './Prose.tsx';
 
 /** Gap between tiles and padding around the grid, in GUI units. */
 const GRID_GAP = 2;
 const GRID_PADDING = 3;
+/** Width of the scroll area's scrollbar (`AbstractScrollArea#scrollbarWidth`), in GUI units. */
+const SCROLLBAR_WIDTH = 6;
 /** Rows rendered beyond the visible ones, so fast scrolling does not show blanks. */
 const OVERSCAN_ROWS = 2;
 
@@ -55,7 +57,11 @@ export function Explorer(props: ExplorerProps): JSX.Element {
   const padding = GRID_PADDING * unit;
   const cell = tileSize * unit;
   const stride = cell + gap;
-  const columns = Math.max(Math.floor((box.width - 2 * padding + gap) / stride), 1);
+  // The scrollbar overlays the right edge, so keep the tiles clear of it.
+  const columns = Math.max(
+    Math.floor((box.width - 2 * padding - SCROLLBAR_WIDTH * unit + gap) / stride),
+    1,
+  );
   const rowCount = Math.ceil(matches.length / columns);
   const first = Math.max(Math.floor((scrollTop - padding) / stride) - OVERSCAN_ROWS, 0);
   const last = Math.min(
@@ -91,12 +97,16 @@ export function Explorer(props: ExplorerProps): JSX.Element {
           <CodeBlock code={snippet(active)} />
         </div>
       )}
-      <div
-        ref={viewport}
+      <ScrollArea
         className="site-explorer-grid"
-        role="listbox"
-        aria-label={`All ${noun}`}
-        onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+        slotProps={{
+          viewport: {
+            ref: viewport,
+            role: 'listbox',
+            'aria-label': `All ${noun}`,
+            onScroll: (event) => setScrollTop(event.currentTarget.scrollTop),
+          },
+        }}
       >
         <div
           className="site-explorer-sizer"
@@ -128,7 +138,7 @@ export function Explorer(props: ExplorerProps): JSX.Element {
             ))}
           </div>
         </div>
-      </div>
+      </ScrollArea>
       {matches.length === 0 ? <Text color="gray">Nothing matches.</Text> : null}
     </div>
   );

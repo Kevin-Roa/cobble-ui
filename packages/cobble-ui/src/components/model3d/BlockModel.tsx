@@ -1,26 +1,26 @@
-import type { JSX } from "react";
-import { ItemIcon } from "../sprite/TextureIcons.tsx";
-import { useCobble } from "../../provider/context.ts";
-import { useAssetRevision } from "../../provider/hooks.ts";
-import { resolveItem } from "../../render/item-model.ts";
-import { bakeParts, modelTextures } from "../../render/model3d/model.ts";
-import { Node3D } from "../../render/model3d/engine.ts";
-import type { CssVariables } from "../../internal/polymorphic.ts";
-import { cx } from "../shared.ts";
+import type { JSX } from 'react';
+import { ItemIcon } from '../sprite/TextureIcons.tsx';
+import { useCobble } from '../../provider/context.ts';
+import { useAssetRevision } from '../../provider/hooks.ts';
+import { resolveItem } from '../../render/item-model.ts';
+import { bakeParts, modelTextures } from '../../render/model3d/model.ts';
+import { Node3D } from '../../render/model3d/engine.ts';
+import type { CssVariables } from '../../internal/polymorphic.ts';
+import { cx } from '../shared.ts';
 import {
   ModelViewport,
   type ModelSceneContext,
   type ModelViewportProps,
-} from "./ModelViewport.tsx";
+} from './ModelViewport.tsx';
 
 export interface BlockModelProps extends Omit<
   ModelViewportProps,
-  "aria-label" | "onSceneReady" | "textures" | "fallback"
+  'aria-label' | 'onSceneReady' | 'textures' | 'fallback'
 > {
   /** The item or block id: `stone`, `grass_block`, `furnace`, … (`assets/minecraft/items/<name>.json`). */
   readonly name: string;
   /** Accessible name. Defaults to the id. */
-  readonly "aria-label"?: string;
+  readonly 'aria-label'?: string;
 }
 
 const DEFAULT_SIZE = 64;
@@ -55,7 +55,7 @@ export function BlockModel(props: BlockModelProps): JSX.Element {
     onFrame,
     ...rest
   } = props;
-  const label = props["aria-label"] ?? name.replaceAll("_", " ");
+  const label = props['aria-label'] ?? name.replaceAll('_', ' ');
   const { store } = useCobble();
   useAssetRevision();
   const parts = resolveItem(name, (path) => store.getJson(path));
@@ -63,8 +63,8 @@ export function BlockModel(props: BlockModelProps): JSX.Element {
   if (!parts) {
     // Still loading or no model: the same box the viewport would take, holding the flat icon.
     const rootStyle: CssVariables = {
-      "--cobble-width": width,
-      "--cobble-height": height,
+      '--cobble-width': width,
+      '--cobble-height': height,
       ...style,
     };
     return (
@@ -72,8 +72,8 @@ export function BlockModel(props: BlockModelProps): JSX.Element {
         {...rest}
         role="img"
         aria-label={label}
-        className={cx("cobble-model3d-viewport", className)}
-        data-status={parts === undefined ? "loading" : "unsupported"}
+        className={cx('cobble-model3d-viewport', className)}
+        data-status={parts === undefined ? 'loading' : 'unsupported'}
         style={rootStyle}
       >
         <div className="cobble-model3d-fallback">{icon}</div>
@@ -99,7 +99,7 @@ export function BlockModel(props: BlockModelProps): JSX.Element {
       {...(animated === undefined ? {} : { animated })}
       {...(pitchLimit === undefined ? {} : { pitchLimit })}
       {...(onFrame ? { onFrame } : {})}
-      key={`${name}\n${textures.join("\n")}`}
+      key={`${name}\n${textures.join('\n')}`}
       aria-label={label}
       width={width}
       height={height}
@@ -107,7 +107,7 @@ export function BlockModel(props: BlockModelProps): JSX.Element {
       initialYaw={initialYaw}
       initialPitch={initialPitch}
       camera={camera ?? { position: [0, 0, 4.2] }}
-      className={cx("cobble-block-model", className)}
+      className={cx('cobble-block-model', className)}
       {...(style ? { style } : {})}
       textures={textures}
       onSceneReady={build}

@@ -1,18 +1,11 @@
-import { FormattedText, Text, TooltipPanel } from "cobble-ui";
-import type { MDXComponents } from "mdx/types";
-import type { ComponentProps, JSX, ReactNode } from "react";
+import { FormattedText, Text, TooltipPanel } from 'cobble-ui';
+import type { MDXComponents } from 'mdx/types';
+import type { ComponentProps, JSX, ReactNode } from 'react';
 
 /** Element props without the HTML `color` attribute, which `Text` uses for text colors. */
-type Props<E extends "a" | "li" | "strong" | "em"> = Omit<
-  ComponentProps<E>,
-  "color"
->;
+type Props<E extends 'a' | 'li' | 'strong' | 'em'> = Omit<ComponentProps<E>, 'color'>;
 
-export function H2({
-  children,
-}: {
-  readonly children?: ReactNode;
-}): JSX.Element {
+export function H2({ children }: { readonly children?: ReactNode }): JSX.Element {
   return (
     <Text as="h2" color="yellow" className="site-h2">
       {children}
@@ -20,11 +13,7 @@ export function H2({
   );
 }
 
-export function H3({
-  children,
-}: {
-  readonly children?: ReactNode;
-}): JSX.Element {
+export function H3({ children }: { readonly children?: ReactNode }): JSX.Element {
   return (
     <Text as="h3" color="gold" className="site-h3">
       {children}
@@ -32,11 +21,7 @@ export function H3({
   );
 }
 
-export function P({
-  children,
-}: {
-  readonly children?: ReactNode;
-}): JSX.Element {
+export function P({ children }: { readonly children?: ReactNode }): JSX.Element {
   return (
     <Text as="p" className="site-p">
       {children}
@@ -44,11 +29,7 @@ export function P({
   );
 }
 
-export function Code({
-  children,
-}: {
-  readonly children?: ReactNode;
-}): JSX.Element {
+export function Code({ children }: { readonly children?: ReactNode }): JSX.Element {
   return <code className="site-code cobble-text">{children}</code>;
 }
 
@@ -89,11 +70,7 @@ export interface PropRow {
   readonly description: string;
 }
 
-export function PropsTable({
-  rows = [],
-}: {
-  readonly rows: readonly PropRow[];
-}): JSX.Element {
+export function PropsTable({ rows = [] }: { readonly rows: readonly PropRow[] }): JSX.Element {
   return (
     <table className="site-props">
       <thead>
@@ -119,12 +96,10 @@ export function PropsTable({
               <Text color="aqua">{row.name}</Text>
             </td>
             <td>
-              <code className="site-code cobble-text site-wrap">
-                {row.type}
-              </code>
+              <code className="site-code cobble-text site-wrap">{row.type}</code>
             </td>
             <td>
-              <Text color="gray">{row.defaultValue ?? "–"}</Text>
+              <Text color="gray">{row.defaultValue ?? '–'}</Text>
             </td>
             <td>
               <Text className="site-wrap">{row.description}</Text>
@@ -137,11 +112,7 @@ export function PropsTable({
 }
 
 /** A tooltip-styled callout. */
-export function Callout({
-  children,
-}: {
-  readonly children?: ReactNode;
-}): JSX.Element {
+export function Callout({ children }: { readonly children?: ReactNode }): JSX.Element {
   return (
     <TooltipPanel className="site-callout" maxWidth={300}>
       {children}
@@ -149,7 +120,7 @@ export function Callout({
   );
 }
 
-function Anchor(props: Props<"a">): JSX.Element {
+function Anchor(props: Props<'a'>): JSX.Element {
   return <Text as="a" color="aqua" underlined {...props} />;
 }
 
@@ -160,16 +131,12 @@ export const mdxComponents: MDXComponents = {
   h3: H3,
   p: P,
   a: Anchor,
-  ul: (props: ComponentProps<"ul">) => <ul className="site-list" {...props} />,
-  li: (props: Props<"li">) => <Text as="li" className="site-p" {...props} />,
-  strong: (props: Props<"strong">) => <Text as="strong" bold {...props} />,
-  em: (props: Props<"em">) => <Text as="em" italic {...props} />,
-  pre: (props: ComponentProps<"pre">) => (
-    <pre className="site-code-block" {...props} />
-  ),
-  code: (props: ComponentProps<"code">) => (
-    <code className="site-code cobble-text" {...props} />
-  ),
+  ul: (props: ComponentProps<'ul'>) => <ul className="site-list" {...props} />,
+  li: (props: Props<'li'>) => <Text as="li" className="site-p" {...props} />,
+  strong: (props: Props<'strong'>) => <Text as="strong" bold {...props} />,
+  em: (props: Props<'em'>) => <Text as="em" italic {...props} />,
+  pre: (props: ComponentProps<'pre'>) => <pre className="site-code-block" {...props} />,
+  code: (props: ComponentProps<'code'>) => <code className="site-code cobble-text" {...props} />,
   FormattedText,
 };
 

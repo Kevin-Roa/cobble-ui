@@ -47,6 +47,9 @@ export function ButtonPage(): JSX.Element {
             </Button>
           </div>
           <Button width={120}>A label that is far too long to fit in this button</Button>
+          <Button width={150} color="realms">
+            Realms colour
+          </Button>
           <Button width={150} icon={{ sprite: 'icon/language' }}>
             With an icon
           </Button>
@@ -56,6 +59,7 @@ export function ButtonPage(): JSX.Element {
         code={`
 <Button width={200} onClick={play}>Singleplayer</Button>
 <Button width={98} disabled>Disabled</Button>
+<Button width={150} color="realms">Realms</Button>
 <Button icon={{ sprite: 'icon/language' }}>With an icon</Button>
 <Button as={Link} to="/options">Options...</Button>`}
       />
@@ -85,7 +89,17 @@ export function ButtonPage(): JSX.Element {
             type: 'ButtonIcon',
             description: 'Sprite drawn after the label, or centred without children.',
           },
-          { name: 'sprites', type: 'WidgetSprites', description: 'Replace the button sprites.' },
+          {
+            name: 'color',
+            type: "'default' | 'realms'",
+            defaultValue: "'default'",
+            description: 'Colour scheme; "realms" uses the Realms screens’ button sprites.',
+          },
+          {
+            name: 'sprites',
+            type: 'WidgetSprites',
+            description: 'Replace the button sprites (wins over color).',
+          },
           {
             name: 'sound',
             type: 'UiSoundEvent | false',

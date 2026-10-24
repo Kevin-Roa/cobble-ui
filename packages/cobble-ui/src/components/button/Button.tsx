@@ -28,6 +28,16 @@ export const BUTTON_DEFAULT_WIDTH = 150;
 /** `Button.DEFAULT_HEIGHT`. */
 export const BUTTON_DEFAULT_HEIGHT = 20;
 
+/** Colour schemes of the button sprites. */
+export type ButtonColor = 'default' | 'realms';
+
+/** `widget/realms_button` sprites: the look of the Realms screens' buttons. */
+export const REALMS_BUTTON_SPRITES: WidgetSprites = {
+  enabled: 'widget/realms_button',
+  disabled: 'widget/realms_button_disabled',
+  enabledFocused: 'widget/realms_button_highlighted',
+};
+
 export interface ButtonIcon {
   /** Sprite id, or per-state sprites. */
   readonly sprite: SpriteId | WidgetSprites;
@@ -63,7 +73,9 @@ export interface ButtonOwnProps {
    * centred when the button has no children (`SpriteIconButton.CenteredIcon`).
    */
   readonly icon?: ButtonIcon;
-  /** Replaces the button sprites (e.g. `widget/realms_button`). */
+  /** `'realms'` draws the Realms screens' button sprites. Defaults to `'default'`. */
+  readonly color?: ButtonColor;
+  /** Replaces the button sprites entirely; wins over `color`. */
   readonly sprites?: WidgetSprites;
   /** Sound played when pressed, or `false` for none. Defaults to `"ui.button.click"`. */
   readonly sound?: UiSoundEvent | false;
@@ -83,7 +95,8 @@ export function Button<E extends ElementType = 'button'>(props: ButtonProps<E>):
     width = BUTTON_DEFAULT_WIDTH,
     height = BUTTON_DEFAULT_HEIGHT,
     icon,
-    sprites = BUTTON_SPRITES,
+    color = 'default',
+    sprites = color === 'realms' ? REALMS_BUTTON_SPRITES : BUTTON_SPRITES,
     sound = 'ui.button.click',
     highlighted: forceHighlighted,
     slotProps,

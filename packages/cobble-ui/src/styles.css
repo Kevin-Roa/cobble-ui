@@ -486,11 +486,11 @@
   }
 
   :where(
-      .cobble-screen-panorama,
-      .cobble-screen-background,
-      .cobble-screen-gradient,
-      .cobble-screen-world
-    ) {
+    .cobble-screen-panorama,
+    .cobble-screen-background,
+    .cobble-screen-gradient,
+    .cobble-screen-world
+  ) {
     position: absolute;
     inset: 0;
   }
@@ -1274,6 +1274,15 @@
     display: block;
     width: calc(var(--cobble-width) * var(--cobble-px));
     height: calc(var(--cobble-height) * var(--cobble-px));
+    background-color: #333333;
+  }
+
+  :where(
+    .cobble-social-entry:hover,
+    .cobble-social-entry:focus-within,
+    .cobble-social-entry[data-highlighted]
+  ) {
+    background-color: #4a4a4a;
   }
 
   :where(.cobble-social-entry-head) {
@@ -1369,11 +1378,56 @@
     background-size: calc(var(--cobble-container-sheet-width) * var(--cobble-px))
       calc(var(--cobble-container-sheet-height) * var(--cobble-px));
     background-position: 0
-      calc(
-        (var(--cobble-container-edge) - var(--cobble-container-full-height)) * var(--cobble-px)
-      );
+      calc((var(--cobble-container-edge) - var(--cobble-container-full-height)) * var(--cobble-px));
     image-rendering: pixelated;
     pointer-events: none;
+  }
+
+  :where(.cobble-creative-title) {
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* Recipe book: the 147x166 background (gui/recipe_book.png, drawn from texel 1,1) and its parts. */
+  :where(.cobble-recipe-book) {
+    isolation: isolate;
+  }
+
+  :where(.cobble-recipe-book[data-recipe-book-background])::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    width: calc(var(--cobble-width) * var(--cobble-px));
+    height: calc(var(--cobble-height) * var(--cobble-px));
+    background-image: var(--cobble-recipe-book-image, none);
+    background-repeat: no-repeat;
+    background-position: calc(-1 * var(--cobble-px)) calc(-1 * var(--cobble-px));
+    background-size: calc(256 * var(--cobble-px)) calc(256 * var(--cobble-px));
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  /* The page indicator is centred on x = 73 */
+  :where(.cobble-recipe-book-page) {
+    width: calc(146 * var(--cobble-px));
+    text-align: center;
+    pointer-events: none;
+  }
+
+  :where(.cobble-recipe-book-overlay) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* The inventory with its recipe book open sits 77 units to the right (updateScreenPosition). */
+  :where(.cobble-player-inventory-panel[data-recipe-book-open]) {
+    left: calc(77 * var(--cobble-px));
   }
 
   /* Creative tabs that are not selected sit behind the window, so its border overlaps them. */

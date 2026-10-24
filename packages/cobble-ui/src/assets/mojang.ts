@@ -8,7 +8,7 @@ export const MOJANG_VERSION_MANIFEST_URL =
   'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 export const MOJANG_RESOURCES_URL = 'https://resources.download.minecraft.net';
 
-const CACHE_NAME = 'cobble-ui-assets-v5';
+const CACHE_NAME = 'cobble-ui-assets-v7';
 const CACHE_ORIGIN = 'https://cobble-ui.invalid';
 
 /** Client files kept after the jar is downloaded. Everything else is discarded. */
@@ -26,6 +26,22 @@ const DEFAULT_INCLUDE = (path: string): boolean =>
   path.startsWith('assets/minecraft/textures/entity/player/') ||
   path.startsWith('assets/minecraft/textures/entity/equipment/') ||
   path.startsWith('assets/minecraft/textures/entity/armorstand/') ||
+  // Textures of the code-drawn `special` item models (heads, copper golem).
+  path.startsWith('assets/minecraft/textures/entity/creeper/') ||
+  path.startsWith('assets/minecraft/textures/entity/zombie/') ||
+  path.startsWith('assets/minecraft/textures/entity/skeleton/') ||
+  path.startsWith('assets/minecraft/textures/entity/piglin/') ||
+  path.startsWith('assets/minecraft/textures/entity/enderdragon/') ||
+  path.startsWith('assets/minecraft/textures/entity/copper_golem/') ||
+  // Textures of the code-drawn block-entity `special` item models (chests, shulker boxes, banners,
+  // the decorated pot, the conduit, the shield and the trident).
+  path.startsWith('assets/minecraft/textures/entity/chest/') ||
+  path.startsWith('assets/minecraft/textures/entity/shulker/') ||
+  path.startsWith('assets/minecraft/textures/entity/banner/') ||
+  path.startsWith('assets/minecraft/textures/entity/decorated_pot/') ||
+  path.startsWith('assets/minecraft/textures/entity/conduit/') ||
+  path.startsWith('assets/minecraft/textures/entity/shield/') ||
+  path.startsWith('assets/minecraft/textures/entity/trident/') ||
   path === 'assets/minecraft/textures/font/ascii.png';
 
 /** Asset index objects that are kept (for sounds and the title panorama). */

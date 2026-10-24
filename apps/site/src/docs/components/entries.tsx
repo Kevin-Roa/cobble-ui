@@ -1,5 +1,12 @@
 import {
   AdvancementBox,
+  Button,
+  Icon,
+  Panel,
+  Tab,
+  TabList,
+  Tabs,
+  TextField,
   AdvancementTab,
   AdvancementWidget,
   AnimatedSprite,
@@ -376,30 +383,135 @@ export function NotificationBadgePage(): JSX.Element {
   );
 }
 
+type SocialTab = 'all' | 'hidden' | 'blocked';
+
+const SOCIAL_PLAYERS = [
+  { name: 'Steve', tab: 'all' },
+  { name: 'Alex', tab: 'all' },
+  { name: 'Herobrine', tab: 'hidden' },
+] as const;
+
+/** Mirrors `SocialInteractionsScreen`: title, All/Hidden/Blocked tabs, a search box and the player list. */
+function SocialInteractionsDemo(): JSX.Element {
+  const [tab, setTab] = useState<SocialTab>('all');
+  const [search, setSearch] = useState('');
+  const [hidden, setHidden] = useState<readonly string[]>(['Herobrine']);
+  const query = search.trim().toLowerCase();
+  const players = SOCIAL_PLAYERS.filter((p) => p.name.toLowerCase().includes(query)).filter((p) =>
+    tab === 'all' ? true : tab === 'hidden' ? hidden.includes(p.name) : false,
+  );
+  const empty =
+    query !== ''
+      ? 'Couldn’t find any player with that name'
+      : tab === 'hidden'
+        ? 'No hidden players in chat'
+        : tab === 'blocked'
+          ? 'No blocked players in chat'
+          : 'No players are currently online';
+  return (
+    <div style={{ width: 'calc(254 * var(--cobble-px))' }}>
+      <div
+        className="cobble-text"
+        data-shadow=""
+        style={{
+          marginBottom: 'calc(4 * var(--cobble-px))',
+          paddingLeft: 'calc(8 * var(--cobble-px))',
+        }}
+      >
+        Minecraft Server - {SOCIAL_PLAYERS.length} players
+      </div>
+      <Tabs value={tab} onValueChange={(value) => setTab(value as SocialTab)}>
+        <div style={{ paddingLeft: 'calc(8 * var(--cobble-px))' }}>
+          <TabList width={238}>
+            <Tab value="all">All</Tab>
+            <Tab value="hidden">Hidden</Tab>
+            <Tab value="blocked">Blocked</Tab>
+          </TabList>
+        </div>
+      </Tabs>
+      <Panel background="social_interactions/background" width={254} height={156}>
+        <div
+          style={{ position: 'absolute', inset: 'calc(8 * var(--cobble-px))', overflow: 'hidden' }}
+        >
+          <div
+            className="site-row"
+            style={{
+              alignItems: 'center',
+              height: 'calc(24 * var(--cobble-px))',
+              gap: 'calc(2 * var(--cobble-px))',
+              paddingLeft: 'calc(2 * var(--cobble-px))',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Icon name="search" />
+            <TextField
+              aria-label="Search"
+              placeholder="Search..."
+              value={search}
+              onValueChange={setSearch}
+              width={200}
+              height={14}
+              bordered={false}
+            />
+          </div>
+          {players.map((player, index) => (
+            <SocialPlayerEntry
+              key={player.name}
+              name={player.name}
+              status={hidden.includes(player.name) ? 'Hidden' : undefined}
+              muted={hidden.includes(player.name)}
+              onMutedChange={(muted) =>
+                setHidden(
+                  muted ? [...hidden, player.name] : hidden.filter((n) => n !== player.name),
+                )
+              }
+              onReport={() => undefined}
+              highlighted={index % 2 === 0}
+              width={238}
+            />
+          ))}
+          {players.length === 0 ? (
+            <div
+              className="cobble-text"
+              style={{
+                textAlign: 'center',
+                color: '#a0a0a0',
+                marginTop: 'calc(40 * var(--cobble-px))',
+              }}
+            >
+              {empty}
+            </div>
+          ) : null}
+        </div>
+      </Panel>
+      {tab === 'blocked' ? (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: 'calc(-10 * var(--cobble-px))',
+            position: 'relative',
+          }}
+        >
+          <Button width={204}>Manage with Microsoft account</Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function SocialPlayerEntryPage(): JSX.Element {
-  const [muted, setMuted] = useState(false);
   return (
     <ComponentDoc
       intro={
         <>
-          A player row of the social interactions screen: the 236×34 nine-sliced background, a 24×24
-          face, the name with an optional gray status line, and the mute and report buttons at the
-          right. The face defaults to Steve; pass your own as children. The inner offsets are
-          approximations of the game&apos;s.
+          A player row of the social interactions screen (<Code>PlayerEntry</Code>): a flat dark row
+          that lightens when hovered, a 24×24 face, the white name with an optional gray status
+          line, and the chat-toggle and report buttons at the right. The panel around the rows is a
+          separate <Code>Panel</Code>; the full screen is demonstrated below.
         </>
       }
-      demo={
-        <div className="site-stack">
-          <SocialPlayerEntry
-            name="Steve"
-            muted={muted}
-            onMutedChange={setMuted}
-            onReport={() => undefined}
-          ></SocialPlayerEntry>
-          <SocialPlayerEntry name="Alex" status="Hidden" onReport={() => undefined} />
-          <SocialPlayerEntry name="Herobrine" status="Blocked" />
-        </div>
-      }
+      demo={<SocialInteractionsDemo />}
       code="<SocialPlayerEntry name='Steve' status='Hidden' muted={muted} onMutedChange={setMuted} onReport={report}><Face /></SocialPlayerEntry>"
       rows={[
         { name: 'name', type: 'ReactNode', description: 'The player’s name.' },
@@ -413,6 +525,12 @@ export function SocialPlayerEntryPage(): JSX.Element {
           name: 'onReport',
           type: '() => void',
           description: 'Shows and handles the report button.',
+        },
+        {
+          name: 'highlighted',
+          type: 'boolean',
+          defaultValue: 'false',
+          description: 'Lighter hovered/selected fill without the pointer.',
         },
         { name: 'children', type: 'ReactNode', description: 'The face, in a 24×24 area.' },
         { name: 'width', type: 'number', defaultValue: '236', description: 'Width in GUI units.' },

@@ -12,9 +12,10 @@ export function ArmorStandPage(): JSX.Element {
       intro={
         <>
           The armor stand from the smithing table screen, built from the cubes of{' '}
-          <Code>ArmorStandModel</Code> (64 x 64 texture) and drawn by the library&apos;s own software renderer. Drag or use the
-          arrow keys to turn it; with <Code>followMouse</Code> it turns toward the cursor like the
-          inventory player. Where canvas drawing is unavailable the box stays empty. There is no armor.
+          <Code>ArmorStandModel</Code> (64 x 64 texture) and drawn by the library&apos;s own
+          software renderer. Drag or use the arrow keys to turn it; with <Code>followMouse</Code> it
+          turns toward the cursor like the inventory player. Where canvas drawing is unavailable the
+          box stays empty. There is no armor.
         </>
       }
       demo={

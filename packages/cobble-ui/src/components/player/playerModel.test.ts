@@ -12,7 +12,9 @@ function build(slim: boolean, overlay = true) {
 
 /** Extent along x of the first (base) layer of a part. */
 function width(node: Node3D, layer = 0): number {
-  const xs = node.quads.slice(layer * 6, layer * 6 + 6).flatMap((quad) => quad.corners.map((c) => c[0]));
+  const xs = node.quads
+    .slice(layer * 6, layer * 6 + 6)
+    .flatMap((quad) => quad.corners.map((c) => c[0]));
   return Math.max(...xs) - Math.min(...xs);
 }
 

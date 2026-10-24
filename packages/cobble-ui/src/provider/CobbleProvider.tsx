@@ -64,6 +64,14 @@ export interface CobbleProviderProps {
   readonly menuBlur?: number;
   /** Panorama scroll speed multiplier, 0.01–1 in the game. Defaults to `1`. */
   readonly panoramaSpeed?: number;
+  /**
+   * Rasterize item icons ahead of time so `ItemIcon`s appear instantly. `true` preloads every
+   * item in the game; a list of item ids (`["diamond_sword", "torch"]`) preloads just those. Work
+   * happens in idle slices, in a web worker where the browser supports workers and
+   * `OffscreenCanvas` (otherwise only the item files are decoded, on the main thread).
+   * Not inherited by nested providers. Defaults to `false`.
+   */
+  readonly backgroundPreloadItems?: boolean | readonly string[];
 }
 
 const stores = new Map<string, AssetStore>();
@@ -182,6 +190,32 @@ export function CobbleProvider(props: CobbleProviderProps): JSX.Element {
       ),
     [store],
   );
+
+  const preloadKey =
+    props.backgroundPreloadItems === true
+      ? 'all'
+      : Array.isArray(props.backgroundPreloadItems) && props.backgroundPreloadItems.length > 0
+        ? JSON.stringify(props.backgroundPreloadItems)
+        : '';
+  useEffect(() => {
+    if (preloadKey === '') return;
+    const names = preloadKey === 'all' ? true : (JSON.parse(preloadKey) as string[]);
+    let started: unknown;
+    let cancel: (() => void) | undefined;
+    const start = (): void => {
+      const bundle = store.getState().bundle;
+      if (!bundle || bundle === started) return;
+      started = bundle;
+      cancel?.();
+      cancel = store.preloadItems(names, device);
+    };
+    start();
+    const unsubscribe = store.subscribe(start);
+    return () => {
+      unsubscribe();
+      cancel?.();
+    };
+  }, [store, preloadKey, device]);
 
   const { enabled, master, ui } = settings.sound;
   const soundSettings = useMemo(() => ({ enabled, master, ui }), [enabled, master, ui]);

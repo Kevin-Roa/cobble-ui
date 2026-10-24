@@ -1,5 +1,6 @@
 import {
   act,
+  cleanup,
   fireEvent,
   render as renderPlain,
   screen,
@@ -16,6 +17,7 @@ import {
   ArmorStand,
   BlockModel,
   ChestPanel,
+  CraftingTablePanel,
   HotbarWithStats,
   PlayerHead,
   PlayerInventory,
@@ -50,6 +52,7 @@ import {
   GridLayoutCell,
   LinearLayout,
   CreativeInventoryPanel,
+  creativeTabX,
   DispenserPanel,
   HopperPanel,
   VillagerTradePanel,
@@ -80,7 +83,6 @@ import {
   ICON_NAMES,
   Icon,
   PlayerPingIcon,
-  RealmsButton,
   iconInfo,
   playerPingSprite,
   ANVIL_TEXT_FIELD_SPRITES,
@@ -220,6 +222,9 @@ import {
   Tabs,
   TextField,
   ToggleButton,
+  RecipeBook,
+  filterRecipeBook,
+  type RecipeBookRecipe,
 } from '../index.ts';
 
 describe('CobbleProvider', () => {
@@ -1939,9 +1944,10 @@ describe('stonecutter, loom and recipe book controls', () => {
     expect(button).toHaveAttribute('aria-pressed', 'false');
     const content = screen.getByText('stairs').parentElement;
     expect(content).toHaveClass('cobble-fit-content');
-    expect(content?.style.width).toBe('calc(12 * var(--cobble-px))');
-    expect(content?.style.height).toBe('calc(14 * var(--cobble-px))');
-    expect(content?.style.left).toBe('calc(2 * var(--cobble-px))');
+    // CONTAINER_BUTTON_PADDING (1) on each side of the 16x18 StonecutterScreen cell.
+    expect(content?.style.width).toBe('calc(14 * var(--cobble-px))');
+    expect(content?.style.height).toBe('calc(16 * var(--cobble-px))');
+    expect(content?.style.left).toBe('calc(1 * var(--cobble-px))');
     expect(slotSprites(container)).toEqual(['container/stonecutter/recipe']);
     await user.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -1961,8 +1967,8 @@ describe('stonecutter, loom and recipe book controls', () => {
       </LoomPatternButton>,
     );
     const content = screen.getByText('preview').parentElement;
-    expect(content?.style.width).toBe('calc(10 * var(--cobble-px))');
-    expect(content?.style.height).toBe('calc(10 * var(--cobble-px))');
+    expect(content?.style.width).toBe('calc(12 * var(--cobble-px))');
+    expect(content?.style.height).toBe('calc(12 * var(--cobble-px))');
   });
 
   it('draws loom patterns at 14x14', () => {
@@ -2200,7 +2206,7 @@ describe('CartographyMap', () => {
   });
 });
 
-describe('Icon, PlayerPingIcon and RealmsButton', () => {
+describe('Icon, PlayerPingIcon and the realms Button', () => {
   it('draws a named icon at its natural size', () => {
     expect(iconInfo('language')).toEqual({ sprite: 'icon/language', width: 15, height: 15 });
     expect(iconInfo('pause_player_reporting')).toEqual({
@@ -2251,7 +2257,11 @@ describe('Icon, PlayerPingIcon and RealmsButton', () => {
 
   it('draws the Realms button sprites', async () => {
     const user = userEvent.setup();
-    const { container } = renderWithProvider(<RealmsButton width={120}>Realms</RealmsButton>);
+    const { container } = renderWithProvider(
+      <Button color="realms" width={120}>
+        Realms
+      </Button>,
+    );
     expect(container.querySelector('canvas')).toHaveAttribute(
       'data-sprite',
       'widget/realms_button',
@@ -2383,19 +2393,22 @@ describe('CraftingGrid and SocialPlayerEntry', () => {
         <span>face</span>
       </SocialPlayerEntry>,
     );
-    expect(container.querySelector('canvas')).toHaveAttribute(
-      'data-sprite',
-      'social_interactions/background',
-    );
+    expect(container.querySelector('[data-sprite="social_interactions/background"]')).toBeNull();
     expect(container.querySelector('.cobble-social-entry')).toHaveStyle({
       '--cobble-width': '236',
-      '--cobble-height': '34',
+      '--cobble-height': '36',
     });
-    expect(screen.getByText('face').parentElement).toHaveStyle({ '--cobble-x': '6' });
-    expect(screen.getByText('Steve')).toHaveStyle({ '--cobble-x': '34', '--cobble-y': '8' });
+    expect(screen.getByText('face').parentElement).toHaveStyle({
+      '--cobble-x': '4',
+      '--cobble-y': '6',
+    });
+    expect(screen.getByText('Steve')).toHaveStyle({ '--cobble-x': '32', '--cobble-y': '8' });
     expect(screen.getByText('Hidden')).toHaveStyle({ '--cobble-y': '20' });
-    expect(screen.getByRole('button', { name: 'Report' })).toHaveStyle({ '--cobble-x': '210' });
-    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '186' });
+    expect(screen.getByRole('button', { name: 'Report' })).toHaveStyle({
+      '--cobble-x': '212',
+      '--cobble-y': '8',
+    });
+    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '188' });
     await user.click(screen.getByRole('button', { name: 'Mute' }));
     await user.click(screen.getByRole('button', { name: 'Report' }));
     expect(onMutedChange).toHaveBeenCalledWith(true);
@@ -2404,9 +2417,9 @@ describe('CraftingGrid and SocialPlayerEntry', () => {
 
   it('centres the name and drops the report button when there is nothing to show', () => {
     renderWithProvider(<SocialPlayerEntry name="Alex" />);
-    expect(screen.getByText('Alex')).toHaveStyle({ '--cobble-y': '12' });
+    expect(screen.getByText('Alex')).toHaveStyle({ '--cobble-y': '14' });
     expect(screen.queryByRole('button', { name: 'Report' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '210' });
+    expect(screen.getByRole('button', { name: 'Mute' })).toHaveStyle({ '--cobble-x': '212' });
   });
 });
 
@@ -2586,7 +2599,7 @@ describe('station panels', () => {
     );
     expect(screen.getByRole('button', { name: 'Recipe 5' })).toHaveStyle({
       '--cobble-x': '68',
-      '--cobble-y': '32',
+      '--cobble-y': '33',
     });
     await user.click(screen.getByRole('button', { name: 'Recipe 6' }));
     expect(onRecipeClick).toHaveBeenCalledWith(6);
@@ -2894,9 +2907,12 @@ describe('trading, hopper, dispenser and creative inventory panels', () => {
     expect(screen.getByRole('button', { name: 'Tab 8' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('group', { name: 'Items' })).toHaveStyle({
       '--cobble-columns': '9',
-      '--cobble-y': '46',
+      '--cobble-y': '45',
     });
-    expect(screen.getByRole('group', { name: 'Hotbar' })).toHaveStyle({ '--cobble-y': '140' });
+    expect(screen.getByRole('group', { name: 'Hotbar' })).toHaveStyle({
+      '--cobble-y': '139',
+      '--cobble-x': '8',
+    });
     expect(screen.getByRole('scrollbar', { name: 'Scroll items' })).toHaveStyle({
       '--cobble-x': '175',
     });
@@ -2908,6 +2924,28 @@ describe('trading, hopper, dispenser and creative inventory panels', () => {
     );
     expect(onTabClick).toHaveBeenCalledWith(4);
     expect(onSlotClick).toHaveBeenCalledWith('hotbar', 2);
+  });
+
+  it('offsets the last tab of each row to the right, like getTabX', () => {
+    expect(creativeTabX(0)).toBe(0);
+    expect(creativeTabX(5)).toBe(135);
+    expect(creativeTabX(6)).toBe(169);
+    renderWithProvider(<CreativeInventoryPanel selectedTab={1} />);
+    expect(screen.getByRole('button', { name: 'Search Items' })).toHaveStyle({
+      '--cobble-x': '169',
+    });
+    expect(screen.getByRole('button', { name: 'Survival Inventory' })).toHaveStyle({
+      '--cobble-x': '169',
+    });
+    expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1);
+    expect(screen.getByText('Colored Blocks')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Search Items' })).toBeNull();
+  });
+
+  it('shows the search box only on the search tab', () => {
+    renderWithProvider(<CreativeInventoryPanel selectedTab={6} />);
+    expect(screen.getByRole('textbox', { name: 'Search Items' })).toBeInTheDocument();
+    expect(screen.getByText('Search Items')).toBeInTheDocument();
   });
 });
 
@@ -3488,7 +3526,12 @@ describe('player components', () => {
 
   it('ModelViewport shows its fallback without canvas support and takes arrow keys when rotatable', async () => {
     renderWithProvider(
-      <ModelViewport aria-label="Stone cube" rotatable textures={['block/stone']} fallback="Loading" />,
+      <ModelViewport
+        aria-label="Stone cube"
+        rotatable
+        textures={['block/stone']}
+        fallback="Loading"
+      />,
     );
     const viewport = screen.getByRole('img', { name: 'Stone cube' });
     expect(viewport).toHaveAttribute('data-status', 'unsupported');
@@ -3545,6 +3588,34 @@ describe('player components', () => {
     expect(bare.container.querySelectorAll('button')).toHaveLength(18);
     expect(bare.container.querySelector('[data-chest-edge]')).not.toBeNull();
     expect(full.container.querySelector('[data-chest-edge]')).toBeNull();
+  });
+
+  it('container panels draw their vanilla labels and the player inventory', () => {
+    const table = renderWithProvider(<CraftingTablePanel />);
+    expect(table.container.textContent).toContain('Crafting');
+    expect(table.container.textContent).toContain('Inventory');
+    expect(table.container.querySelectorAll('button')).toHaveLength(9 + 1 + 27 + 9);
+    const hidden = renderWithProvider(<CraftingTablePanel title={null} isolate />);
+    expect(hidden.container.textContent).toBe('');
+    expect(hidden.container.querySelectorAll('button')).toHaveLength(10);
+    const cartography = renderWithProvider(<CartographyPanel />);
+    expect(cartography.container.textContent).toContain('Cartography Table');
+    expect(renderWithProvider(<ChestPanel />).container.textContent).toContain('Chest');
+  });
+
+  it('BeaconPanel draws the five payment items; CartographyPanel previews maps', () => {
+    const beacon = renderWithProvider(<BeaconPanel />);
+    expect(
+      [...beacon.container.querySelectorAll('[data-item]')].map((e) => e.getAttribute('data-item')),
+    ).toEqual(['netherite_ingot', 'emerald', 'diamond', 'gold_ingot', 'iron_ingot']);
+    const none = renderWithProvider(<BeaconPanel paymentIcons={false} />);
+    expect(none.container.querySelectorAll('[data-item]')).toHaveLength(0);
+    const copies = renderWithProvider(<CartographyPanel preview="duplicated" image="map.png" />);
+    expect(copies.container.querySelectorAll('img[src="map.png"]')).toHaveLength(2);
+    const single = renderWithProvider(<CartographyPanel preview="map" image="map.png" />);
+    expect(single.container.querySelectorAll('img[src="map.png"]')).toHaveLength(1);
+    const failed = renderWithProvider(<CartographyPanel preview="map" error />);
+    expect(failed.container.querySelector('[aria-label="Error"]')).not.toBeNull();
   });
 
   it('HotbarWithStats hides armor at 0 and air when full', () => {
@@ -3607,5 +3678,86 @@ describe('Screen in-world backdrop', () => {
     expect(container.querySelector('.cobble-screen-world')).not.toBeNull();
     rerender(inWorldView(true, null));
     expect(container.querySelector('.cobble-screen-world')).toBeNull();
+  });
+});
+
+const listedRecipes = (): number =>
+  screen.getAllByRole('button', { name: /^(Plank|Torch)/ }).length;
+
+describe('RecipeBook', () => {
+  const recipes: RecipeBookRecipe[] = Array.from({ length: 23 }, (_, i) => ({
+    id: `r${String(i)}`,
+    label: i === 22 ? 'Torch' : `Plank ${String(i)}`,
+    content: null,
+    category: i % 2 === 0 ? 'building' : 'misc',
+    craftable: i % 3 !== 0,
+  }));
+  const categories = [
+    { id: 'all', label: 'All', icon: null, all: true },
+    { id: 'building', label: 'Building', icon: null },
+    { id: 'misc', label: 'Misc', icon: null },
+  ];
+
+  it('filters by category, search and craftable state, craftable first', () => {
+    const building = filterRecipeBook(recipes, categories, 'building', '', false);
+    expect(building.every((r) => r.category === 'building')).toBe(true);
+    const firstUncraftable = building.findIndex((r) => r.craftable === false);
+    expect(building.slice(firstUncraftable).every((r) => r.craftable === false)).toBe(true);
+    expect(filterRecipeBook(recipes, categories, 'all', 'torc', false).map((r) => r.id)).toEqual([
+      'r22',
+    ]);
+    expect(filterRecipeBook(recipes, categories, 'all', '', true).every((r) => r.craftable)).toBe(
+      true,
+    );
+  });
+
+  it('lists 20 recipes per page and turns pages', async () => {
+    renderWithProvider(<RecipeBook recipes={recipes} categories={categories} />);
+    expect(listedRecipes()).toBe(20);
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Previous Page' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Next Page' }));
+    expect(listedRecipes()).toBe(3);
+    expect(screen.getByText('2/2')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next Page' })).toBeNull();
+  });
+
+  it('switches categories, toggles the craftable filter and reports recipe clicks', async () => {
+    const onRecipeClick = vi.fn<(recipe: RecipeBookRecipe) => void>();
+    renderWithProvider(
+      <RecipeBook recipes={recipes} categories={categories} onRecipeClick={onRecipeClick} />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Misc' }));
+    expect(screen.getByRole('button', { name: 'Misc' })).toHaveAttribute('aria-pressed', 'true');
+    const filter = screen.getByRole('button', { name: 'Show craftable recipes only' });
+    await userEvent.click(filter);
+    expect(filter).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(screen.getByRole('button', { name: 'Plank 1' }));
+    expect(onRecipeClick).toHaveBeenCalledWith(expect.objectContaining({ id: 'r1' }));
+  });
+
+  it('searches and honours controlled open', async () => {
+    renderWithProvider(
+      <RecipeBook recipes={recipes} categories={categories} category="all" open />,
+    );
+    await userEvent.type(screen.getByRole('textbox', { name: 'Search recipes' }), 'torch');
+    expect(screen.getAllByRole('button', { name: /^(Plank|Torch)/ })).toHaveLength(1);
+    cleanup();
+    renderWithProvider(<RecipeBook recipes={recipes} categories={categories} open={false} />);
+    expect(screen.queryByRole('group', { name: 'Recipe Book' })).toBeNull();
+  });
+
+  it('PlayerInventory toggles its recipe book and shifts right', async () => {
+    const onOpenChange = vi.fn<(open: boolean) => void>();
+    const { container } = renderWithProvider(
+      <PlayerInventory recipeBook={{ recipes, categories, onOpenChange }} />,
+    );
+    const root = container.querySelector('.cobble-player-inventory-panel');
+    expect(root).not.toHaveAttribute('data-recipe-book-open');
+    expect(screen.queryByRole('group', { name: 'Recipe Book' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Recipe Book' }));
+    expect(root).toHaveAttribute('data-recipe-book-open');
+    expect(screen.getByRole('group', { name: 'Recipe Book' })).toBeInTheDocument();
+    expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 });

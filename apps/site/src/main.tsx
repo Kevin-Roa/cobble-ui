@@ -19,6 +19,7 @@ function App(): JSX.Element {
       menuBlur={settings.menuBlur}
       panoramaSpeed={settings.panoramaSpeed}
       inWorld={settings.inWorld}
+      backgroundPreloadItems
     >
       <ToastProvider>
         <RouterProvider router={router} />

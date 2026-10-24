@@ -5,6 +5,9 @@
  * Everything here is pure; files are read through a {@link JsonSource}.
  */
 
+import { parseBlockEntityModel, type BlockEntitySpec } from './model3d/block-entity-models.ts';
+import { parseSpecialModel, type EntitySpec } from './model3d/entity-models.ts';
+
 /** Reads a parsed JSON file by its path in the client jar: `undefined` while loading, `null` if missing. */
 export type JsonSource = (path: string) => unknown;
 
@@ -55,6 +58,23 @@ export interface ItemPart {
   readonly model: ResolvedModel;
   /** RGB colours (`0xRRGGBB`) by tint index; `undefined` entries are untinted. */
   readonly tints: readonly (number | undefined)[];
+  /**
+   * The item model node's `transformation` (`Transformation`), as a row-major 3x4 matrix in blocks
+   * about the block's corner (`T * leftRotation * scale * rightRotation`). Composite items such as
+   * beds use it to place their head and foot halves.
+   */
+  readonly transformation?: readonly number[];
+  /**
+   * Set for a `minecraft:special` model drawn by code (a head or the copper golem). `model` is then
+   * the item's base model, which carries the `display.gui` transform and has no elements.
+   */
+  readonly entity?: EntitySpec;
+  /**
+   * Set for a `minecraft:special` model of a block entity drawn by code (chest, shulker box,
+   * banner, decorated pot, conduit, shield, trident). `model` is the item's base model, which
+   * carries `gui_light` and the `display` transforms and has no elements.
+   */
+  readonly blockEntity?: BlockEntitySpec;
 }
 
 const GRASS = 0x91bd59;
@@ -84,6 +104,95 @@ function parseTints(value: unknown): readonly (number | undefined)[] {
   });
 }
 
+type Quaternion = readonly [x: number, y: number, z: number, w: number];
+
+function isNumbers(value: unknown, length: number): value is readonly number[] {
+  return (
+    Array.isArray(value) && value.length === length && value.every((v) => typeof v === 'number')
+  );
+}
+
+/** The 3x3 rotation matrix (row-major) of a quaternion; the identity for a degenerate one. */
+function quaternionMatrix([x, y, z, w]: Quaternion): number[] {
+  const length = Math.hypot(x, y, z, w);
+  if (length === 0) return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  const [qx, qy, qz, qw] = [x / length, y / length, z / length, w / length] as const;
+  return [
+    1 - 2 * (qy * qy + qz * qz),
+    2 * (qx * qy - qz * qw),
+    2 * (qx * qz + qy * qw),
+    2 * (qx * qy + qz * qw),
+    1 - 2 * (qx * qx + qz * qz),
+    2 * (qy * qz - qx * qw),
+    2 * (qx * qz - qy * qw),
+    2 * (qy * qz + qx * qw),
+    1 - 2 * (qx * qx + qy * qy),
+  ];
+}
+
+function multiply3(a: readonly number[], b: readonly number[]): number[] {
+  const out: number[] = [];
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      out.push(
+        (a[r * 3] as number) * (b[c] as number) +
+          (a[r * 3 + 1] as number) * (b[3 + c] as number) +
+          (a[r * 3 + 2] as number) * (b[6 + c] as number),
+      );
+    }
+  }
+  return out;
+}
+
+/**
+ * Parses a model node's `transformation`: either the decomposed object (`translation`,
+ * `left_rotation`, `scale`, `right_rotation`; `Transformation#compose` order) or a 16-number
+ * row-major 4x4 matrix. Returns `undefined` when absent or malformed.
+ */
+export function parseTransformation(value: unknown): readonly number[] | undefined {
+  if (isNumbers(value, 16)) {
+    return [
+      value[0] as number,
+      value[1] as number,
+      value[2] as number,
+      value[3] as number,
+      value[4] as number,
+      value[5] as number,
+      value[6] as number,
+      value[7] as number,
+      value[8] as number,
+      value[9] as number,
+      value[10] as number,
+      value[11] as number,
+    ];
+  }
+  if (!isRecord(value)) return undefined;
+  const translation = isVec3(value['translation']) ? value['translation'] : [0, 0, 0];
+  const scale = isVec3(value['scale']) ? value['scale'] : [1, 1, 1];
+  const left = isNumbers(value['left_rotation'], 4)
+    ? (value['left_rotation'] as unknown as Quaternion)
+    : ([0, 0, 0, 1] as const);
+  const right = isNumbers(value['right_rotation'], 4)
+    ? (value['right_rotation'] as unknown as Quaternion)
+    : ([0, 0, 0, 1] as const);
+  const scaleMatrix = [scale[0], 0, 0, 0, scale[1], 0, 0, 0, scale[2]];
+  const m = multiply3(multiply3(quaternionMatrix(left), scaleMatrix), quaternionMatrix(right));
+  return [
+    m[0] as number,
+    m[1] as number,
+    m[2] as number,
+    translation[0],
+    m[3] as number,
+    m[4] as number,
+    m[5] as number,
+    translation[1],
+    m[6] as number,
+    m[7] as number,
+    m[8] as number,
+    translation[2],
+  ];
+}
+
 interface RawModel {
   readonly parent?: string;
   readonly textures: Record<string, string>;
@@ -99,6 +208,9 @@ function parseModel(json: unknown): RawModel | undefined {
   if (isRecord(rawTextures)) {
     for (const [key, value] of Object.entries(rawTextures)) {
       if (typeof value === 'string') textures[key] = value;
+      // 26.x texture references may be objects (`{ "sprite": ..., "force_translucent": true }`).
+      else if (isRecord(value) && typeof value['sprite'] === 'string')
+        textures[key] = value['sprite'];
     }
   }
   const display = json['display'];
@@ -125,7 +237,12 @@ function parseModel(json: unknown): RawModel | undefined {
 }
 
 /** Resolves a model id (`item/torch`, `minecraft:block/stone`); `undefined` while any file is loading. */
-export function resolveModel(id: string, source: JsonSource): ResolvedModel | undefined | null {
+export function resolveModel(
+  id: string,
+  source: JsonSource,
+  /** Accept a `builtin/entity` root (the base of a `special` model) instead of rejecting it. */
+  allowEntity = false,
+): ResolvedModel | undefined | null {
   const chain: RawModel[] = [];
   let generated = false;
   let current: string | undefined = stripNamespace(id);
@@ -134,6 +251,7 @@ export function resolveModel(id: string, source: JsonSource): ResolvedModel | un
       generated = true;
       break;
     }
+    if (allowEntity && current === 'builtin/entity') break;
     if (current.startsWith('builtin/')) return null;
     const json = source(`assets/minecraft/models/${current}.json`);
     if (json === undefined) return undefined;
@@ -184,6 +302,12 @@ export function resolveModel(id: string, source: JsonSource): ResolvedModel | un
 export function faceTexture(model: ResolvedModel, face: ModelFace): string | undefined {
   const reference = face.texture;
   if (reference.startsWith('#')) return model.textures[reference.slice(1)];
+  // `heavy_core` names its slot without the `#` (`"texture": "all"`); a bare word that is a texture
+  // variable of the model is read as that variable instead of as a missing texture.
+  if (!reference.includes('/') && !reference.includes(':')) {
+    const variable = model.textures[reference];
+    if (variable !== undefined) return variable;
+  }
   return stripNamespace(reference);
 }
 
@@ -196,6 +320,8 @@ export function faceTexture(model: ResolvedModel, face: ModelFace): string | und
 export function resolveItem(
   name: string,
   source: JsonSource,
+  /** The `display_context` a `select` on it is resolved for. Defaults to the GUI slot. */
+  displayContext = 'gui',
 ): readonly ItemPart[] | undefined | null {
   const definition = source(`assets/minecraft/items/${name}.json`);
   if (definition === undefined) return undefined;
@@ -208,7 +334,14 @@ export function resolveItem(
       case 'model': {
         const model = resolveModel(String(node['model']), source);
         if (model === undefined) pending = true;
-        else if (model) parts.push({ model, tints: parseTints(node['tints']) });
+        else if (model) {
+          const transformation = parseTransformation(node['transformation']);
+          parts.push({
+            model,
+            tints: parseTints(node['tints']),
+            ...(transformation ? { transformation } : {}),
+          });
+        }
         break;
       }
       case 'condition':
@@ -216,7 +349,17 @@ export function resolveItem(
         break;
       case 'select':
       case 'range_dispatch': {
-        if (node['fallback'] !== undefined) visit(node['fallback'], depth + 1);
+        // `select` on `display_context` (trident, spyglass): take the case that lists the context.
+        const chosen =
+          stripNamespace(String(node['property'])) === 'display_context' &&
+          Array.isArray(node['cases'])
+            ? (node['cases'] as unknown[]).find(
+                (entry) =>
+                  isRecord(entry) && [entry['when']].flat().some((when) => when === displayContext),
+              )
+            : undefined;
+        if (isRecord(chosen)) visit(chosen['model'], depth + 1);
+        else if (node['fallback'] !== undefined) visit(node['fallback'], depth + 1);
         else {
           const first = (node['cases'] ?? node['entries']) as unknown;
           if (Array.isArray(first) && isRecord(first[0])) visit(first[0]['model'], depth + 1);
@@ -228,9 +371,21 @@ export function resolveItem(
           for (const child of node['models']) visit(child, depth + 1);
         break;
       case 'special': {
-        const model = resolveModel(String(node['base']), source);
+        const model = resolveModel(String(node['base']), source, true);
+        const entity = parseSpecialModel(node['model']);
+        const blockEntity = entity ? undefined : parseBlockEntityModel(node['model']);
         if (model === undefined) pending = true;
-        else if (model) parts.push({ model, tints: [] });
+        else if (
+          model &&
+          (entity || blockEntity || model.elements.length > 0 || model.layers?.length)
+        ) {
+          parts.push({
+            model,
+            tints: [],
+            ...(entity ? { entity } : {}),
+            ...(blockEntity ? { blockEntity } : {}),
+          });
+        }
         break;
       }
       default:
@@ -272,7 +427,7 @@ export function rotateAxis(point: Vec3, axis: 'x' | 'y' | 'z', angle: number): V
 }
 
 /** `Quaternionf#rotationXYZ`: the matrix is Rx·Ry·Rz, so a point turns about Z first, then Y, then X. */
-function rotateXyz(point: Vec3, rotation: Vec3): Vec3 {
+export function rotateXyz(point: Vec3, rotation: Vec3): Vec3 {
   return rotateAxis(
     rotateAxis(rotateAxis(point, 'z', rotation[2]), 'y', rotation[1]),
     'x',
@@ -300,6 +455,14 @@ export const FACE_FRAMES: Readonly<Record<FaceName, FaceFrame>> = {
 
 const LIGHT_A: Vec3 = normalize([0.2, 1, -0.7]);
 const LIGHT_B: Vec3 = normalize([-0.2, 1, 0.7]);
+
+/** The GUI item lights on a unit normal (`Lighting.ITEMS_3D`): 0.4 + 0.6 of the two lights, capped at 1. */
+export function guiLightShade(normal: Vec3): number {
+  return Math.min(
+    1,
+    0.4 + 0.6 * (Math.max(0, dot(normal, LIGHT_A)) + Math.max(0, dot(normal, LIGHT_B))),
+  );
+}
 
 function normalize(v: Vec3): Vec3 {
   const length = Math.hypot(v[0], v[1], v[2]);
@@ -411,13 +574,7 @@ export function projectModel(
       const slot0 = toSlot(p0);
       const uvDefault = defaultUv(name, element);
       const uv = rotateUv(face.uv ?? uvDefault, face.rotation ?? 0);
-      const shade =
-        model.light === 'front'
-          ? 1
-          : Math.min(
-              1,
-              0.4 + 0.6 * (Math.max(0, dot(normal, LIGHT_A)) + Math.max(0, dot(normal, LIGHT_B))),
-            );
+      const shade = model.light === 'front' ? 1 : guiLightShade(normal);
       faces.push({
         texture,
         origin: slot0,

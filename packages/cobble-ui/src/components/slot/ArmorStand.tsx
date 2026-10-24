@@ -1,12 +1,12 @@
-import type { JSX } from "react";
-import { createBoxQuads } from "../../render/model3d/box.ts";
-import { Node3D, type Lighting } from "../../render/model3d/engine.ts";
-import { cx } from "../shared.ts";
+import type { JSX } from 'react';
+import { createBoxQuads } from '../../render/model3d/box.ts';
+import { Node3D, type Lighting } from '../../render/model3d/engine.ts';
+import { cx } from '../shared.ts';
 import {
   ModelViewport,
   type ModelSceneContext,
   type ModelViewportProps,
-} from "../model3d/ModelViewport.tsx";
+} from '../model3d/ModelViewport.tsx';
 
 /** Width and height of an armor stand in model pixels (shoulders and arms span 14, head to base 31). */
 export const ARMOR_STAND_WIDTH = 14;
@@ -23,7 +23,7 @@ export const ARMOR_STAND_VIEWPORT_FEET = 33.5;
 
 /** Where the smithing table screen stands its armor stand: the feet's centre (`SmithingScreen`). */
 export const SMITHING_ARMOR_STAND_X = 141;
-export const SMITHING_ARMOR_STAND_Y = 65;
+export const SMITHING_ARMOR_STAND_Y = 75;
 
 /** Model height from the feet to the top of the head, in pixels, and half of it (the rotation centre). */
 const MODEL_HEIGHT = 31;
@@ -40,20 +40,13 @@ interface StandPart {
   readonly u: number;
   readonly v: number;
   /** `addBox(x, y, z, w, h, d)` in model space (y points down, the front faces -z). */
-  readonly box: readonly [
-    x: number,
-    y: number,
-    z: number,
-    w: number,
-    h: number,
-    d: number,
-  ];
+  readonly box: readonly [x: number, y: number, z: number, w: number, h: number, d: number];
   /** `PartPose.offset` in model space. */
   readonly pivot: Vec3;
   /** Default pose rotation in degrees (`ArmorStand#DEFAULT_*_POSE`), model space. */
   readonly rotation?: Vec3;
   readonly mirror?: boolean;
-  readonly kind?: "arm" | "base";
+  readonly kind?: 'arm' | 'base';
 }
 
 /**
@@ -69,7 +62,7 @@ const PARTS: readonly StandPart[] = [
     box: [-2, -2, -1, 2, 12, 2],
     pivot: [-5, 2, 0],
     rotation: [-15, 0, 10],
-    kind: "arm",
+    kind: 'arm',
   }, // right arm
   {
     u: 32,
@@ -78,7 +71,7 @@ const PARTS: readonly StandPart[] = [
     pivot: [5, 2, 0],
     rotation: [-10, 0, -10],
     mirror: true,
-    kind: "arm",
+    kind: 'arm',
   }, // left arm
   { u: 16, v: 0, box: [-3, 3, -1, 2, 7, 2], pivot: [0, 0, 0] }, // right body stick
   { u: 48, v: 16, box: [1, 3, -1, 2, 7, 2], pivot: [0, 0, 0] }, // left body stick
@@ -103,28 +96,28 @@ const PARTS: readonly StandPart[] = [
     v: 32,
     box: [-6, 11, -6, 12, 1, 12],
     pivot: [0, 12, 0],
-    kind: "base",
+    kind: 'base',
   }, // base plate
 ];
 
 export interface ArmorStandProps extends Omit<
   ModelViewportProps,
-  | "width"
-  | "height"
-  | "textures"
-  | "camera"
-  | "onSceneReady"
-  | "onFrame"
-  | "animated"
-  | "children"
-  | "aria-label"
+  | 'width'
+  | 'height'
+  | 'textures'
+  | 'camera'
+  | 'onSceneReady'
+  | 'onFrame'
+  | 'animated'
+  | 'children'
+  | 'aria-label'
 > {
   /** GUI units per model pixel. Defaults to 1.5, about the smithing table's preview size. */
   readonly scale?: number;
   /** Texture id of the stand. Defaults to the wooden armor stand. */
   readonly texture?: string;
   /** Accessible name. Defaults to "Armor stand". */
-  readonly "aria-label"?: string;
+  readonly 'aria-label'?: string;
   /** Drag or press the arrow keys to turn the stand. Defaults to `true`. */
   readonly rotatable?: boolean;
   /** Draw the base plate. Defaults to `true` (`ArmorStand#showBasePlate`). */
@@ -158,8 +151,8 @@ function buildStand(context: ModelSceneContext, options: BuildOptions): void {
   stand.scale = (options.small ? 0.5 : 1) / 16;
   stand.position[1] = (-MODEL_HEIGHT / 2) * ((options.small ? 0.5 : 1) / 16);
   for (const part of PARTS) {
-    if (part.kind === "arm" && !options.showArms) continue;
-    if (part.kind === "base" && !options.showBasePlate) continue;
+    if (part.kind === 'arm' && !options.showArms) continue;
+    if (part.kind === 'base' && !options.showBasePlate) continue;
     const [bx, by, bz, bw, bh, bd] = part.box;
     const node = new Node3D();
     node.addQuad(
@@ -181,7 +174,7 @@ function buildStand(context: ModelSceneContext, options: BuildOptions): void {
     if (part.rotation) {
       const [rx, ry, rz] = part.rotation;
       // Flipping y and z is a half turn around x, which negates the y and z rotations.
-      node.rotationOrder = "ZYX";
+      node.rotationOrder = 'ZYX';
       node.rotation = [rx * DEGREES, -ry * DEGREES, -rz * DEGREES];
     }
     stand.add(node);
@@ -199,8 +192,8 @@ function buildStand(context: ModelSceneContext, options: BuildOptions): void {
 export function ArmorStand(props: ArmorStandProps): JSX.Element {
   const {
     scale = 1.5,
-    texture = "entity/armorstand/armorstand",
-    "aria-label": label = "Armor stand",
+    texture = 'entity/armorstand/armorstand',
+    'aria-label': label = 'Armor stand',
     rotatable = true,
     showBasePlate = true,
     small = false,
@@ -215,7 +208,7 @@ export function ArmorStand(props: ArmorStandProps): JSX.Element {
       // The scene is built once, so changing what is drawn remounts the viewport.
       key={`${showBasePlate}|${small}|${showArms}`}
       aria-label={label}
-      className={cx("cobble-armor-stand", className)}
+      className={cx('cobble-armor-stand', className)}
       width={ARMOR_STAND_VIEWPORT_WIDTH * scale}
       height={ARMOR_STAND_VIEWPORT_HEIGHT * scale}
       textures={[texture]}

@@ -74,13 +74,14 @@ export function HotbarWithStats<E extends ElementType = 'div'>(
   return (
     <Component
       {...mergeProps<'div'>(
-        { className: cx('cobble-station-panel cobble-hotbar-with-stats', className), style: rootStyle },
+        {
+          className: cx('cobble-station-panel cobble-hotbar-with-stats', className),
+          style: rootStyle,
+        },
         rest,
       )}
     >
-      {armor > 0 ? (
-        <Armor className="cobble-placed" style={placeAt(0, 0)} value={armor} />
-      ) : null}
+      {armor > 0 ? <Armor className="cobble-placed" style={placeAt(0, 0)} value={armor} /> : null}
       {showAir ? (
         <Air
           className="cobble-placed"

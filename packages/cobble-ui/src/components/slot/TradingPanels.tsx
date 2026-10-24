@@ -4,8 +4,14 @@ import { Button } from '../button/Button.tsx';
 import { VillagerScroller } from '../trade/VillagerScroller.tsx';
 import { TradeArrow, VillagerXpBar } from '../trade/Trade.tsx';
 import { placeAt } from '../shared.ts';
-import { PlayerInventoryGrid, SlotGrid, type SlotGridItem } from './SlotGrid.tsx';
-import { StationSlot, usePanelRoot } from './StationPanels.tsx';
+import { SlotGrid, type SlotGridItem } from './SlotGrid.tsx';
+import {
+  ContainerChrome,
+  PanelLabel,
+  StationSlot,
+  usePanelRoot,
+  type ContainerChromeOwnProps,
+} from './StationPanels.tsx';
 
 // --------------------------------------------------------------------------------- villager
 
@@ -37,7 +43,7 @@ export function tradeStartIndex(scroll: number, offerCount: number): number {
   return Math.floor(clamped * offscreen + 0.5);
 }
 
-export interface VillagerTradePanelOwnProps {
+export interface VillagerTradePanelOwnProps extends ContainerChromeOwnProps {
   /** Draw the screen's own artwork behind the slots. Defaults to true. */
   readonly background?: boolean;
   readonly offers?: readonly TradeOffer[];
@@ -52,14 +58,8 @@ export interface VillagerTradePanelOwnProps {
   /** Progress through the villager's level, 0 to 1. Omitted for a wandering trader. */
   readonly levelProgress?: number;
   readonly onSlotClick?: (slot: 'payment-1' | 'payment-2' | 'result') => void;
-  /**
-   * Hide the player's inventory slots. The villager texture has no single crop line (the trade
-   * list runs the full height), so the full window with its bottom border is kept. Defaults to false.
-   */
-  readonly isolate?: boolean;
-  /** Items in the player's 27 main slots and 9 hotbar slots. */
-  readonly inventory?: readonly (SlotGridItem | undefined)[];
-  readonly hotbar?: readonly (SlotGridItem | undefined)[];
+  /** The label above the trade list. Defaults to `Trades`; `null` hides it. */
+  readonly tradesTitle?: ReactNode;
 }
 
 export type VillagerTradePanelProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -86,9 +86,13 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
     result,
     levelProgress,
     onSlotClick,
-    isolate = false,
+    tradesTitle = 'Trades',
+    title = 'Villager',
+    inventoryTitle,
+    isolate,
     inventory,
     hotbar,
+    onInventoryClick,
     background = true,
     className,
     style,
@@ -180,31 +184,30 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
         bare={background}
         {...click('result')}
       />
-      {!isolate ? (
-        <PlayerInventoryGrid
-          className="cobble-placed"
-          style={placeAt(107, 83)}
-          bare={background}
-          {...(inventory === undefined ? {} : { items: inventory })}
-          {...(hotbar === undefined ? {} : { hotbar })}
-        />
+      {offers.length > 0 ? (
+        <PanelLabel x={53} y={6} center>
+          {tradesTitle}
+        </PanelLabel>
       ) : null}
+      <ContainerChrome
+        background={background}
+        {...{ title, inventoryTitle, isolate, inventory, hotbar, onInventoryClick }}
+        titleX={187}
+        titleCenter
+        inventoryLabelX={107}
+        inventoryX={107}
+      />
     </Component>
   );
 }
 
 // ------------------------------------------------------------------------- hopper, dispenser
 
-export interface SlotsPanelOwnProps {
+export interface SlotsPanelOwnProps extends ContainerChromeOwnProps {
   /** Draw the screen's own artwork behind the slots. Defaults to true. */
   readonly background?: boolean;
   readonly items?: readonly (SlotGridItem | undefined)[];
   readonly onSlotClick?: (index: number) => void;
-  /** Render only the slots, without the player's inventory; the window's bottom border is kept. Defaults to false. */
-  readonly isolate?: boolean;
-  /** Items in the player's 27 main slots and 9 hotbar slots. */
-  readonly inventory?: readonly (SlotGridItem | undefined)[];
-  readonly hotbar?: readonly (SlotGridItem | undefined)[];
 }
 
 export type HopperPanelProps<E extends ElementType = 'div'> = PolymorphicProps<
@@ -224,9 +227,12 @@ export function HopperPanel<E extends ElementType = 'div'>(
     as,
     items,
     onSlotClick,
+    title = 'Item Hopper',
+    inventoryTitle,
     isolate = false,
     inventory,
     hotbar,
+    onInventoryClick,
     background = true,
     className,
     style,
@@ -255,15 +261,12 @@ export function HopperPanel<E extends ElementType = 'div'>(
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
-      {!isolate ? (
-        <PlayerInventoryGrid
-          className="cobble-placed"
-          style={placeAt(7, 50)}
-          bare={background}
-          {...(inventory === undefined ? {} : { items: inventory })}
-          {...(hotbar === undefined ? {} : { hotbar })}
-        />
-      ) : null}
+      <ContainerChrome
+        background={background}
+        {...{ title, inventoryTitle, isolate, inventory, hotbar, onInventoryClick }}
+        inventoryLabelY={39}
+        inventoryY={50}
+      />
     </Component>
   );
 }
@@ -276,9 +279,12 @@ export function DispenserPanel<E extends ElementType = 'div'>(
     as,
     items,
     onSlotClick,
+    title = 'Dispenser',
+    inventoryTitle,
     isolate = false,
     inventory,
     hotbar,
+    onInventoryClick,
     background = true,
     className,
     style,
@@ -307,15 +313,12 @@ export function DispenserPanel<E extends ElementType = 'div'>(
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
-      {!isolate ? (
-        <PlayerInventoryGrid
-          className="cobble-placed"
-          style={placeAt(7, 83)}
-          bare={background}
-          {...(inventory === undefined ? {} : { items: inventory })}
-          {...(hotbar === undefined ? {} : { hotbar })}
-        />
-      ) : null}
+      <ContainerChrome
+        background={background}
+        {...{ title, inventoryTitle, isolate, inventory, hotbar, onInventoryClick }}
+        inventoryLabelY={72}
+        inventoryY={83}
+      />
     </Component>
   );
 }
