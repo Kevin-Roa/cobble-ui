@@ -2448,6 +2448,14 @@ describe('EnchantingTablePanel', () => {
 });
 
 describe('station panels', () => {
+  it('draws creative inventory slots bare over the artwork, and with sprites without it', () => {
+    const withArt = renderWithProvider(<CreativeInventoryPanel />);
+    expect(withArt.container.querySelectorAll('[data-bare]')).toHaveLength(54);
+    withArt.unmount();
+    const without = renderWithProvider(<CreativeInventoryPanel background={false} />);
+    expect(without.container.querySelectorAll('[data-bare]')).toHaveLength(0);
+  });
+
   it('grows to the screen window and draws its artwork unless turned off', () => {
     const { container } = renderWithProvider(<AnvilPanel />);
     const panel = container.querySelector('.cobble-anvil-panel');
