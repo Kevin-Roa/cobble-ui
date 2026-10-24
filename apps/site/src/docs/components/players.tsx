@@ -87,7 +87,7 @@ export function PlayerRendererPage(): JSX.Element {
           </div>
         </div>
       }
-      code={`<PlayerRenderer player='${player.replaceAll("'", "\'")}' height={100} rotatable followMouse />`}
+      code={`<PlayerRenderer player='${player.replaceAll("'", "\\'")}' height={100} rotatable followMouse />`}
       rows={[
         {
           name: 'player',
@@ -191,7 +191,7 @@ export function PlayerInventoryPage(): JSX.Element {
           }}
         />
       }
-      code={`<PlayerInventory player='${player.replaceAll("'", "\'")}' armor={{ head }} hotbar={hotbar} items={items} />`}
+      code={`<PlayerInventory player='${player.replaceAll("'", "\\'")}' armor={{ head }} hotbar={hotbar} items={items} />`}
       rows={[
         {
           name: 'player',

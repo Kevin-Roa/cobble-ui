@@ -814,6 +814,8 @@ export type {
 } from './components/slot/StationPanels.tsx';
 export {
   ARMOR_STAND_HEIGHT,
+  ARMOR_STAND_VIEWPORT_HEIGHT,
+  ARMOR_STAND_VIEWPORT_WIDTH,
   ARMOR_STAND_WIDTH,
   ArmorStand,
 } from './components/slot/ArmorStand.tsx';

@@ -385,6 +385,10 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['ContainerError (labelled)', <ContainerError key="a" kind="anvil" />],
   ['SmithingTablePanel', <SmithingTablePanel key="a" error />],
   ['ArmorStand', <ArmorStand key="a" />],
+  [
+    'ArmorStand (arms, small, not rotatable)',
+    <ArmorStand key="a" showArms small rotatable={false} />,
+  ],
   ['GrindstonePanel', <GrindstonePanel key="a" error />],
   ['Text', <Text key="a">Hello</Text>],
   ['FormattedText', <FormattedText key="a" value="§eYellow §lBold" />],
