@@ -351,6 +351,7 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['PlayerHead', <PlayerHead key="a" />],
   ['PlayerHead (player)', <PlayerHead key="a" player="Notch" />],
   ['PlayerRenderer', <PlayerRenderer key="a" player="Notch" />],
+  ['PlayerRenderer (local skin)', <PlayerRenderer key="a" model="slim" followMouse />],
   ['ThreeViewport', <ThreeViewport key="a" aria-label="Cube" fallback={<span>Loading</span>} />],
   ['ThreeViewport (rotatable)', <ThreeViewport key="a" aria-label="Cube" rotatable />],
   ['PlayerInventory', <PlayerInventory key="a" player="Notch" />],

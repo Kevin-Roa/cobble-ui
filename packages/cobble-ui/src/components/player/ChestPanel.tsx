@@ -81,9 +81,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
     ...style,
   };
   const click = (area: ChestArea) =>
-    onSlotClick === undefined
-      ? {}
-      : { onSlotClick: (index: number) => onSlotClick(area, index) };
+    onSlotClick === undefined ? {} : { onSlotClick: (index: number) => onSlotClick(area, index) };
   return (
     <Component
       {...mergeProps<'div'>(
