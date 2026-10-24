@@ -13,6 +13,7 @@ import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
 import {
+  BlockModel,
   ChestPanel,
   HotbarWithStats,
   PlayerHead,
@@ -3486,6 +3487,18 @@ describe('player components', () => {
   it('ThreeViewport is not focusable unless rotatable', () => {
     renderWithProvider(<ThreeViewport aria-label="Static" />);
     expect(screen.getByRole('img', { name: 'Static' })).not.toHaveAttribute('tabindex');
+  });
+
+  it('BlockModel falls back to the flat icon and names itself', () => {
+    const { container } = renderWithProvider(<BlockModel name="stone" />);
+    const viewport = screen.getByRole('img', { name: 'stone' });
+    expect(viewport).toHaveAttribute('data-status', 'loading');
+    expect(container.querySelector('canvas[data-item="stone"]')).toBeInTheDocument();
+  });
+
+  it('BlockModel is rotatable by default and takes a custom label', () => {
+    renderWithProvider(<BlockModel name="furnace" aria-label="Smelter" />);
+    expect(screen.getByRole('img', { name: 'Smelter' })).toBeInTheDocument();
   });
 
   it('PlayerInventory reports clicks by area', async () => {

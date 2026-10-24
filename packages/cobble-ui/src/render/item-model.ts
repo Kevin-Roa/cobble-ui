@@ -25,6 +25,8 @@ export interface ModelElement {
     readonly axis: 'x' | 'y' | 'z';
     readonly angle: number;
   };
+  /** `false` turns off the directional shading of the element's faces (`BlockElement#shade`). */
+  readonly shade?: boolean;
   readonly faces: Readonly<Partial<Record<FaceName, ModelFace>>>;
 }
 
@@ -260,7 +262,7 @@ export interface ProjectedFace {
 
 const DEG = Math.PI / 180;
 
-function rotateAxis(point: Vec3, axis: 'x' | 'y' | 'z', angle: number): Vec3 {
+export function rotateAxis(point: Vec3, axis: 'x' | 'y' | 'z', angle: number): Vec3 {
   const c = Math.cos(angle * DEG);
   const s = Math.sin(angle * DEG);
   const [x, y, z] = point;
@@ -278,7 +280,7 @@ function rotateXyz(point: Vec3, rotation: Vec3): Vec3 {
   );
 }
 
-interface FaceFrame {
+export interface FaceFrame {
   /** Face origin (top-left of the texture) in element-box terms: picks from/to per axis. */
   readonly origin: readonly [0 | 1, 0 | 1, 0 | 1];
   readonly u: readonly [number, number, number];
@@ -287,7 +289,7 @@ interface FaceFrame {
 }
 
 /** Corner `[x, y, z]` selectors (0 = from, 1 = to) and axes of each face, seen from outside. */
-const FACES: Readonly<Record<FaceName, FaceFrame>> = {
+export const FACE_FRAMES: Readonly<Record<FaceName, FaceFrame>> = {
   north: { origin: [1, 1, 0], u: [-1, 0, 0], v: [0, -1, 0], normal: [0, 0, -1] },
   south: { origin: [0, 1, 1], u: [1, 0, 0], v: [0, -1, 0], normal: [0, 0, 1] },
   west: { origin: [0, 1, 0], u: [0, 0, 1], v: [0, -1, 0], normal: [-1, 0, 0] },
@@ -309,7 +311,7 @@ function dot(a: Vec3, b: Vec3): number {
 }
 
 /** Rotates a face's uv corners the way `face.rotation` (0, 90, 180, 270) does. */
-function rotateUv(
+export function rotateUv(
   uv: readonly [number, number, number, number],
   rotation: number,
 ): { readonly tl: [number, number]; readonly tr: [number, number]; readonly bl: [number, number] } {
@@ -377,7 +379,7 @@ export function projectModel(
       if (!face) continue;
       const texture = faceTexture(model, face);
       if (texture === undefined) continue;
-      const frame = FACES[name];
+      const frame = FACE_FRAMES[name];
       const [fx, fy, fz] = element.from;
       const [tx, ty, tz] = element.to;
       const corner = (sel: readonly [number, number, number]): Vec3 => [
@@ -442,12 +444,12 @@ function scaleNormal(normal: Vec3, scale: Vec3): Vec3 {
   ]);
 }
 
-function rotateElementNormal(normal: Vec3, rotation: ModelElement['rotation']): Vec3 {
+export function rotateElementNormal(normal: Vec3, rotation: ModelElement['rotation']): Vec3 {
   return rotation ? rotateAxis(normal, rotation.axis, rotation.angle) : normal;
 }
 
 /** The uv a face gets when the model gives none (`BlockElementFace`/`FaceBakery#defaultFaceUV`). */
-function defaultUv(
+export function defaultUv(
   face: FaceName,
   element: ModelElement,
 ): readonly [number, number, number, number] {
