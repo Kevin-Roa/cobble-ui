@@ -309,7 +309,7 @@ export type SmithingTablePanelProps<E extends ElementType = 'div'> = Polymorphic
 /**
  * The interactive part of the smithing table screen: template, base, addition and result slots
  * (the first three with their placeholder silhouettes) and the error cross. Coordinates are
- * recalled from vanilla and are approximations. The armor stand is a 3D three.js model (drag to turn it)
+ * recalled from vanilla and are approximations. The armor stand is a 3D model (drag to turn it)
  * without armor.
  */
 export function SmithingTablePanel<E extends ElementType = 'div'>(

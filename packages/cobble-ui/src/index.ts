@@ -979,25 +979,33 @@ export type {
   HotbarWithStatsProps,
 } from './components/hotbar/HotbarWithStats.tsx';
 
-export { BlockModel } from './components/three/BlockModel.tsx';
-export type { BlockModelProps } from './components/three/BlockModel.tsx';
-export { bakeParts, faceShade, modelTextures } from './render/three/model.ts';
-export type { BakedMesh, BakeOptions } from './render/three/model.ts';
-export { ThreeViewport } from './components/three/ThreeViewport.tsx';
+export { BlockModel } from './components/model3d/BlockModel.tsx';
+export type { BlockModelProps } from './components/model3d/BlockModel.tsx';
+export { bakeParts, faceShade, modelTextures } from './render/model3d/model.ts';
+export type { BakeOptions } from './render/model3d/model.ts';
+export { ModelViewport } from './components/model3d/ModelViewport.tsx';
 export type {
-  ThreeCameraOptions,
-  ThreeFrame,
-  ThreeLook,
-  ThreeSceneContext,
-  ThreeViewportProps,
-} from './components/three/ThreeViewport.tsx';
-export { boxUvLayout, createBoxGeometry, createTexture, followAngles } from './render/three/box.ts';
+  ModelCameraOptions,
+  ModelFrame,
+  ModelLook,
+  ModelSceneContext,
+  ModelViewportProps,
+} from './components/model3d/ModelViewport.tsx';
+export { boxUvLayout, createBoxQuads, followAngles } from './render/model3d/box.ts';
 export type {
   BoxFace,
-  BoxGeometryOptions,
+  BoxQuadOptions,
   BoxUvLayout,
   BoxUvOptions,
   FollowAngles,
-  ThreeModule,
   UvRect,
-} from './render/three/box.ts';
+} from './render/model3d/box.ts';
+export { Node3D, createRenderTarget, renderScene } from './render/model3d/engine.ts';
+export type {
+  Camera3D,
+  Lighting,
+  Quad,
+  RenderTarget,
+  RotationOrder,
+  Vec3 as Model3DVec3,
+} from './render/model3d/engine.ts';

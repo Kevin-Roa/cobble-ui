@@ -1,11 +1,12 @@
 import type { JSX } from 'react';
-import { createBoxGeometry } from '../../render/three/box.ts';
+import { createBoxQuads } from '../../render/model3d/box.ts';
+import { Node3D, type Lighting } from '../../render/model3d/engine.ts';
 import { cx } from '../shared.ts';
 import {
-  ThreeViewport,
-  type ThreeSceneContext,
-  type ThreeViewportProps,
-} from '../three/ThreeViewport.tsx';
+  ModelViewport,
+  type ModelSceneContext,
+  type ModelViewportProps,
+} from '../model3d/ModelViewport.tsx';
 
 /** Width and height of an armor stand in model pixels (shoulders and arms span 14, head to base 31). */
 export const ARMOR_STAND_WIDTH = 14;
@@ -24,7 +25,6 @@ export const ARMOR_STAND_VIEWPORT_FEET = 33.5;
 export const SMITHING_ARMOR_STAND_X = 141;
 export const SMITHING_ARMOR_STAND_Y = 75;
 
-const TEXTURE_SIZE = 64;
 /** Model height from the feet to the top of the head, in pixels, and half of it (the rotation centre). */
 const MODEL_HEIGHT = 31;
 const DEGREES = Math.PI / 180;
@@ -89,7 +89,7 @@ const PARTS: readonly StandPart[] = [
 ];
 
 export interface ArmorStandProps extends Omit<
-  ThreeViewportProps,
+  ModelViewportProps,
   | 'width'
   | 'height'
   | 'textures'
@@ -123,54 +123,55 @@ interface BuildOptions {
   readonly showArms: boolean;
 }
 
+/** Light from the front, above and to the left, mostly from the front. */
+const LIGHTING: Lighting = { direction: [-1, 2, 3], ambient: 0.5, diffuse: 0.5 };
+
 /** Builds the stand under `context.root`, feet on the origin plane and centred for turning. */
-function buildStand(context: ThreeSceneContext, options: BuildOptions): void {
-  const { three, root, textures, scene } = context;
-  const map = textures[options.texture];
-  if (!map) return;
-  const material = new three.MeshLambertMaterial({ map, alphaTest: 0.1 });
-  const stand = new three.Group();
-  stand.scale.setScalar((options.small ? 0.5 : 1) / 16);
-  stand.position.y = (-MODEL_HEIGHT / 2) * ((options.small ? 0.5 : 1) / 16);
+function buildStand(context: ModelSceneContext, options: BuildOptions): void {
+  const { root, textures } = context;
+  const texture = textures[options.texture];
+  if (!texture) return;
+  const stand = new Node3D();
+  stand.scale = (options.small ? 0.5 : 1) / 16;
+  stand.position[1] = (-MODEL_HEIGHT / 2) * ((options.small ? 0.5 : 1) / 16);
   for (const part of PARTS) {
     if (part.kind === 'arm' && !options.showArms) continue;
     if (part.kind === 'base' && !options.showBasePlate) continue;
     const [bx, by, bz, bw, bh, bd] = part.box;
-    const geometry = createBoxGeometry(three, {
-      u: part.u,
-      v: part.v,
-      width: bw,
-      height: bh,
-      depth: bd,
-      textureWidth: TEXTURE_SIZE,
-      textureHeight: TEXTURE_SIZE,
-      // Model space has y down and the front toward -z; `three` has y up and the front toward +z.
-      origin: [bx, -(by + bh), -(bz + bd)],
-      ...(part.mirror ? { mirror: true } : {}),
-    });
-    const mesh = new three.Mesh(geometry, material);
+    const node = new Node3D();
+    node.addQuad(
+      ...createBoxQuads({
+        u: part.u,
+        v: part.v,
+        width: bw,
+        height: bh,
+        depth: bd,
+        texture,
+        alphaTest: 0.1,
+        // Model space has y down and the front toward -z; here y is up and the front toward +z.
+        origin: [bx, -(by + bh), -(bz + bd)],
+        ...(part.mirror ? { mirror: true } : {}),
+      }),
+    );
     const [px, py, pz] = part.pivot;
-    mesh.position.set(px, 24 - py, -pz);
+    node.position = [px, 24 - py, -pz];
     if (part.rotation) {
       const [rx, ry, rz] = part.rotation;
       // Flipping y and z is a half turn around x, which negates the y and z rotations.
-      mesh.rotation.set(rx * DEGREES, -ry * DEGREES, -rz * DEGREES, 'ZYX');
+      node.rotationOrder = 'ZYX';
+      node.rotation = [rx * DEGREES, -ry * DEGREES, -rz * DEGREES];
     }
-    stand.add(mesh);
+    stand.add(node);
   }
   root.add(stand);
-  scene.add(new three.AmbientLight(0xffffff, 2));
-  const sun = new three.DirectionalLight(0xffffff, 1.4);
-  sun.position.set(-1, 2, 3);
-  scene.add(sun);
 }
 
 /**
  * The armor stand the smithing table screen shows beside its slots (`SmithingScreen`), built from
- * the cubes of `ArmorStandModel` and rendered with `three` through {@link ThreeViewport}. It turns
+ * the cubes of `ArmorStandModel` and drawn by the library's own software renderer through {@link ModelViewport}. It turns
  * when dragged (or with the arrow keys) and, with `followMouse`, toward the cursor like
- * `InventoryScreen#extractEntityInInventoryFollowsMouse`. There is no armor. Without WebGL the box
- * stays empty.
+ * `InventoryScreen#extractEntityInInventoryFollowsMouse`. There is no armor. Where canvas drawing is
+ * unavailable the box stays empty.
  */
 export function ArmorStand(props: ArmorStandProps): JSX.Element {
   const {
@@ -186,7 +187,7 @@ export function ArmorStand(props: ArmorStandProps): JSX.Element {
   } = props;
   const options: BuildOptions = { texture, showBasePlate, small, showArms };
   return (
-    <ThreeViewport
+    <ModelViewport
       {...rest}
       // The scene is built once, so changing what is drawn remounts the viewport.
       key={`${showBasePlate}|${small}|${showArms}`}
@@ -197,6 +198,7 @@ export function ArmorStand(props: ArmorStandProps): JSX.Element {
       textures={[texture]}
       camera={{ fov: CAMERA_FOV, position: [0, 0, CAMERA_DISTANCE] }}
       rotatable={rotatable}
+      lighting={LIGHTING}
       onSceneReady={(context) => buildStand(context, options)}
     />
   );

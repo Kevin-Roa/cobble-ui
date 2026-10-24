@@ -37,11 +37,11 @@ export function PlayerRendererPage(): JSX.Element {
     <ComponentDoc
       intro={
         <>
-          A real 3D player model (<Code>PlayerModel</Code>, drawn with three.js): head, body, arms
+          A real 3D player model (<Code>PlayerModel</Code>, drawn by the library&apos;s own software renderer): head, body, arms
           and legs with the 64×64 skin layout, the hat, jacket, sleeve and pants layers, and wide or
           slim (Alex) arms. Drag or use the arrow keys to turn it. Without a <Code>player</Code> it
           wears the bundled Steve or Alex skin from the client files; with a username or UUID the
-          skin is downloaded by the browser from mc-heads.net (nothing is bundled). If WebGL or the
+          skin is downloaded by the browser from mc-heads.net (nothing is bundled). If canvas drawing or the
           skin is unavailable, mc-heads.net&apos;s 2D render is shown instead.
         </>
       }

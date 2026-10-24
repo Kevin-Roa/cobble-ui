@@ -1,9 +1,5 @@
-import type * as Three from 'three';
-import type { BufferGeometry, DataTexture } from 'three';
 import type { RgbaImage } from '../blit.ts';
-
-/** The `three` module, as loaded lazily by `ThreeViewport`. */
-export type ThreeModule = typeof Three;
+import type { Quad, Vec3 } from './engine.ts';
 
 /** A rectangle on a texture in texels (image space: `y` grows downwards). */
 export interface UvRect {
@@ -41,7 +37,7 @@ export interface BoxUvOptions {
  *  v+d+h
  * ```
  *
- * In `three` space (y up, front facing +z), "right" is the character's right side (the -x face,
+ * In model space (y up, front facing +z), "right" is the character's right side (the -x face,
  * on the viewer's left when looking at the front) and "left" the +x face. That is the layout of
  * the player skin, e.g. the head at `texOffs(0, 0)` with size `8 x 8 x 8`.
  */
@@ -61,39 +57,32 @@ export function boxUvLayout(options: BoxUvOptions): BoxUvLayout {
   };
 }
 
-export interface BoxGeometryOptions extends BoxUvOptions {
-  /** Minimum corner of the box in `three` space (y up). Defaults to centred on the origin. */
-  readonly origin?: readonly [x: number, y: number, z: number];
+export interface BoxQuadOptions extends BoxUvOptions {
+  /** Minimum corner of the box (y up). Defaults to centred on the origin. */
+  readonly origin?: Vec3;
   /** Grows the box on every side (`CubeDeformation`), in the same units as the size. */
   readonly inflate?: number;
-  /** Size of the whole texture in texels (`LayerDefinition.create(..., width, height)`). */
-  readonly textureWidth: number;
-  readonly textureHeight: number;
+  /** The texture the faces sample; its size is the `LayerDefinition` texture size. */
+  readonly texture: RgbaImage;
   /**
    * Map every face onto the whole texture instead of the box net, like a block model's
    * single-texture cube. `u`/`v` are ignored. Defaults to `false`.
    */
   readonly fullFaces?: boolean;
+  /** Apply the scene lights. Defaults to `true`. */
+  readonly lit?: boolean;
+  /** Texels below this alpha (0 to 1) are not drawn. Without it the faces are opaque. */
+  readonly alphaTest?: number;
+  readonly color?: Vec3;
 }
 
-type Vec3 = readonly [number, number, number];
-type Corners = readonly [Vec3, Vec3, Vec3, Vec3];
-
 /**
- * Builds a box whose faces sample a texture with the Minecraft box UV layout
- * ({@link boxUvLayout}). Sizes are in model pixels (1/16 of a block); scale the mesh if you
- * want blocks. Textures must be uploaded with `flipY = false` (see {@link createTexture}) so
- * the UVs can be expressed in image space.
+ * Builds the six faces of a box that sample a texture with the Minecraft box UV layout
+ * ({@link boxUvLayout}). Sizes are in model pixels (1/16 of a block); scale the node if you want
+ * blocks. The front faces +z, `right` is the character's right (-x) and `left` its left (+x).
  */
-export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOptions): BufferGeometry {
-  const {
-    width: w,
-    height: h,
-    depth: d,
-    inflate = 0,
-    textureWidth: tw,
-    textureHeight: th,
-  } = options;
+export function createBoxQuads(options: BoxQuadOptions): Quad[] {
+  const { width: w, height: h, depth: d, inflate = 0, texture, lit = true } = options;
   const [ox, oy, oz] = options.origin ?? [-w / 2, -h / 2, -d / 2];
   const x0 = ox - inflate;
   const y0 = oy - inflate;
@@ -101,6 +90,8 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
   const x1 = ox + w + inflate;
   const y1 = oy + h + inflate;
   const z1 = oz + d + inflate;
+  const tw = texture.width;
+  const th = texture.height;
   const whole: UvRect = { x0: 0, y0: 0, x1: tw, y1: th };
   const layout: BoxUvLayout = options.fullFaces
     ? { front: whole, back: whole, right: whole, left: whole, top: whole, bottom: whole }
@@ -108,10 +99,9 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
 
   // Corners are bottom-left, bottom-right, top-right, top-left as seen from outside the box
   // (counter-clockwise), so the same corner order maps onto the rectangle's UVs.
-  const faces: readonly (readonly [BoxFace, Vec3, Corners])[] = [
+  const faces: readonly (readonly [BoxFace, Quad['corners']])[] = [
     [
       'front',
-      [0, 0, 1],
       [
         [x0, y0, z1],
         [x1, y0, z1],
@@ -121,7 +111,6 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
     ],
     [
       'back',
-      [0, 0, -1],
       [
         [x1, y0, z0],
         [x0, y0, z0],
@@ -131,7 +120,6 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
     ],
     [
       'right',
-      [-1, 0, 0],
       [
         [x0, y0, z0],
         [x0, y0, z1],
@@ -141,7 +129,6 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
     ],
     [
       'left',
-      [1, 0, 0],
       [
         [x1, y0, z1],
         [x1, y0, z0],
@@ -151,7 +138,6 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
     ],
     [
       'top',
-      [0, 1, 0],
       [
         [x0, y1, z1],
         [x1, y1, z1],
@@ -161,7 +147,6 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
     ],
     [
       'bottom',
-      [0, -1, 0],
       [
         [x0, y0, z0],
         [x1, y0, z0],
@@ -171,56 +156,23 @@ export function createBoxGeometry(three: ThreeModule, options: BoxGeometryOption
     ],
   ];
 
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-  for (const [face, normal, corners] of faces) {
+  return faces.map(([face, corners]) => {
     const rect = layout[face];
-    const base = positions.length / 3;
     // Image-space texels matching `corners`: BL, BR, TR, TL.
-    const texels = [
-      [rect.x0, rect.y1],
-      [rect.x1, rect.y1],
-      [rect.x1, rect.y0],
-      [rect.x0, rect.y0],
-    ] as const;
-    corners.forEach((corner, i) => {
-      positions.push(...corner);
-      normals.push(...normal);
-      const texel = texels[i];
-      if (texel) uvs.push(texel[0] / tw, texel[1] / th);
-    });
-    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
-  }
-
-  const geometry = new three.BufferGeometry();
-  geometry.setAttribute('position', new three.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('normal', new three.Float32BufferAttribute(normals, 3));
-  geometry.setAttribute('uv', new three.Float32BufferAttribute(uvs, 2));
-  geometry.setIndex(indices);
-  return geometry;
-}
-
-/**
- * Uploads a decoded game texture exactly as the game samples it: nearest filtering, no
- * mipmaps, sRGB colour space and no vertical flip (UVs are in image space, see
- * {@link createBoxGeometry}). `ThreeViewport` disposes the textures it hands out.
- */
-export function createTexture(three: ThreeModule, image: RgbaImage): DataTexture {
-  const texture = new three.DataTexture(
-    new Uint8Array(image.data),
-    image.width,
-    image.height,
-    three.RGBAFormat,
-  );
-  texture.colorSpace = three.SRGBColorSpace;
-  texture.magFilter = three.NearestFilter;
-  texture.minFilter = three.NearestFilter;
-  texture.generateMipmaps = false;
-  texture.flipY = false;
-  texture.needsUpdate = true;
-  return texture;
+    return {
+      corners,
+      uvs: [
+        [rect.x0 / tw, rect.y1 / th],
+        [rect.x1 / tw, rect.y1 / th],
+        [rect.x1 / tw, rect.y0 / th],
+        [rect.x0 / tw, rect.y0 / th],
+      ],
+      texture,
+      lit,
+      ...(options.alphaTest === undefined ? {} : { alphaTest: options.alphaTest }),
+      ...(options.color ? { color: options.color } : {}),
+    } satisfies Quad;
+  });
 }
 
 const FOLLOW_DISTANCE = 40;

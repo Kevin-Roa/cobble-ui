@@ -1,7 +1,7 @@
 /**
- * Turns the models {@link resolveItem} resolves into plain vertex data for three.js, one mesh per
- * texture. Pure (no `three` import), so it can be tested without WebGL. A block is 1 unit wide and
- * centred on the origin (model space divided by 16).
+ * Turns the models {@link resolveItem} resolves into textured quads for the software renderer.
+ * Pure, so it can be tested without a canvas. A block is 1 unit wide and centred on the origin
+ * (model space divided by 16).
  */
 import {
   FACE_FRAMES,
@@ -14,19 +14,8 @@ import {
   type ItemPart,
   type Vec3,
 } from '../item-model.ts';
-
-/** Vertex data of every face that uses one texture. */
-export interface BakedMesh {
-  readonly texture: string;
-  /** xyz per vertex. */
-  readonly positions: number[];
-  /** uv per vertex, in image space (v grows downward; textures are uploaded with `flipY = false`). */
-  readonly uvs: number[];
-  /** Linear rgb per vertex: the face shade times the tint. */
-  readonly colors: number[];
-  /** Two triangles per face. */
-  readonly indices: number[];
-}
+import type { RgbaImage } from '../blit.ts';
+import type { Quad } from './engine.ts';
 
 /**
  * The vanilla block shading of a face normal (`Direction#getShade` blended by the normal's
@@ -42,16 +31,9 @@ export function faceShade(normal: Vec3): number {
   return nx * nx * 0.6 + (ny > 0 ? 1 : 0.5) * ny * ny + nz * nz * 0.8;
 }
 
-/** sRGB to linear, because vertex colours are multiplied in linear space but vanilla shades in sRGB. */
-export function srgbToLinear(value: number): number {
-  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-}
-
 export interface BakeOptions {
-  /** Size of a texture in pixels (animated sheets are taller than wide: only the first frame shows). */
-  readonly textureSize: (
-    id: string,
-  ) => { readonly width: number; readonly height: number } | undefined;
+  /** A decoded texture (animated sheets are taller than wide: only the first frame shows). */
+  readonly texture: (id: string) => RgbaImage | undefined;
 }
 
 const LAYER_STEP = 0.002;
@@ -74,38 +56,11 @@ export function modelTextures(parts: readonly ItemPart[]): string[] {
   return [...ids];
 }
 
-class Collector {
-  readonly meshes = new Map<string, BakedMesh>();
-
-  quad(
-    texture: string,
-    corners: readonly [Vec3, Vec3, Vec3, Vec3],
-    uvs: readonly [number, number][],
-    color: readonly [number, number, number],
-  ): void {
-    let mesh = this.meshes.get(texture);
-    if (!mesh) {
-      mesh = { texture, positions: [], uvs: [], colors: [], indices: [] };
-      this.meshes.set(texture, mesh);
-    }
-    const base = mesh.positions.length / 3;
-    for (let i = 0; i < 4; i++) {
-      const corner = corners[i];
-      const uv = uvs[i];
-      if (!corner || !uv) continue;
-      mesh.positions.push(corner[0], corner[1], corner[2]);
-      mesh.uvs.push(uv[0], uv[1]);
-      mesh.colors.push(color[0], color[1], color[2]);
-    }
-    mesh.indices.push(base, base + 2, base + 1, base, base + 3, base + 2);
-  }
-}
-
 function colorOf(shade: number, tint: number | undefined): [number, number, number] {
   const r = tint === undefined ? 1 : ((tint >> 16) & 255) / 255;
   const g = tint === undefined ? 1 : ((tint >> 8) & 255) / 255;
   const b = tint === undefined ? 1 : (tint & 255) / 255;
-  return [srgbToLinear(shade * r), srgbToLinear(shade * g), srgbToLinear(shade * b)];
+  return [shade * r, shade * g, shade * b];
 }
 
 /**
@@ -113,13 +68,30 @@ function colorOf(shade: number, tint: number | undefined): [number, number, numb
  * rotation, tint and `shade`, and the flat `layerN` sprites of `item/generated` models (drawn as
  * double-sided quads). Faces are not culled (`cullface` only matters next to other blocks).
  */
-export function bakeParts(parts: readonly ItemPart[], options: BakeOptions): BakedMesh[] {
-  const out = new Collector();
+export function bakeParts(parts: readonly ItemPart[], options: BakeOptions): Quad[] {
+  const out: Quad[] = [];
+  const quad = (
+    id: string,
+    corners: Quad['corners'],
+    uvs: readonly (readonly [number, number])[],
+    color: readonly [number, number, number],
+  ): void => {
+    const texture = options.texture(id);
+    if (!texture) return;
+    out.push({
+      corners,
+      uvs: uvs as unknown as Quad['uvs'],
+      texture,
+      color,
+      alphaTest: 0.1,
+      doubleSided: true,
+    });
+  };
   for (const { model, tints } of parts) {
     if (model.layers) {
       model.layers.forEach((texture, index) => {
         const z = index * LAYER_STEP;
-        out.quad(
+        quad(
           texture,
           [
             [-0.5, 0.5, z],
@@ -179,7 +151,7 @@ export function bakeParts(parts: readonly ItemPart[], options: BakeOptions): Bak
           uv.tr[0] + uv.bl[0] - uv.tl[0],
           uv.tr[1] + uv.bl[1] - uv.tl[1],
         ];
-        const size2 = options.textureSize(texture);
+        const size2 = options.texture(texture);
         const vScale = size2 && size2.height > 0 ? size2.width / size2.height : 1;
         const toUv = (point: readonly [number, number]): [number, number] => [
           point[0] / 16,
@@ -189,7 +161,7 @@ export function bakeParts(parts: readonly ItemPart[], options: BakeOptions): Bak
           model.light === 'front' || element.shade === false
             ? 1
             : faceShade(rotateElementNormal(frame.normal, element.rotation));
-        out.quad(
+        quad(
           texture,
           [place(tl), place(tr), place(br), place(bl)],
           [toUv(uv.tl), toUv(uv.tr), toUv(brUv), toUv(uv.bl)],
@@ -198,11 +170,11 @@ export function bakeParts(parts: readonly ItemPart[], options: BakeOptions): Bak
       }
     }
   }
-  return [...out.meshes.values()];
+  return out;
 }
 
 function layerUvs(texture: string, options: BakeOptions): [number, number][] {
-  const size = options.textureSize(texture);
+  const size = options.texture(texture);
   const v = size && size.height > 0 ? size.width / size.height : 1;
   return [
     [0, 0],

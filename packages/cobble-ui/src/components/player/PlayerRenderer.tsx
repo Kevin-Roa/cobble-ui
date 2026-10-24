@@ -3,9 +3,8 @@ import { useEffect, useRef, useState, type ElementType, type JSX } from 'react';
 import { useLatest, usePrefersReducedMotion } from '../../internal/hooks.ts';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { RgbaImage } from '../../render/blit.ts';
-import { createTexture } from '../../render/three/box.ts';
 import { cx } from '../shared.ts';
-import { ThreeViewport, type ThreeSceneContext } from '../three/ThreeViewport.tsx';
+import { ModelViewport, type ModelSceneContext } from '../model3d/ModelViewport.tsx';
 import { PlayerAvatar } from './PlayerAvatar.tsx';
 import { mcHeadsUrl } from './mcheads.ts';
 import {
@@ -115,11 +114,11 @@ function useSkinPixels(player: string | undefined): RgbaImage | null | undefined
 }
 
 /**
- * A 3D player model (`PlayerModel`, on `three`) wearing a skin: head, body, arms and legs with
+ * A 3D player model (`PlayerModel`, drawn by the library's own software renderer) wearing a skin: head, body, arms and legs with
  * the 64x64 skin layout, the hat/jacket/sleeve/pants layers, and wide or slim arms. It turns when
  * dragged, can follow the cursor and can spin by itself. Pass a username or UUID for a real skin
  * (downloaded by the browser from mc-heads.net, nothing is bundled) or use a `skin` from the
- * client files. Where WebGL is unavailable, or the skin cannot be read, mc-heads.net's 2D render
+ * client files. Where canvas drawing is unavailable, or the skin cannot be read, mc-heads.net's 2D render
  * is shown instead.
  */
 export function PlayerRenderer<E extends ElementType = 'div'>(
@@ -169,22 +168,20 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
       />
     );
 
-  const buildScene = (context: ThreeSceneContext): (() => void) => {
-    const { three, root, textures } = context;
-    const own = pixels ? createTexture(three, pixels) : undefined;
-    const texture = own ?? textures[localSkin];
+  const buildScene = (context: ModelSceneContext): (() => void) => {
+    const { root, textures } = context;
+    const texture = pixels ?? textures[localSkin];
     if (!texture) return () => undefined;
-    partsRef.current = buildPlayerModel(three, root, {
+    partsRef.current = buildPlayerModel(root, {
       slim,
       texture,
       overlay: latest.current.overlay,
     });
     return () => {
       partsRef.current = null;
-      own?.dispose();
     };
   };
-  const onFrame = (context: ThreeSceneContext, frame: { readonly time: number }): void => {
+  const onFrame = (context: ModelSceneContext, frame: { readonly time: number }): void => {
     const parts = partsRef.current;
     if (!parts) return;
     const { look, root } = context;
@@ -192,14 +189,14 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
     posePlayer(parts, settings.reducedMotion ? 'standing' : settings.pose, frame.time);
     // Vanilla turns the body by 20 degrees per radian of cursor offset and the head by another 20
     // on top, and only the head pitches (`extractEntityInInventoryFollowsMouse`).
-    root.rotation.y += settings.followMouse ? look.followYaw : 0;
-    parts.head.rotation.y = settings.followMouse ? look.followHeadYaw : 0;
-    parts.head.rotation.x = settings.followMouse ? look.followPitch : 0;
+    root.rotation[1] += settings.followMouse ? look.followYaw : 0;
+    parts.head.rotation[1] = settings.followMouse ? look.followHeadYaw : 0;
+    parts.head.rotation[0] = settings.followMouse ? look.followPitch : 0;
   };
 
   let content: JSX.Element;
   if (pixels === undefined || (name !== undefined && pixels === null && skin === undefined)) {
-    // The skin is still downloading, or could not be read into WebGL (and no `skin` was given to fall back to): show the plain image.
+    // The skin is still downloading, or could not be read (and no `skin` was given to fall back to): show the plain image.
     content = (
       <div role="img" aria-label={accessibleName} className="cobble-player-loading">
         {avatar}
@@ -207,7 +204,7 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
     );
   } else {
     content = (
-      <ThreeViewport
+      <ModelViewport
         // A different model or skin is a different scene.
         key={`${slim ? 'slim' : 'wide'}:${name ?? localSkin}:${pixels ? 'own' : 'local'}:${overlay ? 'overlay' : 'base'}`}
         aria-label={accessibleName}

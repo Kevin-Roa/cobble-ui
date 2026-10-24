@@ -9,16 +9,24 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
-import type { Group, PerspectiveCamera, Scene, Texture, WebGLRenderer } from 'three';
 import { useLatest, usePrefersReducedMotion } from '../../internal/hooks.ts';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
 import { useCobble } from '../../provider/context.ts';
 import { useAssetRevision } from '../../provider/hooks.ts';
-import { createTexture, followAngles, type ThreeModule } from '../../render/three/box.ts';
+import type { RgbaImage } from '../../render/blit.ts';
+import { followAngles } from '../../render/model3d/box.ts';
+import {
+  Node3D,
+  createRenderTarget,
+  renderScene,
+  type Camera3D,
+  type Lighting,
+  type RenderTarget,
+} from '../../render/model3d/engine.ts';
 import { cx } from '../shared.ts';
 
-/** The rotation applied to {@link ThreeSceneContext.root} each frame, in radians. */
-export interface ThreeLook {
+/** The rotation applied to {@link ModelSceneContext.root} each frame, in radians. */
+export interface ModelLook {
   /** Yaw from dragging, the arrow keys, `autoRotate` and `initialYaw`. Positive turns the front toward +x. */
   yaw: number;
   /** Pitch from dragging and the arrow keys. Positive looks down. */
@@ -31,44 +39,32 @@ export interface ThreeLook {
   followPitch: number;
 }
 
-/** Everything a scene builder gets from {@link ThreeViewport}. */
-export interface ThreeSceneContext {
-  /** The lazily loaded `three` module. */
-  readonly three: ThreeModule;
-  readonly renderer: WebGLRenderer;
-  readonly scene: Scene;
-  /** Perspective camera, positioned from the `camera` prop. */
-  readonly camera: PerspectiveCamera;
+/** Everything a scene builder gets from {@link ModelViewport}. */
+export interface ModelSceneContext {
   /**
-   * Add your model here. The viewport rotates this group (yaw/pitch from the user, `autoRotate`
+   * Add your model here. The viewport rotates this node (yaw/pitch from the user, `autoRotate`
    * and `followMouse`); everything under it turns together around the origin.
    */
-  readonly root: Group;
-  /** The textures requested with the `textures` prop, keyed by texture id (nearest filtered, sRGB). Disposed for you. */
-  readonly textures: Readonly<Record<string, Texture>>;
+  readonly root: Node3D;
+  /** The textures requested with the `textures` prop, keyed by texture id. */
+  readonly textures: Readonly<Record<string, RgbaImage>>;
   /** The live rotation state, updated before every `onFrame`. */
-  readonly look: Readonly<ThreeLook>;
+  readonly look: Readonly<ModelLook>;
   /** Draw another frame (only needed when you change the scene outside `onFrame` and `animated` is off). */
   readonly invalidate: () => void;
 }
 
-export interface ThreeFrame {
+export interface ModelFrame {
   /** Seconds since the previous frame (`0` for the first). */
   readonly delta: number;
   /** Seconds since the scene was created. */
   readonly time: number;
 }
 
-export interface ThreeCameraOptions {
-  /** Vertical field of view in degrees. Defaults to 30. */
-  readonly fov?: number;
-  /** Camera position. Defaults to `[0, 0, 5]`, looking at the origin. */
-  readonly position?: readonly [x: number, y: number, z: number];
-  /** Point the camera looks at. Defaults to the origin. */
-  readonly target?: readonly [x: number, y: number, z: number];
-}
+/** Vertical field of view in degrees (default 30), position (default `[0, 0, 5]`) and target (default the origin). */
+export type ModelCameraOptions = Camera3D;
 
-export interface ThreeViewportProps extends Omit<SlotProps<'div'>, 'children' | 'onError'> {
+export interface ModelViewportProps extends Omit<SlotProps<'div'>, 'children' | 'onError'> {
   /** Width in GUI units. Defaults to 64. */
   readonly width?: number;
   /** Height in GUI units. Defaults to 64. */
@@ -76,20 +72,21 @@ export interface ThreeViewportProps extends Omit<SlotProps<'div'>, 'children' | 
   /** Accessible name of the viewport (it is exposed as an image). */
   readonly 'aria-label': string;
   /**
-   * Called once when `three` is loaded, WebGL works and every requested texture has been
-   * decoded. Build the scene under `ctx.root`. May return a cleanup function. The latest
+   * Called once when the canvas works and every requested texture has been decoded. Build the scene under `ctx.root`. May return a cleanup function. The latest
    * callback is used; changing it does not rebuild the scene (change `textures` or `key` for that).
    */
-  readonly onSceneReady?: (context: ThreeSceneContext) => void | (() => void);
+  readonly onSceneReady?: (context: ModelSceneContext) => void | (() => void);
   /** Called before every rendered frame, after the rotation was applied. Only use with `animated` for continuous animation. */
-  readonly onFrame?: (context: ThreeSceneContext, frame: ThreeFrame) => void;
+  readonly onFrame?: (context: ModelSceneContext, frame: ModelFrame) => void;
   /**
    * Texture ids to load from the asset store (`block/stone`, `entity/player/wide/steve`, ...).
    * The scene is only built once all of them are available. Changing the list rebuilds the scene.
    */
   readonly textures?: readonly string[];
   /** Camera setup. */
-  readonly camera?: ThreeCameraOptions;
+  readonly camera?: ModelCameraOptions;
+  /** Scene lighting for quads with `lit`. */
+  readonly lighting?: Lighting;
   /** Dragging with the pointer or pressing the arrow keys rotates the model. Defaults to `false`. */
   readonly rotatable?: boolean;
   /**
@@ -108,7 +105,7 @@ export interface ThreeViewportProps extends Omit<SlotProps<'div'>, 'children' | 
   readonly initialPitch?: number;
   /** Maximum pitch from dragging in degrees. Defaults to 80. */
   readonly pitchLimit?: number;
-  /** Shown while loading and when WebGL is unavailable. */
+  /** Shown while loading and when canvas drawing is unavailable. */
   readonly fallback?: ReactNode;
 }
 
@@ -116,24 +113,21 @@ const DEGREES = Math.PI / 180;
 const DRAG_RADIANS_PER_PIXEL = 0.01;
 const KEY_STEP = 0.15;
 
-function onContextLost(event: Event): void {
-  event.preventDefault();
-}
-
 function noopSubscribe(): () => void {
   return () => undefined;
 }
 
-function detectWebGl(): boolean {
-  return (
-    typeof document !== 'undefined' &&
-    (typeof WebGL2RenderingContext !== 'undefined' || typeof WebGLRenderingContext !== 'undefined')
-  );
+let canvasSupport: boolean | undefined;
+
+/** Whether a 2D canvas can be drawn to (`false` in jsdom and on the server). */
+function detectCanvas(): boolean {
+  if (typeof document === 'undefined') return false;
+  canvasSupport ??= document.createElement('canvas').getContext('2d') !== null;
+  return canvasSupport;
 }
 
-/** Whether the browser exposes WebGL at all (`false` in jsdom and on the server). */
-function useWebGlSupport(): boolean {
-  return useSyncExternalStore(noopSubscribe, detectWebGl, () => false);
+function useCanvasSupport(): boolean {
+  return useSyncExternalStore(noopSubscribe, detectCanvas, () => false);
 }
 
 interface Runtime {
@@ -141,35 +135,23 @@ interface Runtime {
   readonly resize: () => void;
 }
 
-/** Frees the GPU resources of everything under `object`. */
-function disposeObject(object: Scene | Group): void {
-  object.traverse((child) => {
-    const mesh = child as {
-      geometry?: { dispose?: () => void };
-      material?: { dispose?: () => void } | { dispose?: () => void }[];
-    };
-    mesh.geometry?.dispose?.();
-    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    for (const material of materials) material?.dispose?.();
-  });
-}
-
 /**
- * A WebGL canvas, sized in GUI units and rendered at device resolution, hosting a `three`
- * scene. `three` is loaded lazily (it is an optional peer dependency) so it costs nothing until
- * a viewport is mounted. The renderer pauses while off-screen or when the tab is hidden, only
- * draws when something changed (unless `animated`) and disposes everything on unmount. Without
- * WebGL (or while loading) the `fallback` is shown and nothing throws.
+ * A canvas, sized in GUI units and rendered at device resolution, that draws a small 3D scene with
+ * the library's own software renderer (`render/model3d/engine.ts`): no WebGL and no dependencies.
+ * It only draws when something changed (unless `animated`), pauses while off-screen or when the
+ * tab is hidden and frees everything on unmount. While loading, or when the browser cannot draw
+ * (no 2D canvas), the `fallback` is shown and nothing throws.
  *
  * Textures are taken from the asset store, so the scene waits for the client files. Use
- * `createBoxGeometry` and `createTexture` to build Minecraft-style boxes.
+ * `createBoxQuads` to build Minecraft-style boxes.
  */
-export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
+export function ModelViewport(props: ModelViewportProps): JSX.Element {
   const {
     width = 64,
     height = 64,
     textures: textureIds,
     camera: cameraProp,
+    lighting,
     onSceneReady,
     onFrame,
     rotatable = false,
@@ -187,7 +169,7 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
   const { store, unit, deviceScale } = useCobble();
   // Re-render when the store changes so textures that finished decoding are picked up.
   useAssetRevision();
-  const supported = useWebGlSupport();
+  const supported = useCanvasSupport();
   const reducedMotion = usePrefersReducedMotion();
   const [result, setResult] = useState<{ key: string; value: 'ready' | 'failed' } | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -199,7 +181,7 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
       followYaw: 0,
       followHeadYaw: 0,
       followPitch: 0,
-    } as ThreeLook,
+    } as ModelLook,
     mouse: null as { x: number; y: number } | null,
     drag: null as { id: number; x: number; y: number } | null,
   });
@@ -207,6 +189,7 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
     onSceneReady,
     onFrame,
     camera: cameraProp,
+    lighting,
     followMouse,
     autoRotate: reducedMotion ? false : autoRotate,
     animated,
@@ -231,35 +214,21 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
     let disposed = false;
     let teardown: (() => void) | undefined;
 
-    const setup = (three: ThreeModule): (() => void) => {
+    const setup = (): (() => void) => {
       const canvas = document.createElement('canvas');
-      canvas.className = 'cobble-three-canvas';
+      canvas.className = 'cobble-model3d-canvas';
       canvas.setAttribute('aria-hidden', 'true');
-      const renderer = new three.WebGLRenderer({
-        canvas,
-        alpha: true,
-        antialias: false,
-        powerPreference: 'low-power',
-      });
+      const context2d = canvas.getContext('2d');
+      if (!context2d) throw new Error('2D canvas is unavailable');
       host.append(canvas);
-      renderer.setPixelRatio(1);
-      renderer.setClearColor(0x000000, 0);
-      const scene = new three.Scene();
-      const camera = new three.PerspectiveCamera(30, 1, 0.1, 2000);
-      const root = new three.Group();
-      scene.add(root);
+      const root = new Node3D();
+      root.rotationOrder = 'YXZ';
 
-      const textures: Record<string, Texture> = {};
+      const textures: Record<string, RgbaImage> = {};
       for (const id of ids) {
         const image = store.getTexture(id);
-        if (image) textures[id] = createTexture(three, image);
+        if (image) textures[id] = image;
       }
-      const { camera: cameraOptions } = latest.current;
-      camera.fov = cameraOptions?.fov ?? 30;
-      const [camX, camY, camZ] = cameraOptions?.position ?? [0, 0, 5];
-      camera.position.set(camX, camY, camZ);
-      const [tx, ty, tz] = cameraOptions?.target ?? [0, 0, 0];
-      camera.lookAt(tx, ty, tz);
 
       const view = viewRef.current;
       let frame = 0;
@@ -267,12 +236,10 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
       let last: number | undefined;
       let elapsed = 0;
       let sceneCleanup: void | (() => void);
+      let target: RenderTarget = createRenderTarget(1, 1);
+      let image: ImageData | undefined;
 
-      const context: ThreeSceneContext = {
-        three,
-        renderer,
-        scene,
-        camera,
+      const context: ModelSceneContext = {
         root,
         textures,
         look: view.look,
@@ -283,9 +250,11 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
         const { width: w, height: h, deviceScale: scale } = latest.current;
         const pixelWidth = Math.max(1, Math.round(w * scale));
         const pixelHeight = Math.max(1, Math.round(h * scale));
-        renderer.setSize(pixelWidth, pixelHeight, false);
-        camera.aspect = pixelWidth / pixelHeight;
-        camera.updateProjectionMatrix();
+        if (target.width === pixelWidth && target.height === pixelHeight && image) return;
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+        target = createRenderTarget(pixelWidth, pixelHeight);
+        image = undefined;
       };
 
       const tick = (time: number): void => {
@@ -315,12 +284,14 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
           view.look.followPitch = 0;
         }
         const follow = settings.followMouse === true;
-        root.rotation.order = 'YXZ';
-        root.rotation.y = view.look.yaw + (follow ? view.look.followYaw : 0);
-        root.rotation.x = view.look.pitch + (follow ? view.look.followPitch : 0);
+        root.rotation[1] = view.look.yaw + (follow ? view.look.followYaw : 0);
+        root.rotation[0] = view.look.pitch + (follow ? view.look.followPitch : 0);
 
         settings.onFrame?.(context, { delta, time: elapsed });
-        renderer.render(scene, camera);
+        renderScene(root, settings.camera ?? {}, target, settings.lighting);
+        image ??= new ImageData(target.width, target.height);
+        image.data.set(target.data);
+        context2d.putImageData(image, 0, 0);
         if (settings.animated || speed !== 0) schedule();
         else last = undefined;
       };
@@ -364,11 +335,6 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
       observer?.observe(host);
       document.addEventListener('visibilitychange', updateVisible);
 
-      // Contexts can be lost (GPU reset, too many contexts); drawing resumes when restored.
-      const onRestored = (): void => runtime.invalidate();
-      canvas.addEventListener('webglcontextrestored', onRestored);
-      canvas.addEventListener('webglcontextlost', onContextLost);
-
       // `followMouse`: the cursor relative to the viewport's centre, in GUI units.
       const onPointerMove = (event: PointerEvent): void => {
         if (!latest.current.followMouse || event.pointerType === 'touch') return;
@@ -388,14 +354,7 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
         window.removeEventListener('pointermove', onPointerMove);
         document.removeEventListener('visibilitychange', updateVisible);
         observer?.disconnect();
-        canvas.removeEventListener('webglcontextrestored', onRestored);
-        canvas.removeEventListener('webglcontextlost', onContextLost);
         if (typeof sceneCleanup === 'function') sceneCleanup();
-        disposeObject(scene);
-        scene.clear();
-        for (const texture of Object.values(textures)) texture.dispose();
-        renderer.dispose();
-        renderer.forceContextLoss();
         canvas.remove();
         if (runtimeRef.current === runtime) runtimeRef.current = null;
       };
@@ -403,7 +362,7 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
       try {
         sceneCleanup = latest.current.onSceneReady?.(context);
       } catch (error) {
-        // Do not leak the renderer when the scene code throws.
+        // Do not leak the canvas when the scene code throws.
         cleanup();
         throw error;
       }
@@ -411,23 +370,17 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
       return cleanup;
     };
 
-    import('three').then(
-      (three) => {
-        if (disposed) return;
-        try {
-          teardown = setup(three);
-          setResult({ key: textureKey, value: 'ready' });
-        } catch (error) {
-          console.warn('[cobble-ui] Could not start the WebGL renderer', error);
-          setResult({ key: textureKey, value: 'failed' });
-        }
-      },
-      (error: unknown) => {
-        if (disposed) return;
-        console.warn('[cobble-ui] Could not load three.js', error);
+    // Set up after the effect returns, so the result can be stored without a synchronous setState.
+    void Promise.resolve().then(() => {
+      if (disposed) return;
+      try {
+        teardown = setup();
+        setResult({ key: textureKey, value: 'ready' });
+      } catch (error) {
+        console.warn('[cobble-ui] Could not start the 3D renderer', error);
         setResult({ key: textureKey, value: 'failed' });
-      },
-    );
+      }
+    });
 
     return () => {
       disposed = true;
@@ -512,9 +465,9 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
       tabIndex={rotatable ? 0 : undefined}
       aria-roledescription={rotatable ? '3D viewer' : undefined}
       {...rest}
-      className={cx('cobble-three-viewport', className)}
+      className={cx('cobble-model3d-viewport', className)}
       data-rotatable={rotatable ? '' : undefined}
-      data-status={supported ? status : 'unsupported'}
+      data-status={!supported || status === 'failed' ? 'unsupported' : status}
       style={rootStyle}
       onPointerDown={(event) => {
         rest.onPointerDown?.(event);
@@ -537,9 +490,9 @@ export function ThreeViewport(props: ThreeViewportProps): JSX.Element {
         if (!event.defaultPrevented) onKeyDown(event);
       }}
     >
-      <div ref={hostRef} className="cobble-three-host" />
+      <div ref={hostRef} className="cobble-model3d-host" />
       {status === 'ready' && supported ? null : (
-        <div className="cobble-three-fallback">{fallback}</div>
+        <div className="cobble-model3d-fallback">{fallback}</div>
       )}
     </div>
   );

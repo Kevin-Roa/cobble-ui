@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { resolveItem } from '../item-model.ts';
-import { bakeParts, faceShade, modelTextures, srgbToLinear } from './model.ts';
+import type { RgbaImage } from '../blit.ts';
+import { bakeParts, faceShade, modelTextures } from './model.ts';
+
+function image(width: number, height: number): RgbaImage {
+  return { width, height, data: new Uint8ClampedArray(width * height * 4) };
+}
 
 const files: Record<string, unknown> = {
   'assets/minecraft/items/cube.json': {
@@ -35,44 +40,44 @@ describe('faceShade', () => {
     expect(faceShade([0, 0, 1])).toBeCloseTo(0.8);
     expect(faceShade([-1, 0, 0])).toBeCloseTo(0.6);
   });
-  it('converts sRGB to linear', () => {
-    expect(srgbToLinear(1)).toBeCloseTo(1);
-    expect(srgbToLinear(0.5)).toBeCloseTo(0.214, 2);
-  });
 });
 
 describe('bakeParts', () => {
-  it('bakes element faces by texture with uv, shade and tint', () => {
+  it('bakes element faces with uv, shade and tint', () => {
     const parts = resolveItem('cube', source);
     expect(parts).toBeTruthy();
     if (!parts) return;
     expect(modelTextures(parts)).toEqual(['block/stone']);
-    const [mesh] = bakeParts(parts, { textureSize: () => ({ width: 16, height: 16 }) });
-    expect(mesh?.texture).toBe('block/stone');
-    expect(mesh?.positions).toHaveLength(3 * 4 * 3);
-    expect(mesh?.indices).toHaveLength(6 * 3);
+    const quads = bakeParts(parts, { texture: () => image(16, 16) });
+    expect(quads).toHaveLength(3);
     // Face order follows the JSON: up, south, north. South uses the top-left quarter of the texture.
-    expect(mesh?.uvs.slice(8, 16)).toEqual([0, 0, 0.5, 0, 0.5, 0.5, 0, 0.5]);
+    expect(quads[1]?.uvs).toEqual([
+      [0, 0],
+      [0.5, 0],
+      [0.5, 0.5],
+      [0, 0.5],
+    ]);
     // Block corners are centred on the origin.
-    expect(Math.max(...(mesh?.positions ?? []))).toBeCloseTo(0.5);
-    // The up face is fully lit, the south face is shaded (0.8 in sRGB).
-    expect(mesh?.colors[0]).toBeCloseTo(1);
-    expect(mesh?.colors[4 * 3]).toBeCloseTo(srgbToLinear(0.8));
+    expect(Math.max(...quads.flatMap((quad) => quad.corners.flat()))).toBeCloseTo(0.5);
+    // The up face is fully lit, the south face is shaded (0.8).
+    expect(quads[0]?.color?.[0]).toBeCloseTo(1);
+    expect(quads[1]?.color?.[0]).toBeCloseTo(0.8);
+    expect(quads.every((quad) => quad.doubleSided)).toBe(true);
   });
 
   it('squashes the v of animated sheets to the first frame', () => {
     const parts = resolveItem('cube', source);
     if (!parts) throw new Error('missing');
-    const [mesh] = bakeParts(parts, { textureSize: () => ({ width: 16, height: 64 }) });
-    expect(mesh?.uvs[1]).toBeCloseTo(0);
-    expect(mesh?.uvs[5]).toBeCloseTo(0.25);
+    const [quad] = bakeParts(parts, { texture: () => image(16, 64) });
+    expect(quad?.uvs[0]?.[1]).toBeCloseTo(0);
+    expect(quad?.uvs[2]?.[1]).toBeCloseTo(0.25);
   });
 
   it('draws item/generated layers as one flat quad', () => {
     const parts = resolveItem('flat', source);
     if (!parts) throw new Error('missing');
-    const [mesh] = bakeParts(parts, { textureSize: () => undefined });
-    expect(mesh?.texture).toBe('item/apple');
-    expect(mesh?.indices).toHaveLength(6);
+    const quads = bakeParts(parts, { texture: () => image(16, 16) });
+    expect(quads).toHaveLength(1);
+    expect(bakeParts(parts, { texture: () => undefined })).toHaveLength(0);
   });
 });

@@ -5,7 +5,7 @@ import {
   PlayerRendererPage,
 } from './components/players.tsx';
 import { ItemsPage } from './components/explorers.tsx';
-import { BlockModelPage, ThreeViewportPage } from './components/three.tsx';
+import { BlockModelPage, ModelViewportPage } from './components/model3d.tsx';
 import { ArmorStandPage } from './components/armor-stand.tsx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
@@ -369,7 +369,7 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('player-head', 'PlayerHead', 'Text & sprites', PlayerHeadPage),
   entry('player-renderer', 'PlayerRenderer', 'Text & sprites', PlayerRendererPage),
   entry('block-model', 'BlockModel', 'Text & sprites', BlockModelPage),
-  entry('three-viewport', 'ThreeViewport', 'Text & sprites', ThreeViewportPage),
+  entry('model-viewport', 'ModelViewport', 'Text & sprites', ModelViewportPage),
   entry('armor-stand', 'ArmorStand', 'Text & sprites', ArmorStandPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),

@@ -22,7 +22,7 @@ const DEFAULT_INCLUDE = (path: string): boolean =>
   path.startsWith('assets/minecraft/models/block/') ||
   path === 'assets/minecraft/textures/misc/unknown_server.png' ||
   path === 'assets/minecraft/textures/misc/unknown_pack.png' ||
-  // Player skins, armor layers and the armor stand, for the three.js renderers (`ThreeViewport`).
+  // Player skins, armor layers and the armor stand, for the 3D renderers (`ModelViewport`).
   path.startsWith('assets/minecraft/textures/entity/player/') ||
   path.startsWith('assets/minecraft/textures/entity/equipment/') ||
   path.startsWith('assets/minecraft/textures/entity/armorstand/') ||

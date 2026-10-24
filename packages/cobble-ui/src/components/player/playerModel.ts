@@ -1,6 +1,6 @@
-import type { Group, Material, Mesh, Texture } from 'three';
 import type { RgbaImage } from '../../render/blit.ts';
-import { createBoxGeometry, type ThreeModule } from '../../render/three/box.ts';
+import { createBoxQuads } from '../../render/model3d/box.ts';
+import { Node3D } from '../../render/model3d/engine.ts';
 
 /** Skin texture used when no skin is given (`DefaultPlayerSkin`'s Steve). */
 export const STEVE_SKIN = 'entity/player/wide/steve';
@@ -12,14 +12,14 @@ export type PlayerModelType = 'wide' | 'slim';
 
 const SIZE = 64;
 
-/** The parts that move, in the three space the model is built in. */
+/** The parts that move, in the model space the model is built in (y up, facing +z). */
 export interface PlayerParts {
-  readonly head: Group;
-  readonly body: Group;
-  readonly rightArm: Group;
-  readonly leftArm: Group;
-  readonly rightLeg: Group;
-  readonly leftLeg: Group;
+  readonly head: Node3D;
+  readonly body: Node3D;
+  readonly rightArm: Node3D;
+  readonly leftArm: Node3D;
+  readonly rightLeg: Node3D;
+  readonly leftLeg: Node3D;
 }
 
 interface PartDefinition {
@@ -99,7 +99,7 @@ const CENTER_Y = 8;
 
 export interface PlayerModelOptions {
   readonly slim: boolean;
-  readonly texture: Texture;
+  readonly texture: RgbaImage;
   /** Draw the hat, jacket, sleeve and pants layers. Defaults to `true`. */
   readonly overlay?: boolean;
 }
@@ -107,49 +107,40 @@ export interface PlayerModelOptions {
 /**
  * Builds the player model under `root`, centred on the origin and facing +z with the character's
  * right on -x. Vanilla model space has y down and the face at -z, so `y` and `z` are negated; the
- * pivots become group positions so limbs rotate around the same points as in the game. Also adds
- * the lights (ambient plus one directional light from the front, above and to the left, like the
- * entity-in-UI lighting of `Lighting`).
+ * pivots become node positions so limbs rotate around the same points as in the game. The faces
+ * are lit by the viewport's lights (front, above and to the left, like the entity-in-UI lighting
+ * of `Lighting`).
  */
-export function buildPlayerModel(
-  three: ThreeModule,
-  root: Group,
-  options: PlayerModelOptions,
-): PlayerParts {
+export function buildPlayerModel(root: Node3D, options: PlayerModelOptions): PlayerParts {
   const { slim, texture, overlay = true } = options;
-  const base = new three.MeshLambertMaterial({ map: texture });
-  const layer = new three.MeshLambertMaterial({ map: texture, alphaTest: 0.5 });
-  const groups = new Map<keyof PlayerParts, Group>();
+  const nodes = new Map<keyof PlayerParts, Node3D>();
   for (const part of definitions(slim)) {
-    const group = new three.Group();
+    const node = new Node3D();
     const [px, py, pz] = part.pivot;
-    group.position.set(px, CENTER_Y - py, -pz);
+    node.position = [px, CENTER_Y - py, -pz];
     const [bx, by, bz, w, h, d] = part.box;
-    const make = (offs: readonly [number, number], grow: number, material: Material): Mesh =>
-      new three.Mesh(
-        createBoxGeometry(three, {
+    const make = (offs: readonly [number, number], grow: number, alphaTest?: number): void => {
+      node.addQuad(
+        ...createBoxQuads({
           u: offs[0],
           v: offs[1],
           width: w,
           height: h,
           depth: d,
-          // Minimum corner in three space, relative to the pivot: y and z are flipped.
+          // Minimum corner relative to the pivot: y and z are flipped.
           origin: [bx, -(by + h), -(bz + d)],
           inflate: grow,
-          textureWidth: SIZE,
-          textureHeight: SIZE,
+          texture,
+          ...(alphaTest === undefined ? {} : { alphaTest }),
         }),
-        material,
       );
-    group.add(make(part.texOffs, 0, base));
-    if (overlay) group.add(make(part.overlayTexOffs, part.overlayGrow, layer));
-    root.add(group);
-    groups.set(part.name, group);
+    };
+    make(part.texOffs, 0);
+    if (overlay) make(part.overlayTexOffs, part.overlayGrow, 0.5);
+    root.add(node);
+    nodes.set(part.name, node);
   }
-  const sun = new three.DirectionalLight(0xffffff, 1.6);
-  sun.position.set(-0.3, 0.6, 1);
-  root.add(new three.AmbientLight(0xffffff, 2.3), sun);
-  const get = (name: keyof PlayerParts): Group => groups.get(name) ?? new three.Group();
+  const get = (name: keyof PlayerParts): Node3D => nodes.get(name) ?? new Node3D();
   return {
     head: get('head'),
     body: get('body'),
@@ -160,9 +151,9 @@ export function buildPlayerModel(
   };
 }
 
-function set(group: Group, x: number, z: number): void {
-  group.rotation.x = x;
-  group.rotation.z = z;
+function set(node: Node3D, x: number, z: number): void {
+  node.rotation[0] = x;
+  node.rotation[2] = z;
 }
 
 export type PlayerPose = 'standing' | 'idle' | 'walking';

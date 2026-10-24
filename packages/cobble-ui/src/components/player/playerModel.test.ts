@@ -1,17 +1,19 @@
-import * as three from 'three';
 import { describe, expect, it } from 'vitest';
 import type { RgbaImage } from '../../render/blit.ts';
+import { Node3D } from '../../render/model3d/engine.ts';
 import { buildPlayerModel, posePlayer, toModernSkin } from './playerModel.ts';
 
+const SKIN: RgbaImage = { width: 64, height: 64, data: new Uint8ClampedArray(64 * 64 * 4) };
+
 function build(slim: boolean, overlay = true) {
-  const root = new three.Group();
-  const texture = new three.Texture();
-  return { root, parts: buildPlayerModel(three, root, { slim, texture, overlay }) };
+  const root = new Node3D();
+  return { root, parts: buildPlayerModel(root, { slim, texture: SKIN, overlay }) };
 }
 
-function width(group: three.Group): number {
-  const box = new three.Box3().setFromObject(group.children[0] as three.Mesh);
-  return box.max.x - box.min.x;
+/** Extent along x of the first (base) layer of a part. */
+function width(node: Node3D, layer = 0): number {
+  const xs = node.quads.slice(layer * 6, layer * 6 + 6).flatMap((quad) => quad.corners.map((c) => c[0]));
+  return Math.max(...xs) - Math.min(...xs);
 }
 
 describe('buildPlayerModel', () => {
@@ -23,20 +25,26 @@ describe('buildPlayerModel', () => {
 
   it('adds an inflated overlay layer to every part, unless disabled', () => {
     const { parts } = build(false);
-    for (const group of Object.values(parts)) expect(group.children).toHaveLength(2);
-    const overlay = new three.Box3().setFromObject(parts.head.children[1] as three.Mesh);
-    expect(overlay.max.x - overlay.min.x).toBeCloseTo(9);
-    expect(build(false, false).parts.head.children).toHaveLength(1);
+    for (const node of Object.values(parts)) expect(node.quads).toHaveLength(12);
+    expect(width(parts.head, 1)).toBeCloseTo(9);
+    expect(build(false, false).parts.head.quads).toHaveLength(6);
   });
 
   it('is 32 pixels tall and centred, with the right arm on -x', () => {
-    const { root, parts } = build(false);
-    root.updateMatrixWorld(true);
-    const box = new three.Box3();
-    for (const group of Object.values(parts)) box.expandByObject(group.children[0] as three.Mesh);
-    expect(box.max.y).toBeCloseTo(16);
-    expect(box.min.y).toBeCloseTo(-16);
-    expect(parts.rightArm.position.x).toBeLessThan(0);
+    const { parts } = build(false);
+    let min = Infinity;
+    let max = -Infinity;
+    for (const node of Object.values(parts)) {
+      for (const quad of node.quads.slice(0, 6)) {
+        for (const corner of quad.corners) {
+          min = Math.min(min, corner[1] + node.position[1]);
+          max = Math.max(max, corner[1] + node.position[1]);
+        }
+      }
+    }
+    expect(max).toBeCloseTo(16);
+    expect(min).toBeCloseTo(-16);
+    expect(parts.rightArm.position[0]).toBeLessThan(0);
   });
 });
 
@@ -44,10 +52,10 @@ describe('posePlayer', () => {
   it('stands still and swings opposite limbs when walking', () => {
     const { parts } = build(false);
     posePlayer(parts, 'standing', 1);
-    expect(parts.rightArm.rotation.x).toBe(0);
+    expect(parts.rightArm.rotation[0]).toBe(0);
     posePlayer(parts, 'walking', 0.1);
-    expect(parts.rightArm.rotation.x).toBeCloseTo(-parts.leftArm.rotation.x);
-    expect(parts.rightArm.rotation.x).not.toBe(0);
+    expect(parts.rightArm.rotation[0]).toBeCloseTo(-parts.leftArm.rotation[0]);
+    expect(parts.rightArm.rotation[0]).not.toBe(0);
   });
 });
 

@@ -1,6 +1,10 @@
-import * as three from 'three';
 import { describe, expect, it } from 'vitest';
-import { boxUvLayout, createBoxGeometry, createTexture, followAngles } from './box.ts';
+import type { RgbaImage } from '../blit.ts';
+import { boxUvLayout, createBoxQuads, followAngles } from './box.ts';
+
+function image(width: number, height: number): RgbaImage {
+  return { width, height, data: new Uint8ClampedArray(width * height * 4) };
+}
 
 describe('boxUvLayout', () => {
   it('unwraps like the player head at texOffs(0, 0)', () => {
@@ -27,78 +31,58 @@ describe('boxUvLayout', () => {
   });
 });
 
-describe('createBoxGeometry', () => {
-  const geometry = createBoxGeometry(three, {
+describe('createBoxQuads', () => {
+  const quads = createBoxQuads({
     u: 0,
     v: 0,
     width: 16,
     height: 16,
     depth: 16,
-    textureWidth: 64,
-    textureHeight: 32,
+    texture: image(64, 32),
     origin: [0, 0, 0],
   });
 
-  it('has 24 vertices and 12 triangles', () => {
-    expect(geometry.getAttribute('position').count).toBe(24);
-    expect(geometry.getIndex()?.count).toBe(36);
+  it('has six lit faces', () => {
+    expect(quads).toHaveLength(6);
+    expect(quads.every((quad) => quad.lit)).toBe(true);
   });
 
   it('puts the front face on the +z side with its UVs in image space', () => {
-    const position = geometry.getAttribute('position');
-    const uv = geometry.getAttribute('uv');
-    // Front face bottom-left corner (0, 0, 16) samples the bottom-left of the (16,16)-(32,32) rect.
-    expect([position.getX(0), position.getY(0), position.getZ(0)]).toEqual([0, 0, 16]);
-    expect([uv.getX(0), uv.getY(0)]).toEqual([16 / 64, 32 / 32]);
-    expect([uv.getX(2), uv.getY(2)]).toEqual([32 / 64, 16 / 32]);
+    const front = quads[0];
+    // Bottom-left corner (0, 0, 16) samples the bottom-left of the (16,16)-(32,32) rect.
+    expect(front?.corners[0]).toEqual([0, 0, 16]);
+    expect(front?.uvs[0]).toEqual([16 / 64, 32 / 32]);
+    expect(front?.uvs[2]).toEqual([32 / 64, 16 / 32]);
   });
 
   it('maps every face onto the whole texture with fullFaces', () => {
-    const cube = createBoxGeometry(three, {
+    const cube = createBoxQuads({
       u: 0,
       v: 0,
       width: 16,
       height: 16,
       depth: 16,
-      textureWidth: 16,
-      textureHeight: 16,
+      texture: image(16, 16),
       fullFaces: true,
     });
-    const uv = cube.getAttribute('uv');
-    for (let face = 0; face < 6; face++) {
-      expect([uv.getX(face * 4), uv.getY(face * 4)]).toEqual([0, 1]);
-      expect([uv.getX(face * 4 + 2), uv.getY(face * 4 + 2)]).toEqual([1, 0]);
+    for (const quad of cube) {
+      expect(quad.uvs[0]).toEqual([0, 1]);
+      expect(quad.uvs[2]).toEqual([1, 0]);
     }
   });
 
   it('grows with inflate', () => {
-    const inflated = createBoxGeometry(three, {
+    const inflated = createBoxQuads({
       u: 0,
       v: 0,
       width: 2,
       height: 2,
       depth: 2,
-      textureWidth: 16,
-      textureHeight: 16,
+      texture: image(16, 16),
       inflate: 0.5,
     });
-    inflated.computeBoundingBox();
-    expect(inflated.boundingBox?.getSize(new three.Vector3()).x).toBe(3);
-  });
-});
-
-describe('createTexture', () => {
-  it('samples with nearest filtering and no flip', () => {
-    const texture = createTexture(three, {
-      width: 1,
-      height: 1,
-      data: new Uint8ClampedArray([1, 2, 3, 4]),
-    });
-    expect(texture.magFilter).toBe(three.NearestFilter);
-    expect(texture.minFilter).toBe(three.NearestFilter);
-    expect(texture.flipY).toBe(false);
-    expect(texture.generateMipmaps).toBe(false);
-    expect(texture.colorSpace).toBe(three.SRGBColorSpace);
+    const xs = inflated.flatMap((quad) => quad.corners.map((corner) => corner[0]));
+    expect(Math.max(...xs) - Math.min(...xs)).toBe(3);
   });
 });
 

@@ -20,7 +20,7 @@ import {
   PlayerHead,
   PlayerInventory,
   PlayerRenderer,
-  ThreeViewport,
+  ModelViewport,
   mcHeadsUrl,
 } from '../index.ts';
 import {
@@ -3477,7 +3477,7 @@ describe('player components', () => {
     expect(figure.querySelector('img')?.getAttribute('src')).toContain('/body/jeb_/');
   });
 
-  it('PlayerRenderer is a rotatable viewport without WebGL', () => {
+  it('PlayerRenderer is a rotatable viewport without canvas support', () => {
     renderWithProvider(<PlayerRenderer label="Steve" followMouse />);
     const viewport = screen.getByRole('img', { name: 'Steve' });
     expect(viewport).toHaveAttribute('data-status', 'unsupported');
@@ -3486,9 +3486,9 @@ describe('player components', () => {
     expect(fixed.getByRole('img', { name: 'Fixed' })).not.toHaveAttribute('tabindex');
   });
 
-  it('ThreeViewport shows its fallback without WebGL and takes arrow keys when rotatable', async () => {
+  it('ModelViewport shows its fallback without canvas support and takes arrow keys when rotatable', async () => {
     renderWithProvider(
-      <ThreeViewport aria-label="Stone cube" rotatable textures={['block/stone']} fallback="Loading" />,
+      <ModelViewport aria-label="Stone cube" rotatable textures={['block/stone']} fallback="Loading" />,
     );
     const viewport = screen.getByRole('img', { name: 'Stone cube' });
     expect(viewport).toHaveAttribute('data-status', 'unsupported');
@@ -3512,8 +3512,8 @@ describe('player components', () => {
     expect(screen.getByRole('img', { name: 'Stand' })).not.toHaveAttribute('tabindex');
   });
 
-  it('ThreeViewport is not focusable unless rotatable', () => {
-    renderWithProvider(<ThreeViewport aria-label="Static" />);
+  it('ModelViewport is not focusable unless rotatable', () => {
+    renderWithProvider(<ModelViewport aria-label="Static" />);
     expect(screen.getByRole('img', { name: 'Static' })).not.toHaveAttribute('tabindex');
   });
 
