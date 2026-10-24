@@ -964,8 +964,8 @@ export type { ChatLogOwnProps, ChatLogProps, ChatMessage } from './components/ch
 export { CHAT_HISTORY_LIMIT, CHAT_MAX_LENGTH, ChatInput } from './components/chat/ChatInput.tsx';
 export type { ChatInputOwnProps, ChatInputProps } from './components/chat/ChatInput.tsx';
 export { usePrefersReducedMotion } from './internal/hooks.ts';
-export { MCHEADS_URL, mcHeadsUrl } from './components/player/mcheads.ts';
-export type { McHeadsRender } from './components/player/mcheads.ts';
+export { configureMojangApi, fetchMojangSkin } from './components/player/mojang.ts';
+export type { MojangApiEndpoints, ResolvedSkin } from './components/player/mojang.ts';
 export { PlayerRenderer } from './components/player/PlayerRenderer.tsx';
 export type {
   PlayerRendererOwnProps,

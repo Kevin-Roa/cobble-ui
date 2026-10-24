@@ -338,6 +338,13 @@ export function renderScene(
       (typeof screen)[number],
     ];
     const texture = quad.texture;
+    // Texels the face may sample. The edge tolerance below lets a pixel just outside the triangle
+    // extrapolate past the face's own region into a neighbouring face's texels (stray pixels).
+    const uvs = quad.uvs as readonly (readonly [number, number])[];
+    const minTx = Math.floor(Math.min(...uvs.map((uv) => uv[0])) * texture.width + 1e-3);
+    const maxTx = Math.ceil(Math.max(...uvs.map((uv) => uv[0])) * texture.width - 1e-3) - 1;
+    const minTy = Math.floor(Math.min(...uvs.map((uv) => uv[1])) * texture.height + 1e-3);
+    const maxTy = Math.ceil(Math.max(...uvs.map((uv) => uv[1])) * texture.height - 1e-3) - 1;
     const alphaTest = quad.alphaTest === undefined ? -1 : Math.round(quad.alphaTest * 255);
     const triangle = (a: typeof p0, b: typeof p0, c: typeof p0): void => {
       const minX = Math.max(0, Math.floor(Math.min(a.x, b.x, c.x)));
@@ -373,8 +380,8 @@ export function renderScene(
           if (inverseW < (depth[index] as number) * DEPTH_TIE) continue;
           const u = (w0 * ua + w1 * ub + w2 * uc) / inverseW;
           const v = (w0 * va + w1 * vb + w2 * vc) / inverseW;
-          const tx = Math.min(texture.width - 1, Math.max(0, Math.floor(u * texture.width)));
-          const ty = Math.min(texture.height - 1, Math.max(0, Math.floor(v * texture.height)));
+          const tx = Math.min(maxTx, Math.max(minTx, Math.floor(u * texture.width)));
+          const ty = Math.min(maxTy, Math.max(minTy, Math.floor(v * texture.height)));
           const t = (ty * texture.width + tx) * 4;
           const alpha = texture.data[t + 3] as number;
           if (alphaTest >= 0 && alpha < alphaTest) continue;

@@ -1657,15 +1657,11 @@
     background: rgb(0 0 0 / 50%);
   }
 
-  /* Player preview: a 3D model, or an mc-heads.net image fitted into the box */
+  /* Player preview: a 3D model */
   :where(.cobble-player-renderer) {
     display: inline-block;
     width: calc(var(--cobble-width) * var(--cobble-px));
     height: calc(var(--cobble-height) * var(--cobble-px));
-  }
-
-  :where(.cobble-player-renderer > img) {
-    display: block;
   }
 
   :where(.cobble-player-loading) {

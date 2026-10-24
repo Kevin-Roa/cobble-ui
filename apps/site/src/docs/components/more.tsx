@@ -633,17 +633,19 @@ export function PlayerHeadPage(): JSX.Element {
     <ComponentDoc
       intro={
         <>
-          A player&apos;s face with the hat layer, cut from a skin texture. Pass <Code>player</Code>{' '}
-          (a username or UUID) for the real face, fetched from mc-heads.net by the browser;
-          otherwise it uses the Steve skin that ships with the game, or <Code>skin</Code> for
-          another texture. <Code>SocialPlayerEntry</Code> shows it when it has no children.
+          A player&apos;s head with the hat layer: a small 3D cube by default, or just the flat face
+          with <Code>flat</Code>. Pass <Code>player</Code> (a username or UUID) for the real skin,
+          looked up through the official Mojang API; otherwise it uses the Steve skin that ships
+          with the game, or <Code>skin</Code> for another texture. <Code>SocialPlayerEntry</Code>{' '}
+          shows the flat face when it has no children.
         </>
       }
       demo={
         <div className="site-row">
-          <PlayerHead player={player} />
-          <PlayerHead player="jeb_" size={16} />
-          <PlayerHead player="Dinnerbone" size={32} />
+          <PlayerHead player={player} size={32} />
+          <PlayerHead player={player} size={32} flat />
+          <PlayerHead player={player} size={32} rotatable />
+          <PlayerHead player={player} size={16} />
           <PlayerHead size={32} />
         </div>
       }
@@ -652,7 +654,7 @@ export function PlayerHeadPage(): JSX.Element {
         {
           name: 'player',
           type: 'string',
-          description: 'Username or UUID, fetched from mc-heads.net.',
+          description: 'Username or UUID, looked up through the Mojang API.',
         },
         {
           name: 'skin',
@@ -665,6 +667,18 @@ export function PlayerHeadPage(): JSX.Element {
           type: 'number',
           defaultValue: '8',
           description: 'Size in GUI units.',
+        },
+        {
+          name: 'flat',
+          type: 'boolean',
+          defaultValue: 'false',
+          description: 'Draw only the flat face instead of the 3D head.',
+        },
+        {
+          name: 'rotatable',
+          type: 'boolean',
+          defaultValue: 'false',
+          description: 'Drag or press the arrow keys to turn the 3D head.',
         },
       ]}
     />

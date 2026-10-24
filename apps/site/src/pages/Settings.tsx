@@ -116,7 +116,7 @@ export function Settings(): JSX.Element {
           </OptionsListRow>
           <OptionsListHeader>Docs</OptionsListHeader>
           <OptionsListRow>
-            <Text as="label" htmlFor="default-player">
+            <Text as="label" htmlFor="default-player" className="site-options-label">
               Example Player
             </Text>
             <TextField

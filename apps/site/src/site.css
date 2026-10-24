@@ -280,6 +280,16 @@ body {
   gap: calc(5 * var(--cobble-px)) calc(10 * var(--cobble-px));
 }
 
+.site-options-label {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(150 * var(--cobble-px));
+  height: calc(20 * var(--cobble-px));
+}
+
 .site-options-note {
   margin: calc(12 * var(--cobble-px)) 0 0;
   white-space: normal;

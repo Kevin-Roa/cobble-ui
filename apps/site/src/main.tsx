@@ -1,6 +1,12 @@
 import 'cobble-ui/styles.css';
 import './site.css';
-import { AssetLoadingOverlay, CobbleProvider, ToastProvider, minecraftTtf } from 'cobble-ui';
+import {
+  AssetLoadingOverlay,
+  CobbleProvider,
+  ToastProvider,
+  configureMojangApi,
+  minecraftTtf,
+} from 'cobble-ui';
 import { StrictMode, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
@@ -8,6 +14,9 @@ import { router } from './router.tsx';
 import { SettingsProvider, useSettings } from './settings.tsx';
 
 const font = minecraftTtf('/fonts');
+// The Mojang API has no CORS headers; the dev server proxies it (see vite.config.ts).
+if (import.meta.env.DEV)
+  configureMojangApi({ profiles: '/mojang-api', session: '/mojang-session' });
 
 function App(): JSX.Element {
   const { settings } = useSettings();

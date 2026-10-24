@@ -1,5 +1,8 @@
 import type { EffectId } from '../../assets/effect-ids.ts';
-import { useRef, type JSX, type Ref } from 'react';
+import { useRef, type CSSProperties, type JSX, type Ref } from 'react';
+import { ModelViewport } from '../model3d/ModelViewport.tsx';
+import { useMojangSkin } from '../player/PlayerRenderer.tsx';
+import { buildPlayerHead } from '../player/playerModel.ts';
 import { useIsomorphicLayoutEffect, useMergedRefs } from '../../internal/hooks.ts';
 import type { CssVariables, SlotProps } from '../../internal/polymorphic.ts';
 import type { RgbaImage } from '../../render/blit.ts';
@@ -8,7 +11,6 @@ import type { AssetStore } from '../../assets/store.ts';
 import { drawItem, firstFrame, tintedCanvas, type Region } from '../../render/item-raster.ts';
 import { useAssetRevision, useTexture } from '../../provider/hooks.ts';
 import { cx } from '../shared.ts';
-import { PlayerAvatar } from '../player/PlayerAvatar.tsx';
 
 /** Size of an item in a slot, in GUI units. */
 export const ITEM_ICON_SIZE = 16;
@@ -167,21 +169,77 @@ export function EffectIcon(props: EffectIconProps): JSX.Element {
 
 export interface PlayerHeadProps extends CanvasProps {
   /**
-   * Username or UUID. The face is fetched from mc-heads.net by the browser; the local `skin` is
-   * shown while it loads or if it fails.
+   * Username or UUID, looked up through the official Mojang API (`fetchMojangSkin`). The local
+   * `skin` is shown while it loads or if the lookup fails.
    */
   readonly player?: string;
   /** Skin texture id, `entity/player/wide/steve` by default. Must be a 64×64 (or 64×32) skin. */
   readonly skin?: string;
   /** Size in GUI units. Defaults to 8. */
   readonly size?: number;
+  /**
+   * Draw only the flat face with the hat layer (`PlayerFaceExtractor`) instead of the 3D head.
+   * Defaults to `false`.
+   */
+  readonly flat?: boolean;
+  /** Drag or use the arrow keys to turn the 3D head. Ignored when `flat`. Defaults to `false`. */
+  readonly rotatable?: boolean;
 }
 
 /**
- * A player's face with the hat layer over it (`PlayerFaceExtractor`). With `player` it is the
- * real face from mc-heads.net; otherwise it is cut from a skin texture.
+ * A player's head: by default a 3D cube (head and hat layer, drawn by the library's software
+ * renderer, turned slightly so its sides show); with `flat` just the face
+ * (`PlayerFaceExtractor`). With `player` the skin comes from the Mojang API, otherwise from a skin
+ * texture. The flat face is shown while the skin loads or if 3D drawing is unavailable.
  */
 export function PlayerHead(props: PlayerHeadProps): JSX.Element {
+  const { flat = false, rotatable = false, ...rest } = props;
+  if (flat) return <FlatPlayerHead {...rest} />;
+  return <SolidPlayerHead {...rest} rotatable={rotatable} />;
+}
+
+function SolidPlayerHead(props: Omit<PlayerHeadProps, 'flat'>): JSX.Element {
+  const {
+    player,
+    skin = DEFAULT_SKIN,
+    size = PLAYER_HEAD_SIZE,
+    rotatable = false,
+    ref,
+    className,
+    style,
+    ...rest
+  } = props;
+  const name = player?.trim() === '' ? undefined : player?.trim();
+  const resolved = useMojangSkin(name);
+  const pixels = resolved?.image;
+  const flat = <FlatPlayerHead skin={skin} size={size} />;
+  // A named player's skin is still loading: the flat default face stands in.
+  if (resolved === undefined) return flat;
+  return (
+    <ModelViewport
+      {...(rest as object)}
+      ref={ref as Ref<HTMLDivElement> | undefined}
+      key={name ?? skin}
+      aria-label={`${name ?? 'Player'} head`}
+      className={cx('cobble-player-head-3d', className)}
+      style={{ display: 'inline-block', ...(style as CSSProperties | undefined) }}
+      width={size}
+      height={size}
+      rotatable={rotatable}
+      initialYaw={-30}
+      initialPitch={20}
+      camera={{ fov: 30, position: [0, 0, 32] }}
+      textures={pixels ? [] : [skin]}
+      fallback={flat}
+      onSceneReady={({ root, textures }) => {
+        const texture = pixels ?? textures[skin];
+        if (texture) buildPlayerHead(root, { texture });
+      }}
+    />
+  );
+}
+
+function FlatPlayerHead(props: Omit<PlayerHeadProps, 'flat' | 'rotatable'>): JSX.Element {
   const {
     player,
     skin = DEFAULT_SKIN,
@@ -191,7 +249,9 @@ export function PlayerHead(props: PlayerHeadProps): JSX.Element {
     style,
     ...rest
   } = props;
-  const texture = useTexture(skin);
+  const local = useTexture(skin);
+  const name = player?.trim() === '' ? undefined : player?.trim();
+  const texture = useMojangSkin(name)?.image ?? local;
   const [drawRef, drawStyle] = useDrawing(
     size,
     (context, scale) => {
@@ -217,27 +277,5 @@ export function PlayerHead(props: PlayerHeadProps): JSX.Element {
       style={{ ...drawStyle, ...style }}
     />
   );
-  if (player === undefined || player.trim() === '') return canvas;
-  return (
-    <span
-      className="cobble-player-head"
-      data-flow=""
-      style={{
-        width: `calc(${String(size)} * var(--cobble-px))`,
-        height: `calc(${String(size)} * var(--cobble-px))`,
-        display: 'inline-block',
-        position: 'relative',
-      }}
-    >
-      {canvas}
-      <PlayerAvatar
-        aria-hidden
-        player={player}
-        render="avatar"
-        width={size}
-        height={size}
-        style={{ position: 'absolute', inset: 0 }}
-      />
-    </span>
-  );
+  return canvas;
 }

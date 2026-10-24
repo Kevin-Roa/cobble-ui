@@ -42,9 +42,10 @@ export function PlayerRendererPage(): JSX.Element {
           renderer): head, body, arms and legs with the 64×64 skin layout, the hat, jacket, sleeve
           and pants layers, and wide or slim (Alex) arms. Drag or use the arrow keys to turn it.
           Without a <Code>player</Code> it wears the bundled Steve or Alex skin from the client
-          files; with a username or UUID the skin is downloaded by the browser from mc-heads.net
-          (nothing is bundled). If canvas drawing or the skin is unavailable, mc-heads.net&apos;s 2D
-          render is shown instead.
+          files; with a username or UUID the skin is looked up through the official Mojang API and
+          downloaded by the browser (nothing is bundled). The Mojang API sends no CORS headers, so
+          from a browser it needs a proxy (<Code>configureMojangApi</Code>); if the lookup fails the
+          bundled skin is shown.
         </>
       }
       demo={
@@ -57,8 +58,7 @@ export function PlayerRendererPage(): JSX.Element {
             autoRotate={pose === 'walking'}
             label="Default skin"
           />
-          <PlayerRenderer player={player} height={100} />
-          <PlayerRenderer player="jeb_" height={100} followMouse />
+          <PlayerRenderer player={player} height={100} followMouse />
           <div>
             <label>
               <input
@@ -95,7 +95,7 @@ export function PlayerRendererPage(): JSX.Element {
           name: 'player',
           type: 'string',
           description:
-            'Username or UUID; the skin comes from mc-heads.net. Omit to use the bundled skin.',
+            'Username or UUID; the skin and arm shape come from the Mojang API. Omit to use the bundled skin.',
         },
         {
           name: 'skin',

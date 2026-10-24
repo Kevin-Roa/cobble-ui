@@ -10,6 +10,21 @@ export default defineConfig({
     { enforce: 'pre', ...mdx({ providerImportSource: undefined }) },
     react({ include: /\.(mdx|tsx?)$/ }),
   ],
+  server: {
+    // The Mojang API sends no CORS headers, so the docs reach it through the dev server.
+    proxy: {
+      '/mojang-api': {
+        target: 'https://api.mojang.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/mojang-api/, ''),
+      },
+      '/mojang-session': {
+        target: 'https://sessionserver.mojang.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/mojang-session/, ''),
+      },
+    },
+  },
   resolve: {
     // Use the library sources directly so changes show up instantly.
     alias: [

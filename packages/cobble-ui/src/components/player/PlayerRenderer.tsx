@@ -2,17 +2,14 @@ import { mergeProps } from '@base-ui/react/merge-props';
 import { useEffect, useRef, useState, type ElementType, type JSX } from 'react';
 import { useLatest, usePrefersReducedMotion } from '../../internal/hooks.ts';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
-import type { RgbaImage } from '../../render/blit.ts';
 import { cx } from '../shared.ts';
 import { ModelViewport, type ModelSceneContext } from '../model3d/ModelViewport.tsx';
-import { PlayerAvatar } from './PlayerAvatar.tsx';
-import { mcHeadsUrl } from './mcheads.ts';
+import { fetchMojangSkin, type ResolvedSkin } from './mojang.ts';
 import {
   ALEX_SKIN,
   STEVE_SKIN,
   buildPlayerModel,
   posePlayer,
-  toModernSkin,
   type PlayerModelType,
   type PlayerParts,
   type PlayerPose,
@@ -22,9 +19,9 @@ export type { PlayerModelType, PlayerPose } from './playerModel.ts';
 
 export interface PlayerRendererOwnProps {
   /**
-   * Username or UUID. The skin is downloaded by the browser from mc-heads.net (which allows
-   * cross-origin use) and drawn on the 3D model. Without it the bundled `skin` is used. If the
-   * skin cannot be read, mc-heads.net's own 2D render is shown instead.
+   * Username or UUID. The skin is looked up through the official Mojang API (`fetchMojangSkin`)
+   * and drawn on the 3D model, with the arm shape from the profile. Without it, or if the lookup
+   * fails, the bundled `skin` is used.
    */
   readonly player?: string;
   /**
@@ -66,60 +63,42 @@ export type PlayerRendererProps<E extends ElementType = 'div'> = PolymorphicProp
 >;
 
 type SkinState =
-  | { readonly player: string; readonly status: 'ready'; readonly image: RgbaImage }
+  | { readonly player: string; readonly status: 'ready'; readonly skin: ResolvedSkin | null }
   | { readonly player: string; readonly status: 'failed' };
 
 /**
- * Downloads a player's skin through `<img crossOrigin="anonymous">` and reads its pixels. The
- * result is `undefined` while loading and `null` when it cannot be used (offline, unknown player,
- * a server without CORS).
+ * Looks a player up through the Mojang API (`fetchMojangSkin`). The result is `undefined` while
+ * loading, and `null` when the skin cannot be used (offline, unknown player, no CORS, no custom
+ * skin), in which case callers use the default skin.
  */
-function useSkinPixels(player: string | undefined): RgbaImage | null | undefined {
+export function useMojangSkin(player: string | undefined): ResolvedSkin | null | undefined {
   const [state, setState] = useState<SkinState | null>(null);
   useEffect(() => {
     if (player === undefined) return undefined;
     let cancelled = false;
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    const onLoad = (): void => {
-      if (cancelled) return;
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = image.naturalWidth;
-        canvas.height = image.naturalHeight;
-        const context = canvas.getContext('2d', { willReadFrequently: true });
-        if (!context) throw new Error('no 2d context');
-        context.drawImage(image, 0, 0);
-        const data = context.getImageData(0, 0, canvas.width, canvas.height);
-        setState({ player, status: 'ready', image: toModernSkin(data) });
-      } catch {
-        setState({ player, status: 'failed' });
-      }
-    };
-    const onError = (): void => {
-      if (!cancelled) setState({ player, status: 'failed' });
-    };
-    image.addEventListener('load', onLoad);
-    image.addEventListener('error', onError);
-    image.src = mcHeadsUrl('skin', player);
+    fetchMojangSkin(player).then(
+      (skin) => {
+        if (!cancelled) setState({ player, status: 'ready', skin });
+      },
+      () => {
+        if (!cancelled) setState({ player, status: 'failed' });
+      },
+    );
     return () => {
       cancelled = true;
-      image.removeEventListener('load', onLoad);
-      image.removeEventListener('error', onError);
     };
   }, [player]);
   if (player === undefined) return null;
   if (state?.player !== player) return undefined;
-  return state.status === 'ready' ? state.image : null;
+  return state.status === 'ready' ? state.skin : null;
 }
 
 /**
  * A 3D player model (`PlayerModel`, drawn by the library's own software renderer) wearing a skin: head, body, arms and legs with
  * the 64x64 skin layout, the hat/jacket/sleeve/pants layers, and wide or slim arms. It turns when
  * dragged, can follow the cursor and can spin by itself. Pass a username or UUID for a real skin
- * (downloaded by the browser from mc-heads.net, nothing is bundled) or use a `skin` from the
- * client files. Where canvas drawing is unavailable, or the skin cannot be read, mc-heads.net's 2D render
- * is shown instead.
+ * (looked up through the Mojang API, nothing is bundled) or use a `skin` from the client files.
+ * If the lookup fails the bundled skin is used.
  */
 export function PlayerRenderer<E extends ElementType = 'div'>(
   props: PlayerRendererProps<E>,
@@ -144,8 +123,12 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
   } = props as PlayerRendererProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const name = player?.trim() === '' ? undefined : player?.trim();
-  const pixels = useSkinPixels(name);
-  const slim = (model ?? (skin === ALEX_SKIN ? 'slim' : 'wide')) === 'slim';
+  const resolved = useMojangSkin(name);
+  const pixels = resolved?.image;
+  const slim =
+    (model ??
+      (resolved ? (resolved.slim ? 'slim' : 'wide') : skin === ALEX_SKIN ? 'slim' : 'wide')) ===
+    'slim';
   const localSkin = skin ?? (slim ? ALEX_SKIN : STEVE_SKIN);
   const reducedMotion = usePrefersReducedMotion();
   const partsRef = useRef<PlayerParts | null>(null);
@@ -156,18 +139,6 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
     '--cobble-height': height,
     ...style,
   };
-  const avatar =
-    name === undefined ? null : (
-      <PlayerAvatar
-        aria-hidden
-        player={name}
-        render="body"
-        width={Math.min(width, Math.round(height / 2))}
-        height={height}
-        style={{ objectFit: 'contain' }}
-      />
-    );
-
   const buildScene = (context: ModelSceneContext): (() => void) => {
     const { root, textures } = context;
     const texture = pixels ?? textures[localSkin];
@@ -195,13 +166,9 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
   };
 
   let content: JSX.Element;
-  if (pixels === undefined || (name !== undefined && pixels === null && skin === undefined)) {
-    // The skin is still downloading, or could not be read (and no `skin` was given to fall back to): show the plain image.
-    content = (
-      <div role="img" aria-label={accessibleName} className="cobble-player-loading">
-        {avatar}
-      </div>
-    );
+  if (resolved === undefined) {
+    // The skin is still downloading.
+    content = <div role="img" aria-label={accessibleName} className="cobble-player-loading" />;
   } else {
     content = (
       <ModelViewport
@@ -217,7 +184,6 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
         initialYaw={initialYaw}
         camera={{ fov: 30, position: [0, 0, 70] }}
         textures={pixels ? [] : [localSkin]}
-        fallback={avatar}
         onSceneReady={buildScene}
         onFrame={onFrame}
       />

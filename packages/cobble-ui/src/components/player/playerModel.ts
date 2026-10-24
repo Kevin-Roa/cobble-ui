@@ -151,6 +151,36 @@ export function buildPlayerModel(root: Node3D, options: PlayerModelOptions): Pla
   };
 }
 
+/**
+ * Builds just the head (the `head` cube and the `hat` layer grown by 0.5) under `root`, centred on
+ * the origin and facing +z, with the same texture offsets as {@link buildPlayerModel}.
+ */
+export function buildPlayerHead(
+  root: Node3D,
+  options: { readonly texture: RgbaImage; readonly overlay?: boolean },
+): void {
+  const { texture, overlay = true } = options;
+  const node = new Node3D();
+  const make = (u: number, inflate: number, alphaTest?: number): void => {
+    node.addQuad(
+      ...createBoxQuads({
+        u,
+        v: 0,
+        width: 8,
+        height: 8,
+        depth: 8,
+        origin: [-4, -4, -4],
+        inflate,
+        texture,
+        ...(alphaTest === undefined ? {} : { alphaTest }),
+      }),
+    );
+  };
+  make(0, 0);
+  if (overlay) make(32, 0.5, 0.5);
+  root.add(node);
+}
+
 function set(node: Node3D, x: number, z: number): void {
   node.rotation[0] = x;
   node.rotation[2] = z;

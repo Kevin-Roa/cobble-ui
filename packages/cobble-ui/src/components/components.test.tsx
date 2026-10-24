@@ -19,11 +19,11 @@ import {
   ChestPanel,
   CraftingTablePanel,
   HotbarWithStats,
-  PlayerHead,
   PlayerInventory,
   PlayerRenderer,
   ModelViewport,
-  mcHeadsUrl,
+  configureMojangApi,
+  fetchMojangSkin,
 } from '../index.ts';
 import {
   ASSET_PHASE_LABELS,
@@ -3497,22 +3497,40 @@ describe('usePrefersReducedMotion', () => {
 });
 
 describe('player components', () => {
-  it('builds mc-heads.net urls', () => {
-    expect(mcHeadsUrl('avatar', 'Steve', 16)).toBe('https://mc-heads.net/avatar/Steve/16');
-    expect(mcHeadsUrl('body', 'a b')).toBe('https://mc-heads.net/body/a%20b');
+  it('looks players up through the official Mojang API', async () => {
+    const textures = btoa(
+      JSON.stringify({
+        textures: { SKIN: { url: 'http://textures.minecraft.net/texture/abc' } },
+      }),
+    );
+    const fetchMock = vi.fn((url: string) =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify(
+            url.includes('lookup/name')
+              ? { id: '853c80ef3c3749fdaa49938b674adae6', name: 'jeb_' }
+              : { properties: [{ name: 'textures', value: textures }] },
+          ),
+        ),
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    configureMojangApi({});
+    void fetchMojangSkin('jeb_').catch(() => undefined);
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      'https://api.mojang.com/minecraft/profile/lookup/name/jeb_',
+    );
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      'https://sessionserver.mojang.com/session/minecraft/profile/853c80ef3c3749fdaa49938b674adae6',
+    );
+    vi.unstubAllGlobals();
+    configureMojangApi({});
   });
 
-  it('PlayerHead fetches the real face only when given a player', () => {
-    const plain = renderWithProvider(<PlayerHead />);
-    expect(plain.container.querySelector('img')).toBeNull();
-    const real = renderWithProvider(<PlayerHead player="Steve" />);
-    expect(real.container.querySelector('img')?.getAttribute('src')).toContain('/avatar/Steve/');
-  });
-
-  it('PlayerRenderer shows the mc-heads.net render while the skin loads', () => {
+  it('PlayerRenderer waits for the skin lookup', () => {
     renderWithProvider(<PlayerRenderer player="jeb_" />);
-    const figure = screen.getByRole('img', { name: 'jeb_ skin' });
-    expect(figure.querySelector('img')?.getAttribute('src')).toContain('/body/jeb_/');
+    expect(screen.getByRole('img', { name: 'jeb_ skin' })).toBeInTheDocument();
   });
 
   it('PlayerRenderer is a rotatable viewport without canvas support', () => {

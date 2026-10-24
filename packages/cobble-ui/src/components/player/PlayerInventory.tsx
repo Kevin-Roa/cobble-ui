@@ -49,7 +49,7 @@ export interface PlayerInventoryOwnProps {
   readonly background?: boolean;
   /**
    * The figure on the left: a username/UUID (a 3D `PlayerRenderer` that follows the cursor like
-   * the real screen, skin fetched from mc-heads.net), or a node of your own.
+   * the real screen, skin from the Mojang API), or a node of your own.
    */
   readonly player?: string | ReactNode;
   /** Items in the equipment slots. */
