@@ -415,3 +415,56 @@ export function renderScene(
     triangle(p0, p2, p3);
   }
 }
+
+/** Where a point of a node lands on screen, from {@link projectNodePoint}. */
+export interface ScreenPoint {
+  /** Position in the units of the `width` and `height` given, from the top-left. */
+  readonly x: number;
+  readonly y: number;
+  /** Size of one scene unit at that depth, in the same units. */
+  readonly unit: number;
+}
+
+/**
+ * Projects a point given in a node's own space to the screen, with the same camera maths as
+ * {@link renderScene} (call it after the node's transforms for the frame were set). `width` and
+ * `height` can be in any unit; only their ratio and the result's unit matter. `undefined` when the
+ * node is not under `root` or the point is behind the camera.
+ */
+export function projectNodePoint(
+  root: Node3D,
+  node: Node3D,
+  point: Vec3,
+  camera: Camera3D,
+  width: number,
+  height: number,
+): ScreenPoint | undefined {
+  const find = (current: Node3D, parent: Matrix): Matrix | undefined => {
+    const matrix = multiply(parent, localMatrix(current));
+    if (current === node) return matrix;
+    for (const child of current.children) {
+      const found = find(child, matrix);
+      if (found) return found;
+    }
+    return undefined;
+  };
+  const matrix = find(root, IDENTITY);
+  if (!matrix) return undefined;
+  const world = transform(matrix, point);
+  const eye: Vec3 = camera.position ?? [0, 0, 5];
+  const at: Vec3 = camera.target ?? [0, 0, 0];
+  const forward = normalize(sub(at, eye));
+  let right = normalize(cross(forward, [0, 1, 0]));
+  if (Math.hypot(right[0], right[1], right[2]) < 1e-6) right = [1, 0, 0];
+  const up = cross(right, forward);
+  const focal = 1 / Math.tan(((camera.fov ?? 30) * DEGREES) / 2);
+  const scale = (focal * height) / 2;
+  const rel = sub(world, eye);
+  const depth = dot(rel, forward);
+  if (depth < NEAR) return undefined;
+  return {
+    x: width / 2 + (dot(rel, right) / depth) * scale,
+    y: height / 2 - (dot(rel, up) / depth) * scale,
+    unit: scale / depth,
+  };
+}

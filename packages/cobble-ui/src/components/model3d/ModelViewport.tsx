@@ -124,6 +124,16 @@ export interface ModelViewportProps extends Omit<SlotProps<'div'>, 'children' | 
   readonly onRollChange?: (roll: number) => void;
   /** Maximum pitch from dragging in degrees. Defaults to 80. */
   readonly pitchLimit?: number;
+  /**
+   * Rebuilds the scene (`onSceneReady`) when this changes, like changing `textures`, but keeps the
+   * rotation the user has given the model (a changed `key` would reset it).
+   */
+  readonly sceneKey?: string;
+  /**
+   * Anything that changes what `onFrame` draws without `animated` (a pose, a toggle): when this
+   * value changes, one more frame is drawn.
+   */
+  readonly redrawKey?: unknown;
   /** Shown while loading and when canvas drawing is unavailable. */
   readonly fallback?: ReactNode;
 }
@@ -190,6 +200,8 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     roll: rollProp,
     onRollChange,
     pitchLimit = 80,
+    redrawKey,
+    sceneKey = '',
     fallback,
     className,
     style,
@@ -426,7 +438,7 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     };
     // The scene is rebuilt only when what it is made of changes; everything else flows through `latest`.
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, textureKey, store, latest]);
+  }, [active, textureKey, sceneKey, store, latest]);
 
   // Sizes and mode changes redraw the existing scene.
   useEffect(() => {
@@ -434,7 +446,7 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
   }, [width, height, deviceScale]);
   useEffect(() => {
     runtimeRef.current?.invalidate();
-  }, [followMouse, autoRotate, animated, reducedMotion]);
+  }, [followMouse, autoRotate, animated, reducedMotion, redrawKey]);
 
   const move = useCallback(
     (dyaw: number, dpitch: number): void => {

@@ -158,14 +158,18 @@ export function createBoxQuads(options: BoxQuadOptions): Quad[] {
 
   return faces.map(([face, corners]) => {
     const rect = layout[face];
+    // The bottom face is the one face `ModelPart.Cube` unwraps upside down: the top row of its
+    // rectangle is at the front (not for a block's whole-texture faces).
+    const [near, far] =
+      face === 'bottom' && !options.fullFaces ? [rect.y0, rect.y1] : [rect.y1, rect.y0];
     // Image-space texels matching `corners`: BL, BR, TR, TL.
     return {
       corners,
       uvs: [
-        [rect.x0 / tw, rect.y1 / th],
-        [rect.x1 / tw, rect.y1 / th],
-        [rect.x1 / tw, rect.y0 / th],
-        [rect.x0 / tw, rect.y0 / th],
+        [rect.x0 / tw, near / th],
+        [rect.x1 / tw, near / th],
+        [rect.x1 / tw, far / th],
+        [rect.x0 / tw, far / th],
       ],
       texture,
       lit,

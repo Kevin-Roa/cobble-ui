@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import type { RgbaImage } from '../../render/blit.ts';
 import { Node3D } from '../../render/model3d/engine.ts';
-import { buildPlayerModel, posePlayer, toModernSkin } from './playerModel.ts';
+import {
+  buildPlayerModel,
+  detectSlim,
+  normalizeCape,
+  posePlayer,
+  toModernSkin,
+  type PlayerOverlay,
+} from './playerModel.ts';
 
 const SKIN: RgbaImage = { width: 64, height: 64, data: new Uint8ClampedArray(64 * 64 * 4) };
 
-function build(slim: boolean, overlay = true) {
+function build(slim: boolean, overlay: PlayerOverlay = true, cape?: RgbaImage) {
   const root = new Node3D();
-  return { root, parts: buildPlayerModel(root, { slim, texture: SKIN, overlay }) };
+  const rig = buildPlayerModel(root, { slim, texture: SKIN, overlay, cape });
+  return { root, rig, parts: rig.parts };
 }
 
 /** Extent along x of the first (base) layer of a part. */
@@ -52,12 +60,74 @@ describe('buildPlayerModel', () => {
 
 describe('posePlayer', () => {
   it('stands still and swings opposite limbs when walking', () => {
-    const { parts } = build(false);
-    posePlayer(parts, 'standing', 1);
+    const { rig, parts } = build(false);
+    posePlayer(rig, 'standing', 1);
     expect(parts.rightArm.rotation[0]).toBe(0);
-    posePlayer(parts, 'walking', 0.1);
+    posePlayer(rig, 'walking', 0.1);
     expect(parts.rightArm.rotation[0]).toBeCloseTo(-parts.leftArm.rotation[0]);
     expect(parts.rightArm.rotation[0]).not.toBe(0);
+  });
+});
+
+describe('overlay, cape and poses', () => {
+  it('toggles each overlay layer on its own', () => {
+    const { parts } = build(false, { hat: false, leftSleeve: false });
+    expect(parts.head.quads).toHaveLength(6);
+    expect(parts.leftArm.quads).toHaveLength(6);
+    expect(parts.rightArm.quads).toHaveLength(12);
+    expect(parts.body.quads).toHaveLength(12);
+    expect(build(false, false).parts.body.quads).toHaveLength(6);
+  });
+
+  it('adds a cape behind the body only when given a texture', () => {
+    expect(build(false).rig.cape).toBeUndefined();
+    const cape = build(false, true, {
+      width: 64,
+      height: 32,
+      data: new Uint8ClampedArray(64 * 32 * 4),
+    }).rig.cape;
+    expect(cape?.quads).toHaveLength(6);
+    expect(cape?.position[2]).toBeLessThan(-2);
+  });
+
+  it('crouches, lies down to fly and resets between poses', () => {
+    const { rig, parts } = build(false);
+    posePlayer(rig, 'crouching', 0);
+    expect(parts.body.rotation[0]).toBeCloseTo(0.5);
+    expect(parts.rightLeg.position[2]).toBeCloseTo(-4);
+    posePlayer(rig, 'flying', 0, 0.7);
+    expect(rig.figure.rotation[0]).toBeCloseTo(Math.PI / 2);
+    expect(rig.figure.scale).toBeCloseTo(0.7);
+    expect(parts.body.rotation[0]).toBe(0);
+    expect(parts.rightLeg.position[2]).toBeCloseTo(0);
+    posePlayer(rig, 'swimming', 0.3);
+    expect(parts.rightArm.rotation[0]).not.toBe(0);
+    posePlayer(rig, 'standing', 0);
+    expect(rig.figure.scale).toBe(1);
+    expect(rig.figure.rotation).toEqual([0, 0, 0]);
+  });
+});
+
+describe('detectSlim and normalizeCape', () => {
+  it('finds slim arms by their transparent fourth column', () => {
+    const data = new Uint8ClampedArray(64 * 64 * 4).fill(255);
+    const wide: RgbaImage = { width: 64, height: 64, data };
+    expect(detectSlim(wide)).toBe(false);
+    expect(detectSlim(SKIN)).toBe(true);
+  });
+
+  it('brings legacy and HD capes to 64x32', () => {
+    const legacy = normalizeCape({
+      width: 22,
+      height: 17,
+      data: new Uint8ClampedArray(22 * 17 * 4),
+    });
+    expect([legacy?.width, legacy?.height]).toEqual([64, 32]);
+    const hd = normalizeCape({ width: 128, height: 64, data: new Uint8ClampedArray(128 * 64 * 4) });
+    expect([hd?.width, hd?.height]).toEqual([64, 32]);
+    expect(
+      normalizeCape({ width: 10, height: 10, data: new Uint8ClampedArray(400) }),
+    ).toBeUndefined();
   });
 });
 

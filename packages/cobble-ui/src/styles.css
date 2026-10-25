@@ -1664,12 +1664,46 @@
     height: calc(var(--cobble-height) * var(--cobble-px));
   }
 
-  :where(.cobble-player-loading) {
-    display: flex;
+  /* With a name tag the box grows to hold it, and stretches to a long name */
+  :where(.cobble-player-renderer[data-named]) {
+    display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
+    width: auto;
+    min-width: calc(var(--cobble-width) * var(--cobble-px));
+    height: auto;
+  }
+
+  /* `NameTagFeature`: white text on a 25% black plate */
+  :where(.cobble-player-nametag) {
+    flex: none;
+    box-sizing: border-box;
+    padding: 0 calc(1 * var(--cobble-px));
+    background: rgb(0 0 0 / 25%);
+    color: #ffffff;
+    white-space: pre;
+    --cobble-text-color: #ffffff;
+    --cobble-text-shadow-color: #3f3f3f;
+  }
+
+  /* Holds the viewport and the floating name tag, which is placed over it every frame */
+  :where(.cobble-player-stage) {
+    position: relative;
+    flex: none;
+  }
+
+  :where(.cobble-player-nametag-float) {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    pointer-events: none;
+    transition: color 0.3s;
+  }
+
+  /* Sneaking dims the name (`NameTagFeature`'s see-through name) */
+  :where(.cobble-player-nametag-float[data-crouching]) {
+    --cobble-text-color: #aaaaaa;
+    --cobble-text-shadow-color: #2a2a2a;
+    color: #aaaaaa;
   }
 
   /* 3D model viewport: a canvas sized in GUI units */

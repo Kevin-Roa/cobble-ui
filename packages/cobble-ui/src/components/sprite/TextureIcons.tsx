@@ -213,13 +213,13 @@ function SolidPlayerHead(props: Omit<PlayerHeadProps, 'flat'>): JSX.Element {
   const resolved = useMojangSkin(name);
   const pixels = resolved?.image;
   const flat = <FlatPlayerHead skin={skin} size={size} />;
-  // A named player's skin is still loading: the flat default face stands in.
-  if (resolved === undefined) return flat;
   return (
     <ModelViewport
       {...(rest as object)}
       ref={ref as Ref<HTMLDivElement> | undefined}
       key={name ?? skin}
+      // The default skin shows until the player's own has loaded, then the scene is rebuilt.
+      sceneKey={pixels ? 'own' : 'local'}
       aria-label={`${name ?? 'Player'} head`}
       className={cx('cobble-player-head-3d', className)}
       style={{ display: 'inline-block', ...(style as CSSProperties | undefined) }}

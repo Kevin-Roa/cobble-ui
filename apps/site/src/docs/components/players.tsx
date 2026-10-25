@@ -5,6 +5,7 @@ import {
   ItemIcon,
   PlayerInventory,
   PlayerRenderer,
+  type PlayerOverlayParts,
   type PlayerPose,
   type SlotGridItem,
 } from 'cobble-ui';
@@ -29,20 +30,44 @@ const HOTBAR: readonly SlotGridItem[] = [
   item('torch', 'Torch', 64),
 ];
 
+const POSES: readonly PlayerPose[] = [
+  'standing',
+  'idle',
+  'walking',
+  'crouching',
+  'flying',
+  'swimming',
+];
+
+const LAYERS: readonly (readonly [keyof PlayerOverlayParts, string])[] = [
+  ['hat', 'Hat'],
+  ['jacket', 'Jacket'],
+  ['leftSleeve', 'Left sleeve'],
+  ['rightSleeve', 'Right sleeve'],
+  ['leftPants', 'Left pants'],
+  ['rightPants', 'Right pants'],
+];
+
 export function PlayerRendererPage(): JSX.Element {
   const player = useDefaultPlayer();
   const [follow, setFollow] = useState(false);
-  const [slim, setSlim] = useState(false);
+  const [model, setModel] = useState<'auto' | 'wide' | 'slim'>('auto');
   const [pose, setPose] = useState<PlayerPose>('standing');
+  const [cape, setCape] = useState(true);
+  const [elytra, setElytra] = useState(false);
+  const [nameTag, setNameTag] = useState(true);
+  const [layers, setLayers] = useState<Partial<PlayerOverlayParts>>({});
   return (
     <ComponentDoc
       intro={
         <>
           A real 3D player model (<Code>PlayerModel</Code>, drawn by the library&apos;s own software
           renderer): head, body, arms and legs with the 64×64 skin layout, the hat, jacket, sleeve
-          and pants layers, and wide or slim (Alex) arms. Drag or use the arrow keys to turn it.
-          Without a <Code>player</Code> it wears the bundled Steve or Alex skin from the client
-          files; with a username or UUID the skin is looked up through the official Mojang API and
+          and pants layers (all at once or one by one), wide or slim (Alex) arms detected from the
+          skin, an optional cape and name tag, and the standing, idle, walking, crouching, flying
+          and swimming poses, and an elytra. Drag or use the arrow keys to turn it. Without a{' '}
+          <Code>player</Code> it wears the bundled Steve or Alex skin from the client files; with a
+          username or UUID the skin (and cape) is looked up through the official Mojang API and
           downloaded by the browser (nothing is bundled). The Mojang API sends no CORS headers, so
           from a browser it needs a proxy (<Code>configureMojangApi</Code>); if the lookup fails the
           bundled skin is shown.
@@ -52,13 +77,25 @@ export function PlayerRendererPage(): JSX.Element {
         <div className="site-row">
           <PlayerRenderer
             height={100}
-            model={slim ? 'slim' : 'wide'}
+            {...(model === 'auto' ? {} : { model })}
             followMouse={follow}
             pose={pose}
             autoRotate={pose === 'walking'}
+            overlay={layers}
             label="Default skin"
           />
-          <PlayerRenderer player={player} height={100} followMouse />
+          <PlayerRenderer
+            player={player}
+            height={100}
+            width={90}
+            followMouse={follow}
+            pose={pose}
+            overlay={layers}
+            cape={cape}
+            elytra={elytra}
+            nameTag={nameTag}
+            initialYaw={cape ? 160 : 0}
+          />
           <div>
             <label>
               <input
@@ -72,30 +109,73 @@ export function PlayerRendererPage(): JSX.Element {
             <label>
               <input
                 type="checkbox"
-                checked={slim}
-                onChange={(event) => setSlim(event.target.checked)}
+                checked={cape}
+                onChange={(event) => setCape(event.target.checked)}
               />{' '}
-              Slim arms
+              Cape (turned to show it)
+            </label>
+            <br />
+            <label>
+              <input
+                type="checkbox"
+                checked={elytra}
+                onChange={(event) => setElytra(event.target.checked)}
+              />{' '}
+              Elytra
+            </label>
+            <br />
+            <label>
+              <input
+                type="checkbox"
+                checked={nameTag}
+                onChange={(event) => setNameTag(event.target.checked)}
+              />{' '}
+              Name tag
+            </label>
+            <br />
+            <label>
+              Arms{' '}
+              <select
+                value={model}
+                onChange={(event) => setModel(event.target.value as 'auto' | 'wide' | 'slim')}
+              >
+                <option value="auto">auto-detect</option>
+                <option value="wide">wide</option>
+                <option value="slim">slim</option>
+              </select>
             </label>
             <br />
             <label>
               Pose{' '}
               <select value={pose} onChange={(event) => setPose(event.target.value as PlayerPose)}>
-                <option value="standing">standing</option>
-                <option value="idle">idle</option>
-                <option value="walking">walking</option>
+                {POSES.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
               </select>
             </label>
+            <br />
+            {LAYERS.map(([key, text]) => (
+              <label key={key} style={{ display: 'block' }}>
+                <input
+                  type="checkbox"
+                  checked={layers[key] ?? true}
+                  onChange={(event) => setLayers({ ...layers, [key]: event.target.checked })}
+                />{' '}
+                {text}
+              </label>
+            ))}
           </div>
         </div>
       }
-      code={`<PlayerRenderer player='${player.replaceAll("'", "\\'")}' height={100} rotatable followMouse />`}
+      code={`<PlayerRenderer player='${player.replaceAll("'", "\\'")}' height={100} cape nameTag pose="crouching" overlay={{ hat: false }} />`}
       rows={[
         {
           name: 'player',
           type: 'string',
           description:
-            'Username or UUID; the skin and arm shape come from the Mojang API. Omit to use the bundled skin.',
+            'Username or UUID; the skin, arm shape and cape come from the Mojang API. Omit to use the bundled skin.',
         },
         {
           name: 'skin',
@@ -107,8 +187,43 @@ export function PlayerRendererPage(): JSX.Element {
         {
           name: 'model',
           type: "'wide' | 'slim'",
-          defaultValue: "'wide'",
-          description: 'Arm shape: 4 pixels or 3 pixels (Alex).',
+          description:
+            'Arm shape: 4 pixels or 3 pixels (Alex). Detected when omitted, from the profile or the skin pixels.',
+        },
+        {
+          name: 'pose',
+          type: "'standing' | 'idle' | 'walking' | 'crouching' | 'flying' | 'swimming'",
+          defaultValue: "'standing'",
+          description:
+            'Still, a slight arm sway, a walk cycle, sneaking, elytra gliding or a breaststroke. Flying and swimming lie the player down and shrink it to fit.',
+        },
+        {
+          name: 'overlay',
+          type: 'boolean | { hat, jacket, leftSleeve, rightSleeve, leftPants, rightPants }',
+          defaultValue: 'true',
+          description:
+            'Draw the skin layers: all (true), none (false) or choose each one; missing keys are drawn.',
+        },
+        {
+          name: 'cape',
+          type: 'boolean | string',
+          defaultValue: 'false',
+          description:
+            "true shows the player's own cape; a string is the URL of a cape image that replaces it (needs CORS).",
+        },
+        {
+          name: 'elytra',
+          type: 'boolean',
+          defaultValue: 'false',
+          description:
+            "Wear an elytra instead of the cape: the player's cape texture if shown, else the game's elytra. The wings open in the flying pose.",
+        },
+        {
+          name: 'nameTag',
+          type: 'boolean | string',
+          defaultValue: 'false',
+          description:
+            "Show a name above the player: true is the player's name, a string is your text. The renderer grows to fit.",
         },
         {
           name: 'rotatable',
@@ -129,33 +244,33 @@ export function PlayerRendererPage(): JSX.Element {
           description: 'Spin around the vertical axis; a number is degrees per second.',
         },
         {
-          name: 'pose',
-          type: "'standing' | 'idle' | 'walking'",
-          defaultValue: "'standing'",
-          description: 'Still, a slight arm sway, or a walk cycle.',
-        },
-        {
-          name: 'overlay',
-          type: 'boolean',
-          defaultValue: 'true',
-          description: 'Draw the hat, jacket, sleeve and pants layers.',
-        },
-        {
           name: 'initialYaw',
           type: 'number',
           defaultValue: '0',
           description: 'Starting yaw in degrees.',
         },
         {
+          name: 'initialPitch',
+          type: 'number',
+          defaultValue: '0',
+          description: 'Starting pitch in degrees; positive looks down on the player.',
+        },
+        {
+          name: 'initialRoll',
+          type: 'number',
+          defaultValue: '0',
+          description: "Starting roll in degrees around the player's front axis.",
+        },
+        {
           name: 'height',
           type: 'number',
           defaultValue: '70',
-          description: 'Height in GUI units.',
+          description: 'Height of the model in GUI units.',
         },
         {
           name: 'width',
           type: 'number',
-          description: 'Width in GUI units. 70% of the height by default.',
+          description: 'Width of the model in GUI units. 70% of the height by default.',
         },
         { name: 'label', type: 'string', description: 'Accessible name.' },
       ]}

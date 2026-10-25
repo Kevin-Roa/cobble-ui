@@ -1,13 +1,9 @@
-import { mergeProps } from "@base-ui/react/merge-props";
-import type { ElementType, JSX, ReactNode } from "react";
-import type {
-  CssVariables,
-  PolymorphicProps,
-  SlotProps,
-} from "../../internal/polymorphic.ts";
-import { MuteButton, ReportButton } from "../button/SocialButtons.tsx";
-import { cx, placeAt } from "../shared.ts";
-import { PlayerHead } from "../sprite/TextureIcons.tsx";
+import { mergeProps } from '@base-ui/react/merge-props';
+import type { ElementType, JSX, ReactNode } from 'react';
+import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
+import { MuteButton, ReportButton } from '../button/SocialButtons.tsx';
+import { cx, placeAt } from '../shared.ts';
+import { PlayerHead } from '../sprite/TextureIcons.tsx';
 
 /** Default row width: the player list of `SocialInteractionsPlayerList` is 236 wide. */
 export const SOCIAL_ENTRY_WIDTH = 236;
@@ -23,12 +19,12 @@ export const SOCIAL_ENTRY_BUTTON_SIZE = 20;
 export const SOCIAL_ENTRY_NAME_X: number =
   SOCIAL_ENTRY_PADDING + SOCIAL_ENTRY_SKIN_SIZE + SOCIAL_ENTRY_PADDING;
 /** Fill of a highlighted row (`PlayerEntry#BG_FILL`, ARGB 255/74/74/74). */
-export const SOCIAL_ENTRY_HIGHLIGHT_COLOR = "#4a4a4a";
+export const SOCIAL_ENTRY_HIGHLIGHT_COLOR = '#4a4a4a';
 
 export interface SocialPlayerEntrySlotProps {
-  readonly head?: SlotProps<"span">;
-  readonly name?: SlotProps<"span">;
-  readonly status?: SlotProps<"span">;
+  readonly head?: SlotProps<'span'>;
+  readonly name?: SlotProps<'span'>;
+  readonly status?: SlotProps<'span'>;
 }
 
 export interface SocialPlayerEntryOwnProps {
@@ -49,8 +45,10 @@ export interface SocialPlayerEntryOwnProps {
   readonly slotProps?: SocialPlayerEntrySlotProps;
 }
 
-export type SocialPlayerEntryProps<E extends ElementType = "div"> =
-  PolymorphicProps<E, SocialPlayerEntryOwnProps>;
+export type SocialPlayerEntryProps<E extends ElementType = 'div'> = PolymorphicProps<
+  E,
+  SocialPlayerEntryOwnProps
+>;
 
 /**
  * A player row of the social interactions screen (`PlayerEntry`): a flat dark row that
@@ -59,7 +57,7 @@ export type SocialPlayerEntryProps<E extends ElementType = "div"> =
  * vertically centred. There is no frame: the surrounding `SocialInteractionsPlayerList` panel
  * provides the border and the dark `#333` backdrop.
  */
-export function SocialPlayerEntry<E extends ElementType = "div">(
+export function SocialPlayerEntry<E extends ElementType = 'div'>(
   props: SocialPlayerEntryProps<E>,
 ): JSX.Element {
   const {
@@ -76,11 +74,11 @@ export function SocialPlayerEntry<E extends ElementType = "div">(
     className,
     style,
     ...rest
-  } = props as SocialPlayerEntryProps<"div">;
-  const Component: ElementType = as ?? "div";
+  } = props as SocialPlayerEntryProps<'div'>;
+  const Component: ElementType = as ?? 'div';
   const rootStyle: CssVariables = {
-    "--cobble-width": width,
-    "--cobble-height": SOCIAL_ENTRY_HEIGHT,
+    '--cobble-width': width,
+    '--cobble-height': SOCIAL_ENTRY_HEIGHT,
     ...style,
   };
   const buttonY = (SOCIAL_ENTRY_HEIGHT - SOCIAL_ENTRY_BUTTON_SIZE) / 2;
@@ -88,26 +86,24 @@ export function SocialPlayerEntry<E extends ElementType = "div">(
   // toggle one button and one padding further left.
   const reportX = width - SOCIAL_ENTRY_PADDING - SOCIAL_ENTRY_BUTTON_SIZE;
   const muteX =
-    onReport === undefined
-      ? reportX
-      : reportX - SOCIAL_ENTRY_PADDING - SOCIAL_ENTRY_BUTTON_SIZE;
+    onReport === undefined ? reportX : reportX - SOCIAL_ENTRY_PADDING - SOCIAL_ENTRY_BUTTON_SIZE;
   const muteProps: Record<string, unknown> = {};
-  if (muted !== undefined) muteProps["muted"] = muted;
-  if (onMutedChange !== undefined) muteProps["onMutedChange"] = onMutedChange;
+  if (muted !== undefined) muteProps['muted'] = muted;
+  if (onMutedChange !== undefined) muteProps['onMutedChange'] = onMutedChange;
   return (
     <Component
-      {...mergeProps<"div">(
+      {...mergeProps<'div'>(
         {
-          className: cx("cobble-social-entry", className),
+          className: cx('cobble-social-entry', className),
           style: rootStyle,
-          ...(highlighted ? { "data-highlighted": "" } : {}),
+          ...(highlighted ? { 'data-highlighted': '' } : {}),
         },
         rest,
       )}
     >
       <span
         {...slotProps?.head}
-        className={cx("cobble-social-entry-head", slotProps?.head?.className)}
+        className={cx('cobble-social-entry-head', slotProps?.head?.className)}
         style={placeAt(
           SOCIAL_ENTRY_PADDING,
           (SOCIAL_ENTRY_HEIGHT - SOCIAL_ENTRY_SKIN_SIZE) / 2,
@@ -118,16 +114,8 @@ export function SocialPlayerEntry<E extends ElementType = "div">(
       </span>
       <span
         {...slotProps?.name}
-        className={cx(
-          "cobble-social-entry-name",
-          "cobble-text",
-          slotProps?.name?.className,
-        )}
-        style={placeAt(
-          SOCIAL_ENTRY_NAME_X,
-          status === undefined ? 14 : 8,
-          slotProps?.name?.style,
-        )}
+        className={cx('cobble-social-entry-name', 'cobble-text', slotProps?.name?.className)}
+        style={placeAt(SOCIAL_ENTRY_NAME_X, status === undefined ? 14 : 8, slotProps?.name?.style)}
         data-shadow=""
       >
         {name}
@@ -135,11 +123,7 @@ export function SocialPlayerEntry<E extends ElementType = "div">(
       {status === undefined ? null : (
         <span
           {...slotProps?.status}
-          className={cx(
-            "cobble-social-entry-status",
-            "cobble-text",
-            slotProps?.status?.className,
-          )}
+          className={cx('cobble-social-entry-status', 'cobble-text', slotProps?.status?.className)}
           style={placeAt(SOCIAL_ENTRY_NAME_X, 20, slotProps?.status?.style)}
           data-shadow=""
         >

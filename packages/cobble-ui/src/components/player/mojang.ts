@@ -1,5 +1,5 @@
 import type { RgbaImage } from '../../render/blit.ts';
-import { toModernSkin } from './playerModel.ts';
+import { normalizeCape, toModernSkin } from './playerModel.ts';
 
 /**
  * The hosts of the official Mojang API (https://minecraft.wiki/w/Mojang_API). Neither sends CORS
@@ -33,17 +33,23 @@ export interface ResolvedSkin {
   readonly image: RgbaImage;
   /** The skin has slim (Alex) arms (`metadata.model` is `slim`). */
   readonly slim: boolean;
+  /** The player's name with its own capitalisation. */
+  readonly name: string;
+  /** URL of the player's cape on `textures.minecraft.net`, when they have one. */
+  readonly capeUrl: string | undefined;
 }
 
 const UUID = /^[0-9a-f]{32}$/i;
 
 interface SessionProfile {
+  readonly name?: string;
   readonly properties?: readonly { readonly name: string; readonly value: string }[];
 }
 
 interface TexturesPayload {
   readonly textures?: {
     readonly SKIN?: { readonly url: string; readonly metadata?: { readonly model?: string } };
+    readonly CAPE?: { readonly url: string };
   };
 }
 
@@ -65,7 +71,7 @@ function loadImage(url: string): Promise<RgbaImage> {
         const context = canvas.getContext('2d', { willReadFrequently: true });
         if (!context) throw new Error('no 2d context');
         context.drawImage(image, 0, 0);
-        resolve(toModernSkin(context.getImageData(0, 0, canvas.width, canvas.height)));
+        resolve(context.getImageData(0, 0, canvas.width, canvas.height));
       } catch (error) {
         reject(error instanceof Error ? error : new Error('could not read the skin'));
       }
@@ -74,6 +80,8 @@ function loadImage(url: string): Promise<RgbaImage> {
     image.src = url;
   });
 }
+
+const https = (url: string): string => url.replace(/^http:/, 'https:');
 
 async function lookup(player: string): Promise<ResolvedSkin | null> {
   const trimmed = player.trim();
@@ -89,11 +97,17 @@ async function lookup(player: string): Promise<ResolvedSkin | null> {
   );
   const value = profile.properties?.find((property) => property.name === 'textures')?.value;
   if (value === undefined) return null;
-  const skin = (JSON.parse(atob(value)) as TexturesPayload).textures?.SKIN;
+  const textures = (JSON.parse(atob(value)) as TexturesPayload).textures;
+  const skin = textures?.SKIN;
   // A player without a custom skin has none; the caller shows the default skin.
   if (!skin) return null;
-  const image = await loadImage(skin.url.replace(/^http:/, 'https:'));
-  return { image, slim: skin.metadata?.model === 'slim' };
+  const image = toModernSkin(await loadImage(https(skin.url)));
+  return {
+    image,
+    slim: skin.metadata?.model === 'slim',
+    name: profile.name ?? trimmed,
+    capeUrl: textures?.CAPE ? https(textures.CAPE.url) : undefined,
+  };
 }
 
 /**
@@ -110,6 +124,24 @@ export function fetchMojangSkin(player: string): Promise<ResolvedSkin | null> {
     cache.set(key, promise);
     // A failed lookup (rate limit, offline) may be retried later.
     promise.catch(() => cache.delete(key));
+  }
+  return promise;
+}
+
+const capes = new Map<string, Promise<RgbaImage | null>>();
+
+/**
+ * Downloads a cape image (the player's `capeUrl`, or any cross-origin readable image URL) and
+ * brings it to the 64x32 layout (`normalizeCape`). Resolves to `null` when it cannot be used.
+ */
+export function loadCapeImage(url: string): Promise<RgbaImage | null> {
+  let promise = capes.get(url);
+  if (!promise) {
+    promise = loadImage(url).then(
+      (image) => normalizeCape(image) ?? null,
+      () => null,
+    );
+    capes.set(url, promise);
   }
   return promise;
 }

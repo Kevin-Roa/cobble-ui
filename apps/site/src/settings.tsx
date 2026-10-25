@@ -6,10 +6,10 @@ import {
   useState,
   type JSX,
   type ReactNode,
-} from 'react';
+} from "react";
 
 export interface SiteSettings {
-  readonly guiScale: number | 'auto';
+  readonly guiScale: number | "auto";
   readonly sound: boolean;
   readonly volume: number;
   readonly menuBlur: number;
@@ -19,7 +19,8 @@ export interface SiteSettings {
   readonly defaultPlayer: string;
 }
 
-export const FALLBACK_PLAYER = 'steve';
+export const FALLBACK_PLAYER = "steve";
+export const DEFAULT_PLAYER = "Technoblade";
 
 const DEFAULTS: SiteSettings = {
   guiScale: 2,
@@ -28,18 +29,21 @@ const DEFAULTS: SiteSettings = {
   menuBlur: 5,
   panoramaSpeed: 1,
   inWorld: false,
-  defaultPlayer: FALLBACK_PLAYER,
+  defaultPlayer: DEFAULT_PLAYER,
 };
-const STORAGE_KEY = 'cobble-ui-site-settings';
+const STORAGE_KEY = "cobble-ui-site-settings";
 
 function load(): SiteSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) return DEFAULTS;
-    const merged = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<SiteSettings>) };
-    return typeof merged.defaultPlayer === 'string'
+    const merged = {
+      ...DEFAULTS,
+      ...(JSON.parse(raw) as Partial<SiteSettings>),
+    };
+    return typeof merged.defaultPlayer === "string"
       ? merged
-      : { ...merged, defaultPlayer: FALLBACK_PLAYER };
+      : { ...merged, defaultPlayer: DEFAULT_PLAYER };
   } catch {
     return DEFAULTS;
   }
@@ -53,7 +57,11 @@ interface SettingsContextValue {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-export function SettingsProvider({ children }: { readonly children: ReactNode }): JSX.Element {
+export function SettingsProvider({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
   const [settings, setSettings] = useState(load);
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -72,11 +80,14 @@ export function SettingsProvider({ children }: { readonly children: ReactNode })
 /** The player the docs examples render; an empty setting falls back to Steve. */
 export function useDefaultPlayer(): string {
   const value = useSettings().settings.defaultPlayer;
-  return typeof value === 'string' && value.trim() !== '' ? value.trim() : FALLBACK_PLAYER;
+  return typeof value === "string" && value.trim() !== ""
+    ? value.trim()
+    : FALLBACK_PLAYER;
 }
 
 export function useSettings(): SettingsContextValue {
   const value = useContext(SettingsContext);
-  if (!value) throw new Error('useSettings must be used inside <SettingsProvider>');
+  if (!value)
+    throw new Error("useSettings must be used inside <SettingsProvider>");
   return value;
 }

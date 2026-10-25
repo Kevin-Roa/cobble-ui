@@ -3503,7 +3503,7 @@ describe('player components', () => {
         textures: { SKIN: { url: 'http://textures.minecraft.net/texture/abc' } },
       }),
     );
-    const fetchMock = vi.fn((url: string) =>
+    const fetchMock = vi.fn<(url: string) => Promise<Response>>((url) =>
       Promise.resolve(
         new Response(
           JSON.stringify(
