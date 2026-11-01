@@ -1,6 +1,6 @@
 {
   "name": "cobble-ui",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React components for building pixel-accurate Minecraft: Java Edition-style interfaces. NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.",
   "keywords": [
     "components",
