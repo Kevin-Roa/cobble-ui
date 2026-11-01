@@ -1072,3 +1072,37 @@ export type {
   CreateWorldType,
   CreateWorldValues,
 } from './components/world-select/CreateWorldScreen.tsx';
+export {
+  PAUSE_SCREEN_FULL_WIDTH,
+  PAUSE_SCREEN_HALF_WIDTH,
+  PauseScreen,
+} from './components/menus/PauseScreen.tsx';
+export type { PauseScreenOwnProps, PauseScreenProps } from './components/menus/PauseScreen.tsx';
+export {
+  TITLE_SCREEN_BUTTON_WIDTH,
+  TITLE_SCREEN_HALF_WIDTH,
+  TitleScreen,
+} from './components/menus/TitleScreen.tsx';
+export type { TitleScreenOwnProps, TitleScreenProps } from './components/menus/TitleScreen.tsx';
+export { OptionsScreen } from './components/menus/OptionsScreen.tsx';
+export type {
+  OptionsScreenOwnProps,
+  OptionsScreenProps,
+} from './components/menus/OptionsScreen.tsx';
+export {
+  KEYBIND_BUTTON_WIDTH,
+  KEYBIND_RESET_WIDTH,
+  KeybindButton,
+  KeybindRow,
+} from './components/menus/KeybindButton.tsx';
+export type {
+  KeybindButtonOwnProps,
+  KeybindButtonProps,
+  KeybindRowOwnProps,
+  KeybindRowProps,
+} from './components/menus/KeybindButton.tsx';
+export { ConfirmScreen } from './components/menus/ConfirmScreen.tsx';
+export type {
+  ConfirmScreenOwnProps,
+  ConfirmScreenProps,
+} from './components/menus/ConfirmScreen.tsx';

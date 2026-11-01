@@ -13,6 +13,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
+import { ConfirmScreen, KeybindRow, OptionsScreen, PauseScreen, TitleScreen } from '../index.ts';
 import {
   CreateWorldScreen,
   DEFAULT_CREATE_WORLD_VALUES,
@@ -3866,5 +3867,93 @@ describe('CreateWorldScreen', () => {
     );
     expect(screen.getByRole('button', { name: 'Create New World' })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Difficulty/ })).toBeDisabled();
+describe('menu screens', () => {
+  it('PauseScreen calls its handlers and disables LAN on request', async () => {
+    const user = userEvent.setup();
+    const onBackToGame = vi.fn<() => void>();
+    const onOptions = vi.fn<() => void>();
+    const onOpenToLan = vi.fn<() => void>();
+    renderWithProvider(
+      <PauseScreen
+        onBackToGame={onBackToGame}
+        onOptions={onOptions}
+        onOpenToLan={onOpenToLan}
+        lanDisabled
+      />,
+    );
+    expect(screen.getByText('Game Menu')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to Game' }));
+    await user.click(screen.getByRole('button', { name: 'Options...' }));
+    await user.click(screen.getByRole('button', { name: 'Open to LAN' }));
+    expect(onBackToGame).toHaveBeenCalledTimes(1);
+    expect(onOptions).toHaveBeenCalledTimes(1);
+    expect(onOpenToLan).not.toHaveBeenCalled();
+  });
+
+  it('TitleScreen renders the logo slot and hides the third button by default', async () => {
+    const user = userEvent.setup();
+    const onQuit = vi.fn<() => void>();
+    renderWithProvider(<TitleScreen logo={<span>My Logo</span>} onQuit={onQuit} />);
+    expect(screen.getByText('My Logo')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Realms' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Quit Game' }));
+    expect(onQuit).toHaveBeenCalledTimes(1);
+  });
+
+  it('TitleScreen shows the third button when labelled', () => {
+    renderWithProvider(<TitleScreen realmsLabel="Online" />);
+    expect(screen.getByRole('button', { name: 'Online' })).toBeInTheDocument();
+  });
+
+  it('OptionsScreen shows rows and Done fires onDone', async () => {
+    const user = userEvent.setup();
+    const onDone = vi.fn<() => void>();
+    renderWithProvider(
+      <OptionsScreen title="Sound" onDone={onDone}>
+        <span>row content</span>
+      </OptionsScreen>,
+    );
+    expect(screen.getByText('row content')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it('ConfirmScreen confirms, cancels and cancels on Escape', async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn<() => void>();
+    const onCancel = vi.fn<() => void>();
+    renderWithProvider(
+      <ConfirmScreen title="Delete?" message="Sure?" onConfirm={onConfirm} onCancel={onCancel} />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Yes' }));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'No' }));
+    await user.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledTimes(2);
+  });
+
+  it('KeybindRow decorates listening and conflicts, and Reset follows isDefault', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn<() => void>();
+    const onReset = vi.fn<() => void>();
+    const first = renderWithProvider(
+      <KeybindRow name="Jump" keyLabel="Space" isDefault onChange={onChange} onReset={onReset} />,
+    );
+    const key = screen.getByRole('button', { name: 'Jump' });
+    expect(key).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled();
+    await user.click(key);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    first.unmount();
+    const second = renderWithProvider(
+      <KeybindRow name="Jump" keyLabel="Space" listening onReset={onReset} />,
+    );
+    expect(screen.getByRole('button', { name: 'Jump' })).toHaveTextContent('> Space <');
+    expect(screen.getByRole('button', { name: 'Jump' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(onReset).toHaveBeenCalledTimes(1);
+    second.unmount();
+    renderWithProvider(<KeybindRow name="Jump" keyLabel="Space" conflict />);
+    expect(screen.getByRole('button', { name: 'Jump' })).toHaveTextContent('[ Space ]');
   });
 });
