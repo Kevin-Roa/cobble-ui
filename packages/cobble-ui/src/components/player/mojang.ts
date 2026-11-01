@@ -5,18 +5,27 @@ import { normalizeCape, toModernSkin } from './playerModel.ts';
  * The hosts of the official Mojang API (https://minecraft.wiki/w/Mojang_API). Neither sends CORS
  * headers, so a browser can only reach them directly from a page that is allowed to (an extension,
  * Electron) or through a proxy; point these at one with {@link configureMojangApi}. The skin
- * images on `textures.minecraft.net` do allow cross-origin reads.
+ * images on `textures.minecraft.net` do allow cross-origin reads. When the official hosts cannot
+ * be reached (they are blocked by CORS on any normal website), lookups fall back to
+ * {@link MojangApiEndpoints.fallback}, so the renderer works on deployed sites with no setup.
  */
 export interface MojangApiEndpoints {
   /** Name to UUID: `GET <profiles>/minecraft/profile/lookup/name/<name>`. */
   readonly profiles: string;
   /** Skin and cape: `GET <session>/session/minecraft/profile/<uuid>`. */
   readonly session: string;
+  /**
+   * A CORS-enabled service that returns the session profile for a name or UUID
+   * (`GET <fallback>/<name or uuid>`, the shape of https://playerdb.co). Used when the Mojang hosts
+   * fail. Pass `null` to disable it.
+   */
+  readonly fallback: string | null;
 }
 
 const OFFICIAL: MojangApiEndpoints = {
   profiles: 'https://api.mojang.com',
   session: 'https://sessionserver.mojang.com',
+  fallback: 'https://playerdb.co/api/player/minecraft',
 };
 
 let endpoints = OFFICIAL;
@@ -83,8 +92,11 @@ function loadImage(url: string): Promise<RgbaImage> {
 
 const https = (url: string): string => url.replace(/^http:/, 'https:');
 
-async function lookup(player: string): Promise<ResolvedSkin | null> {
-  const trimmed = player.trim();
+interface FallbackResponse {
+  readonly data?: { readonly player?: SessionProfile & { readonly username?: string } };
+}
+
+async function officialProfile(trimmed: string): Promise<SessionProfile> {
   const dashless = trimmed.replaceAll('-', '');
   let id = UUID.test(dashless) ? dashless : undefined;
   id ??= (
@@ -92,9 +104,26 @@ async function lookup(player: string): Promise<ResolvedSkin | null> {
       `${endpoints.profiles}/minecraft/profile/lookup/name/${encodeURIComponent(trimmed)}`,
     )
   ).id;
-  const profile = await getJson<SessionProfile>(
-    `${endpoints.session}/session/minecraft/profile/${id}`,
-  );
+  return getJson<SessionProfile>(`${endpoints.session}/session/minecraft/profile/${id}`);
+}
+
+async function fallbackProfile(base: string, trimmed: string): Promise<SessionProfile> {
+  const player = (await getJson<FallbackResponse>(`${base}/${encodeURIComponent(trimmed)}`)).data
+    ?.player;
+  if (!player) throw new Error(`${trimmed}: player not found`);
+  return { name: player.username ?? player.name, properties: player.properties } as SessionProfile;
+}
+
+async function lookup(player: string): Promise<ResolvedSkin | null> {
+  const trimmed = player.trim();
+  let profile: SessionProfile;
+  try {
+    profile = await officialProfile(trimmed);
+  } catch (error) {
+    // Browsers block the Mojang hosts (no CORS headers); try the CORS-enabled fallback.
+    if (endpoints.fallback === null) throw error;
+    profile = await fallbackProfile(endpoints.fallback, trimmed);
+  }
   const value = profile.properties?.find((property) => property.name === 'textures')?.value;
   if (value === undefined) return null;
   const textures = (JSON.parse(atob(value)) as TexturesPayload).textures;

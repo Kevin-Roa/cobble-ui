@@ -69,8 +69,8 @@ export function PlayerRendererPage(): JSX.Element {
           <Code>player</Code> it wears the bundled Steve or Alex skin from the client files; with a
           username or UUID the skin (and cape) is looked up through the official Mojang API and
           downloaded by the browser (nothing is bundled). The Mojang API sends no CORS headers, so
-          from a browser it needs a proxy (<Code>configureMojangApi</Code>); if the lookup fails the
-          bundled skin is shown.
+          browsers fall back to the CORS-enabled PlayerDB service (or your own proxy via{' '}
+          <Code>configureMojangApi</Code>); if the lookup fails the bundled skin is shown.
         </>
       }
       demo={
