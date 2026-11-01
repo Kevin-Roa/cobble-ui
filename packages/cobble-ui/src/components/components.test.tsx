@@ -22,6 +22,9 @@ import {
   updateCreateWorldValues,
   worldDisplayName,
   worldIdLine,
+  Translate,
+  TranslationProvider,
+  useTranslation,
   ArmorStand,
   BlockModel,
   ChestPanel,
@@ -3955,5 +3958,51 @@ describe('menu screens', () => {
     second.unmount();
     renderWithProvider(<KeybindRow name="Jump" keyLabel="Space" conflict />);
     expect(screen.getByRole('button', { name: 'Jump' })).toHaveTextContent('[ Space ]');
+function Probe(): ReactElement {
+  const { t, ready } = useTranslation();
+  return (
+    <p data-ready={ready}>
+      {t('commands.give.success.single', 2, 'Stone', 'Steve')}|{t('nope.key')}
+    </p>
+  );
+}
+
+describe('translations', () => {
+  const lang = new TextEncoder().encode(
+    JSON.stringify({
+      'menu.singleplayer': 'Singleplayer',
+      'commands.give.success.single': 'Gave %1$s %2$s to %3$s',
+    }),
+  );
+  const assets = (): AssetSource =>
+    memoryAssets({ files: { 'assets/minecraft/lang/en_us.json': lang } });
+
+  it('loads en_us through the asset pipeline and substitutes arguments', async () => {
+    renderPlain(
+      <CobbleProvider assets={assets()} guiScale={2} sound={{ enabled: false }}>
+        <Translate translate="menu.singleplayer" />
+        <Probe />
+      </CobbleProvider>,
+    );
+    expect(await screen.findByText('Singleplayer')).toBeInTheDocument();
+    expect(await screen.findByText('Gave 2 Stone to Steve|nope.key')).toHaveAttribute(
+      'data-ready',
+      'true',
+    );
+  });
+
+  it('lets a TranslationProvider override keys and Translate use fallbacks', async () => {
+    renderPlain(
+      <CobbleProvider assets={assets()} guiScale={2} sound={{ enabled: false }}>
+        <TranslationProvider translations={{ 'menu.singleplayer': 'Solo', 'my.key': 'Hi %s' }}>
+          <Translate translate="menu.singleplayer" className="a" />
+          <Translate translate="my.key" args={['you']} as="strong" />
+          <Translate translate="absent" fallback="Fallback %s" args={[1]} />
+        </TranslationProvider>
+      </CobbleProvider>,
+    );
+    expect(await screen.findByText('Solo')).toHaveClass('a');
+    expect(screen.getByText('Hi you').tagName).toBe('STRONG');
+    expect(screen.getByText('Fallback 1')).toBeInTheDocument();
   });
 });

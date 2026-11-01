@@ -7,6 +7,7 @@ import {
 import { ItemsPage } from './components/explorers.tsx';
 import { CreateWorldScreenPage, WorldSelectionListPage } from './components/world-select.tsx';
 import { BlockModelPage, ModelViewportPage } from './components/model3d.tsx';
+import { TranslatePage, TranslationProviderPage } from './components/translate.tsx';
 import { ArmorStandPage } from './components/armor-stand.tsx';
 import { CustomAssetSourcesPage } from './components/asset-sources.tsx';
 import { OptionsMenuRecipePage } from './components/recipes.tsx';
@@ -393,6 +394,8 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('block-model', 'BlockModel', 'Text & sprites', BlockModelPage),
   entry('model-viewport', 'ModelViewport', 'Text & sprites', ModelViewportPage),
   entry('armor-stand', 'ArmorStand', 'Text & sprites', ArmorStandPage),
+  entry('translate', 'Translate', 'Text & sprites', TranslatePage),
+  entry('translation-provider', 'TranslationProvider', 'Text & sprites', TranslationProviderPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),
 
