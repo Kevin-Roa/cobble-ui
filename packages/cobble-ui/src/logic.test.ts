@@ -41,6 +41,66 @@ describe('GUI scale', () => {
     expect(resolveScale(2, 1.25, false)).toEqual({ unit: 2, device: 2.5 });
     expect(resolveScale(3, 2, true)).toEqual({ unit: 3, device: 6 });
   });
+
+  it('scales up on very large windows', () => {
+    // The limiting axis decides: height / (scale + 1) must stay >= 240.
+    expect(calculateAutoGuiScale(3840, 2160)).toBe(9);
+    expect(calculateAutoGuiScale(7680, 4320)).toBe(18);
+    expect(calculateAutoGuiScale(10000, 1080)).toBe(4);
+    expect(calculateAutoGuiScale(1920, 10000)).toBe(6);
+  });
+
+  it('never goes below 1 and requires both axes to fit', () => {
+    expect(calculateAutoGuiScale(100, 100)).toBe(1);
+    expect(calculateAutoGuiScale(0, 0)).toBe(1);
+    expect(calculateAutoGuiScale(640, 479)).toBe(1);
+    expect(calculateAutoGuiScale(639, 480)).toBe(1);
+    expect(calculateAutoGuiScale(640, 480)).toBe(2);
+  });
+
+  it('caps the scale at the maximum, treating 0 as unlimited', () => {
+    expect(calculateAutoGuiScale(3840, 2160, 4)).toBe(4);
+    expect(calculateAutoGuiScale(3840, 2160, 1)).toBe(1);
+    expect(calculateAutoGuiScale(3840, 2160, 0)).toBe(9);
+    // A cap above what fits has no effect.
+    expect(calculateAutoGuiScale(1280, 720, 10)).toBe(3);
+    expect(calculateAutoGuiScale(320, 240, 5)).toBe(1);
+  });
+
+  it('bumps odd scales to even when the unicode font is forced', () => {
+    expect(calculateAutoGuiScale(1280, 720, 0, true)).toBe(4);
+    expect(calculateAutoGuiScale(320, 240, 0, true)).toBe(2);
+    expect(calculateAutoGuiScale(1920, 1080, 0, true)).toBe(4);
+    expect(calculateAutoGuiScale(800, 600, 0, true)).toBe(2);
+    // Vanilla applies the bump after the cap, so it can exceed the maximum.
+    expect(calculateAutoGuiScale(3840, 2160, 3, true)).toBe(4);
+    expect(calculateAutoGuiScale(1280, 720, 0, false)).toBe(3);
+  });
+
+  it('keeps the exact GUI size in whole device pixels when snapping', () => {
+    for (const dpr of [1, 1.25, 1.5, 1.75, 2, 2.5, 3]) {
+      for (const guiScale of [1, 2, 3, 4, 5]) {
+        const { unit, device } = resolveScale(guiScale, dpr, true);
+        expect(Number.isInteger(device)).toBe(true);
+        expect(unit * dpr).toBeCloseTo(device);
+        expect(Math.abs(device - guiScale * dpr)).toBeLessThanOrEqual(0.5);
+      }
+    }
+    expect(resolveScale(1, 1.5, true).device).toBe(2);
+    expect(resolveScale(1, 1.5, true).unit).toBeCloseTo(4 / 3);
+    expect(resolveScale(3, 1.5, true).device).toBe(5);
+  });
+
+  it('never snaps to zero device pixels and ignores invalid ratios', () => {
+    expect(resolveScale(0.1, 1, true)).toEqual({ unit: 1, device: 1 });
+    expect(resolveScale(2, 0, true)).toEqual({ unit: 2, device: 2 });
+    expect(resolveScale(2, -1, false)).toEqual({ unit: 2, device: 2 });
+  });
+
+  it('leaves an explicit GUI scale untouched when snapping is off', () => {
+    expect(resolveScale(3, 1.5, false)).toEqual({ unit: 3, device: 4.5 });
+    expect(resolveScale(7, 1, false)).toEqual({ unit: 7, device: 7 });
+  });
 });
 
 describe('fonts', () => {

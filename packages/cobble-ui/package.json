@@ -51,7 +51,9 @@
     "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "sprite-ids:check": "node scripts/check-sprite-ids.mjs",
+    "sprite-ids:write": "node scripts/check-sprite-ids.mjs --write"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
