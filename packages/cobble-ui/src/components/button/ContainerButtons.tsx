@@ -69,6 +69,7 @@ export function StonecutterRecipeButton<E extends ElementType = 'button'>(
   const { label = 'Recipe', slotProps, ...rest } = props as StonecutterRecipeButtonProps<'button'>;
   return (
     <StateSpriteButton
+      sound="ui.stonecutter.select_recipe"
       {...rest}
       label={label}
       name="stonecutter-button"
@@ -108,6 +109,7 @@ export function LoomPatternButton<E extends ElementType = 'button'>(
   const { label = 'Pattern', slotProps, ...rest } = props as LoomPatternButtonProps<'button'>;
   return (
     <StateSpriteButton
+      sound="ui.loom.select_pattern"
       {...rest}
       label={label}
       name="loom-button"

@@ -132,6 +132,23 @@ import {
   GrindstonePanel,
   Text,
   FormattedText,
+  AdvancementBox,
+  AssetLoadingOverlay,
+  BrewingStandPanel,
+  FurnacePanel,
+  LoadingDots,
+  MenuBackground,
+  PanelLabel,
+  Panorama,
+  Screen,
+  ScreenLayout,
+  ScrollingText,
+  Sprite,
+  SplashText,
+  TiledTexture,
+  ToastProvider,
+  Tooltip,
+  TooltipPanel,
 } from './index.ts';
 
 async function violations(container: HTMLElement): Promise<string[]> {
@@ -414,6 +431,56 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
     <ArmorStand key="a" showArms small rotatable={false} />,
   ],
   ['GrindstonePanel', <GrindstonePanel key="a" error />],
+  ['Sprite', <Sprite key="a" sprite="widget/button" width={200} height={20} aria-hidden />],
+  [
+    'TiledTexture',
+    <TiledTexture key="a" texture="gui/menu_background" tileWidth={32} tileHeight={32} />,
+  ],
+  ['MenuBackground', <MenuBackground key="a" />],
+  [
+    'Screen',
+    <Screen key="a" background="none" onClose={() => undefined}>
+      <Button>Back</Button>
+    </Screen>,
+  ],
+  [
+    'ScreenLayout',
+    <ScreenLayout key="a" title="Options" footer={<Button>Done</Button>}>
+      <Text>Content</Text>
+    </ScreenLayout>,
+  ],
+  ['Panorama', <Panorama key="a" />],
+  ['SplashText', <SplashText key="a">Also try Terraria!</SplashText>],
+  ['LoadingDots', <LoadingDots key="a" aria-hidden />],
+  [
+    'ScrollingText',
+    <ScrollingText key="a" left={0} right={100} top={0} bottom={20}>
+      Long label
+    </ScrollingText>,
+  ],
+  ['AdvancementBox', <AdvancementBox key="a">Title</AdvancementBox>],
+  [
+    'PanelLabel',
+    <PanelLabel key="a" x={8} y={6}>
+      Furnace
+    </PanelLabel>,
+  ],
+  ['BrewingStandPanel', <BrewingStandPanel key="a" />],
+  ['FurnacePanel', <FurnacePanel key="a" />],
+  ['TooltipPanel', <TooltipPanel key="a">Tooltip text</TooltipPanel>],
+  [
+    'Tooltip',
+    <Tooltip key="a" content="Does a thing">
+      <Button>Hover me</Button>
+    </Tooltip>,
+  ],
+  [
+    'ToastProvider',
+    <ToastProvider key="a">
+      <Button>App</Button>
+    </ToastProvider>,
+  ],
+  ['AssetLoadingOverlay', <AssetLoadingOverlay key="a" />],
   ['Text', <Text key="a">Hello</Text>],
   ['FormattedText', <FormattedText key="a" value="§eYellow §lBold" />],
 ];
