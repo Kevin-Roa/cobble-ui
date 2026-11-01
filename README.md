@@ -4,6 +4,10 @@
 
 **React components for building Minecraft: Java Edition–style interfaces.**
 
+[![npm](https://img.shields.io/npm/v/cobble-ui?logo=npm)](https://www.npmjs.com/package/cobble-ui)
+[![CI](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/ci.yml)
+[![Tests](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/test.yml/badge.svg)](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/test.yml)
+
 > **NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
 
 Cobble UI reproduces the menus of Java Edition 26.3 pixel for pixel. It has 117 documented components
