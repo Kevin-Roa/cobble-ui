@@ -132,6 +132,9 @@ import {
   GrindstonePanel,
   Text,
   FormattedText,
+  WorldSelectionList,
+  CreateWorldScreen,
+  DEFAULT_CREATE_WORLD_VALUES,
 } from './index.ts';
 
 async function violations(container: HTMLElement): Promise<string[]> {
@@ -414,6 +417,22 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
     <ArmorStand key="a" showArms small rotatable={false} />,
   ],
   ['GrindstonePanel', <GrindstonePanel key="a" error />],
+  [
+    'WorldSelectionList',
+    <WorldSelectionList
+      key="a"
+      defaultValue="a"
+      formatDate={() => 'today'}
+      worlds={[
+        { id: 'a', name: 'New World', gameMode: 'survival', version: '26.3' },
+        { id: 'b', name: '', gameMode: 'creative', hardcore: true, cheats: true },
+      ]}
+    />,
+  ],
+  [
+    'CreateWorldScreen',
+    <CreateWorldScreen key="a" values={DEFAULT_CREATE_WORLD_VALUES} onValuesChange={() => {}} />,
+  ],
   ['Text', <Text key="a">Hello</Text>],
   ['FormattedText', <FormattedText key="a" value="§eYellow §lBold" />],
 ];
