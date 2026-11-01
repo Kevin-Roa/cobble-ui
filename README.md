@@ -1,12 +1,12 @@
+[![npm](https://img.shields.io/npm/v/cobble-ui?logo=npm)](https://www.npmjs.com/package/cobble-ui)
+[![CI](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/ci.yml)
+[![Tests](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/test.yml/badge.svg)](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/test.yml)
+
 <img src="assets/icon.svg" width="64" height="64" alt="">
 
 # Cobble UI
 
 **React components for building Minecraft: Java Edition–style interfaces.**
-
-[![npm](https://img.shields.io/npm/v/cobble-ui?logo=npm)](https://www.npmjs.com/package/cobble-ui)
-[![CI](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/ci.yml)
-[![Tests](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/test.yml/badge.svg)](https://github.com/Kevin-Roa/cobble-ui/actions/workflows/test.yml)
 
 > **NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
 
