@@ -1,14 +1,14 @@
-import type { RgbaImage } from "../../render/blit.ts";
-import { createBoxQuads } from "../../render/model3d/box.ts";
-import { Node3D } from "../../render/model3d/engine.ts";
+import type { RgbaImage } from '../../render/blit.ts';
+import { createBoxQuads } from '../../render/model3d/box.ts';
+import { Node3D } from '../../render/model3d/engine.ts';
 
 /** Skin texture used when no skin is given (`DefaultPlayerSkin`'s Steve). */
-export const STEVE_SKIN = "entity/player/wide/steve";
+export const STEVE_SKIN = 'entity/player/wide/steve';
 /** The slim (Alex) default skin. */
-export const ALEX_SKIN = "entity/player/slim/alex";
+export const ALEX_SKIN = 'entity/player/slim/alex';
 
 /** The arm shape of a skin (`PlayerModelType`). */
-export type PlayerModelType = "wide" | "slim";
+export type PlayerModelType = 'wide' | 'slim';
 
 const SIZE = 64;
 
@@ -42,27 +42,25 @@ export interface PlayerOverlayParts {
 export type PlayerOverlay = boolean | Partial<PlayerOverlayParts>;
 
 const OVERLAY_OF_PART: Readonly<Record<PartName, keyof PlayerOverlayParts>> = {
-  head: "hat",
-  body: "jacket",
-  rightArm: "rightSleeve",
-  leftArm: "leftSleeve",
-  rightLeg: "rightPants",
-  leftLeg: "leftPants",
+  head: 'hat',
+  body: 'jacket',
+  rightArm: 'rightSleeve',
+  leftArm: 'leftSleeve',
+  rightLeg: 'rightPants',
+  leftLeg: 'leftPants',
 };
 
 /** Resolves a {@link PlayerOverlay} into one flag per layer. */
-export function resolveOverlay(
-  overlay: PlayerOverlay = true,
-): PlayerOverlayParts {
+export function resolveOverlay(overlay: PlayerOverlay = true): PlayerOverlayParts {
   const flag = (key: keyof PlayerOverlayParts): boolean =>
-    typeof overlay === "boolean" ? overlay : (overlay[key] ?? true);
+    typeof overlay === 'boolean' ? overlay : (overlay[key] ?? true);
   return {
-    hat: flag("hat"),
-    jacket: flag("jacket"),
-    leftSleeve: flag("leftSleeve"),
-    rightSleeve: flag("rightSleeve"),
-    leftPants: flag("leftPants"),
-    rightPants: flag("rightPants"),
+    hat: flag('hat'),
+    jacket: flag('jacket'),
+    leftSleeve: flag('leftSleeve'),
+    rightSleeve: flag('rightSleeve'),
+    leftPants: flag('leftPants'),
+    rightPants: flag('rightPants'),
   };
 }
 
@@ -100,7 +98,7 @@ function definitions(slim: boolean): readonly PartDefinition[] {
   const armWidth = slim ? 3 : 4;
   return [
     {
-      name: "head",
+      name: 'head',
       pivot: [0, 0, 0],
       box: [-4, -8, -4, 8, 8, 8],
       texOffs: [0, 0],
@@ -108,7 +106,7 @@ function definitions(slim: boolean): readonly PartDefinition[] {
       overlayGrow: 0.5,
     },
     {
-      name: "body",
+      name: 'body',
       pivot: [0, 0, 0],
       box: [-4, 0, -2, 8, 12, 4],
       texOffs: [16, 16],
@@ -116,7 +114,7 @@ function definitions(slim: boolean): readonly PartDefinition[] {
       overlayGrow: 0.25,
     },
     {
-      name: "rightArm",
+      name: 'rightArm',
       pivot: [-5, slim ? 2.5 : 2, 0],
       box: [slim ? -2 : -3, -2, -2, armWidth, 12, 4],
       texOffs: [40, 16],
@@ -124,7 +122,7 @@ function definitions(slim: boolean): readonly PartDefinition[] {
       overlayGrow: 0.25,
     },
     {
-      name: "leftArm",
+      name: 'leftArm',
       pivot: [5, slim ? 2.5 : 2, 0],
       box: [-1, -2, -2, armWidth, 12, 4],
       texOffs: [32, 48],
@@ -132,7 +130,7 @@ function definitions(slim: boolean): readonly PartDefinition[] {
       overlayGrow: 0.25,
     },
     {
-      name: "rightLeg",
+      name: 'rightLeg',
       pivot: [-1.9, 12, 0],
       box: [-2, 0, -2, 4, 12, 4],
       texOffs: [0, 16],
@@ -140,7 +138,7 @@ function definitions(slim: boolean): readonly PartDefinition[] {
       overlayGrow: 0.25,
     },
     {
-      name: "leftLeg",
+      name: 'leftLeg',
       pivot: [1.9, 12, 0],
       box: [-2, 0, -2, 4, 12, 4],
       texOffs: [16, 48],
@@ -159,7 +157,7 @@ const CAPE_PIVOT: readonly [number, number, number] = [0, CENTER_Y, -2.3];
 const CAPE_TILT = 0.2;
 
 /** The elytra texture in the client files (`ElytraModel`, 64x32). */
-export const ELYTRA_TEXTURE = "entity/equipment/wings/elytra";
+export const ELYTRA_TEXTURE = 'entity/equipment/wings/elytra';
 
 /** Distance of a wing's hinge from the spine (the shoulder), and its folded tilt (`ElytraModel`: 15 degrees). */
 const WING_HINGE = 5;
@@ -195,10 +193,7 @@ export interface PlayerModelOptions {
  * are lit by the viewport's lights (front, above and to the left, like the entity-in-UI lighting
  * of `Lighting`). The cape is the 10x16x1 box of `PlayerCapeModel`.
  */
-export function buildPlayerModel(
-  root: Node3D,
-  options: PlayerModelOptions,
-): PlayerRig {
+export function buildPlayerModel(root: Node3D, options: PlayerModelOptions): PlayerRig {
   const { slim, texture, elytra } = options;
   const cape = elytra ? undefined : options.cape;
   const layers = resolveOverlay(options.overlay);
@@ -211,11 +206,7 @@ export function buildPlayerModel(
     rest[part.name] = [px, CENTER_Y - py, -pz];
     node.position = [px, CENTER_Y - py, -pz];
     const [bx, by, bz, w, h, d] = part.box;
-    const make = (
-      offs: readonly [number, number],
-      grow: number,
-      alphaTest?: number,
-    ): void => {
+    const make = (offs: readonly [number, number], grow: number, alphaTest?: number): void => {
       node.addQuad(
         ...createBoxQuads({
           u: offs[0],
@@ -232,8 +223,7 @@ export function buildPlayerModel(
       );
     };
     make(part.texOffs, 0);
-    if (layers[OVERLAY_OF_PART[part.name]])
-      make(part.overlayTexOffs, part.overlayGrow, 0.5);
+    if (layers[OVERLAY_OF_PART[part.name]]) make(part.overlayTexOffs, part.overlayGrow, 0.5);
     figure.add(node);
     nodes.set(part.name, node);
   }
@@ -257,7 +247,7 @@ export function buildPlayerModel(
     );
     figure.add(capeNode);
   }
-  let wings: PlayerRig["wings"];
+  let wings: PlayerRig['wings'];
   if (elytra) {
     // Two 10x20x2 wings (`ElytraModel`), hinged at the spine and flaring outward at the bottom.
     const wing = (side: 1 | -1): Node3D => {
@@ -294,12 +284,12 @@ export function buildPlayerModel(
     wings,
     rest,
     parts: {
-      head: get("head"),
-      body: get("body"),
-      rightArm: get("rightArm"),
-      leftArm: get("leftArm"),
-      rightLeg: get("rightLeg"),
-      leftLeg: get("leftLeg"),
+      head: get('head'),
+      body: get('body'),
+      rightArm: get('rightArm'),
+      leftArm: get('leftArm'),
+      rightLeg: get('rightLeg'),
+      leftLeg: get('leftLeg'),
     },
   };
 }
@@ -336,10 +326,7 @@ export function buildPlayerHead(
 }
 
 /** In the lying poses the wings sit closer to the back than when standing. */
-function tuckWings(wings: {
-  readonly left: Node3D;
-  readonly right: Node3D;
-}): void {
+function tuckWings(wings: { readonly left: Node3D; readonly right: Node3D }): void {
   wings.left.position[2] = WING_LYING_Z;
   wings.right.position[2] = WING_LYING_Z;
 }
@@ -351,17 +338,11 @@ function set(node: Node3D, x: number, z: number): void {
   node.rotation[2] = z;
 }
 
-export type PlayerPose =
-  | "standing"
-  | "idle"
-  | "walking"
-  | "crouching"
-  | "flying"
-  | "swimming";
+export type PlayerPose = 'standing' | 'idle' | 'walking' | 'crouching' | 'flying' | 'swimming';
 
 /** Poses that lie the player down; they are wider than tall, so the viewport must fit them. */
 export function isHorizontalPose(pose: PlayerPose): boolean {
-  return pose === "flying" || pose === "swimming";
+  return pose === 'flying' || pose === 'swimming';
 }
 
 /**
@@ -394,24 +375,24 @@ export function poseFit(
   let horizontal: number;
   let vertical: number;
   switch (pose) {
-    case "standing":
-    case "idle":
+    case 'standing':
+    case 'idle':
       horizontal = wings ? 14 : 9.5;
       vertical = 14;
       break;
-    case "walking":
+    case 'walking':
       horizontal = wings ? 14 : 12;
       vertical = 14;
       break;
-    case "crouching":
+    case 'crouching':
       horizontal = wings ? 21 : 11;
       vertical = 14;
       break;
-    case "flying":
+    case 'flying':
       horizontal = wings ? 20 : 14;
       vertical = 14;
       break;
-    case "swimming":
+    case 'swimming':
       horizontal = 14;
       vertical = 14;
       break;
@@ -427,12 +408,7 @@ export function poseFit(
 
 /** Poses that change over time and so need a frame loop. */
 export function isAnimatedPose(pose: PlayerPose): boolean {
-  return (
-    pose === "idle" ||
-    pose === "walking" ||
-    pose === "flying" ||
-    pose === "swimming"
-  );
+  return pose === 'idle' || pose === 'walking' || pose === 'flying' || pose === 'swimming';
 }
 
 /**
@@ -449,12 +425,7 @@ export function isAnimatedPose(pose: PlayerPose): boolean {
  *
  * @param fit Scale of the whole figure, from {@link poseFit}, so it stays inside the viewport.
  */
-export function posePlayer(
-  rig: PlayerRig,
-  pose: PlayerPose,
-  time: number,
-  fit = 1,
-): void {
+export function posePlayer(rig: PlayerRig, pose: PlayerPose, time: number, fit = 1): void {
   const { parts, figure, cape, wings, rest } = rig;
   const ticks = time * 20;
   for (const name of Object.keys(parts) as PartName[]) {
@@ -463,7 +434,7 @@ export function posePlayer(
     node.rotation = [0, 0, 0];
   }
   figure.rotation = [0, 0, 0];
-  figure.rotationOrder = "ZYX";
+  figure.rotationOrder = 'ZYX';
   figure.scale = fit;
   if (cape) {
     cape.position = [...CAPE_PIVOT];
@@ -478,23 +449,22 @@ export function posePlayer(
   }
 
   switch (pose) {
-    case "standing":
+    case 'standing':
       return;
-    case "idle": {
+    case 'idle': {
       const sway = Math.cos(ticks * 0.09) * 0.05 + 0.05;
       const bob = Math.sin(ticks * 0.067) * 0.05;
       set(parts.rightArm, bob, -sway);
       set(parts.leftArm, -bob, sway);
       // The cape and wings drift with the body.
-      if (cape)
-        cape.rotation[0] = CAPE_TILT + 0.06 * (1 + Math.sin(ticks * 0.09));
+      if (cape) cape.rotation[0] = CAPE_TILT + 0.06 * (1 + Math.sin(ticks * 0.09));
       if (wings) {
         wings.left.rotation[2] += sway * 0.6;
         wings.right.rotation[2] -= sway * 0.6;
       }
       return;
     }
-    case "walking": {
+    case 'walking': {
       const swing = Math.cos(ticks * 0.42) * 0.5;
       set(parts.rightArm, -swing, 0);
       set(parts.leftArm, swing, 0);
@@ -509,7 +479,7 @@ export function posePlayer(
       }
       return;
     }
-    case "crouching": {
+    case 'crouching': {
       parts.body.rotation[0] = 0.5;
       parts.body.position[1] = CENTER_Y - 3.2;
       parts.head.position[1] = CENTER_Y - 4.2;
@@ -534,7 +504,7 @@ export function posePlayer(
       }
       return;
     }
-    case "flying": {
+    case 'flying': {
       // Lean forward over the way the player faces: face down, head leading.
       figure.rotation = [Math.PI / 2, 0, 0];
       parts.head.rotation[0] = -Math.PI / 4;
@@ -561,7 +531,7 @@ export function posePlayer(
       }
       return;
     }
-    case "swimming": {
+    case 'swimming': {
       figure.rotation = [Math.PI / 2 - 0.2, 0, 0];
       parts.head.rotation[0] = -Math.PI / 4;
       // Breaststroke: the arms reach forward together, sweep out and back, then come in under the
@@ -604,26 +574,15 @@ export function posePlayer(
  */
 export function detectSlim(image: RgbaImage): boolean {
   if (image.width !== SIZE || image.height !== SIZE) return false;
-  const clear = (
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-  ): boolean => {
+  const clear = (x: number, y: number, width: number, height: number): boolean => {
     for (let dy = 0; dy < height; dy++) {
       for (let dx = 0; dx < width; dx++) {
-        if ((image.data[((y + dy) * SIZE + x + dx) * 4 + 3] ?? 255) !== 0)
-          return false;
+        if ((image.data[((y + dy) * SIZE + x + dx) * 4 + 3] ?? 255) !== 0) return false;
       }
     }
     return true;
   };
-  return (
-    clear(50, 16, 2, 4) &&
-    clear(54, 20, 2, 12) &&
-    clear(42, 48, 2, 4) &&
-    clear(46, 52, 2, 12)
-  );
+  return clear(50, 16, 2, 4) && clear(54, 20, 2, 12) && clear(42, 48, 2, 4) && clear(46, 52, 2, 12);
 }
 
 /**
@@ -636,10 +595,7 @@ export function normalizeCape(image: RgbaImage): RgbaImage | undefined {
   const data = new Uint8ClampedArray(64 * 32 * 4);
   if (width === 22 && height === 17) {
     for (let y = 0; y < height; y++) {
-      data.set(
-        image.data.subarray(y * width * 4, (y + 1) * width * 4),
-        y * 64 * 4,
-      );
+      data.set(image.data.subarray(y * width * 4, (y + 1) * width * 4), y * 64 * 4);
     }
     return { width: 64, height: 32, data };
   }
@@ -673,8 +629,7 @@ export function toModernSkin(image: RgbaImage): RgbaImage {
     }
   }
   if (!hasTransparency) {
-    for (let y = 0; y < 32; y++)
-      for (let x = 32; x < 64; x++) data[(y * SIZE + x) * 4 + 3] = 0;
+    for (let y = 0; y < 32; y++) for (let x = 32; x < 64; x++) data[(y * SIZE + x) * 4 + 3] = 0;
   }
   const copy = (
     x: number,
@@ -687,8 +642,7 @@ export function toModernSkin(image: RgbaImage): RgbaImage {
     for (let dy = 0; dy < height; dy++) {
       for (let dx = 0; dx < width; dx++) {
         const from = ((y + dy) * SIZE + x + dx) * 4;
-        const to =
-          ((y + yOffset + dy) * SIZE + (x + xOffset + (width - 1 - dx))) * 4;
+        const to = ((y + yOffset + dy) * SIZE + (x + xOffset + (width - 1 - dx))) * 4;
         data.copyWithin(to, from, from + 4);
       }
     }
@@ -722,26 +676,17 @@ function movingNodes(rig: PlayerRig): Node3D[] {
 
 /** The current position, rotation and scale of every moving node, for {@link blendRig}. */
 export function captureRig(rig: PlayerRig): number[] {
-  return movingNodes(rig).flatMap((node) => [
-    ...node.position,
-    ...node.rotation,
-    node.scale,
-  ]);
+  return movingNodes(rig).flatMap((node) => [...node.position, ...node.rotation, node.scale]);
 }
 
 /**
  * Moves every node a fraction `t` (0 to 1) of the way from a {@link captureRig} snapshot to where it
  * is now, so a change of pose eases in. Does nothing when the snapshot is of another rig.
  */
-export function blendRig(
-  rig: PlayerRig,
-  from: readonly number[],
-  t: number,
-): void {
+export function blendRig(rig: PlayerRig, from: readonly number[], t: number): void {
   const nodes = movingNodes(rig);
   if (from.length !== nodes.length * 7) return;
-  const mix = (a: number | undefined, b: number): number =>
-    (a ?? b) + (b - (a ?? b)) * t;
+  const mix = (a: number | undefined, b: number): number => (a ?? b) + (b - (a ?? b)) * t;
   nodes.forEach((node, i) => {
     const o = i * 7;
     node.position = [

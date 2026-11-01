@@ -2,7 +2,26 @@
   "name": "cobble-ui",
   "version": "0.1.0",
   "description": "React components for building pixel-accurate Minecraft: Java Edition-style interfaces. NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.",
+  "keywords": [
+    "components",
+    "gui",
+    "minecraft",
+    "minecraft-ui",
+    "pixel-art",
+    "react",
+    "ui"
+  ],
+  "homepage": "https://kevin-roa.github.io/cobble-ui/",
+  "bugs": {
+    "url": "https://github.com/kevin-roa/cobble-ui/issues"
+  },
   "license": "MIT",
+  "author": "Kevin Roa",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevin-roa/cobble-ui.git",
+    "directory": "packages/cobble-ui"
+  },
   "bin": {
     "cobble-ui": "./dist/cli.js"
   },
@@ -22,6 +41,10 @@
     },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "tsdown",

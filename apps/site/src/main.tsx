@@ -13,7 +13,7 @@ import { RouterProvider } from 'react-router';
 import { router } from './router.tsx';
 import { SettingsProvider, useSettings } from './settings.tsx';
 
-const font = minecraftTtf('/fonts');
+const font = minecraftTtf(`${import.meta.env.BASE_URL}fonts`);
 // The Mojang API has no CORS headers; the dev server proxies it (see vite.config.ts).
 if (import.meta.env.DEV)
   configureMojangApi({ profiles: '/mojang-api', session: '/mojang-session' });

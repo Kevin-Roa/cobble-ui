@@ -6,6 +6,8 @@ import { defineConfig } from 'vite';
 const library = fileURLToPath(new URL('../../packages/cobble-ui/src/', import.meta.url));
 
 export default defineConfig({
+  // GitHub Pages serves the site from /<repo>/; the deploy workflow sets SITE_BASE.
+  base: process.env.SITE_BASE ?? '/',
   plugins: [
     { enforce: 'pre', ...mdx({ providerImportSource: undefined }) },
     react({ include: /\.(mdx|tsx?)$/ }),
