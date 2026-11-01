@@ -19,7 +19,7 @@
   "author": "Kevin Roa",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kevin-roa/cobble-ui.git",
+    "url": "https://github.com/Kevin-Roa/cobble-ui",
     "directory": "packages/cobble-ui"
   },
   "bin": {
