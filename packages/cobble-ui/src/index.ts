@@ -41,6 +41,21 @@ export { minecraftTtf, MINECRAFT_TTF_FILES, DEFAULT_FONT_FAMILY } from './provid
 export type { FontOptions } from './provider/font.ts';
 export { calculateAutoGuiScale } from './provider/scale.ts';
 
+export { Translate, TranslationProvider, useTranslation } from './i18n/Translation.tsx';
+export type {
+  TranslateOwnProps,
+  TranslateProps,
+  TranslationProviderProps,
+  Translator,
+} from './i18n/Translation.tsx';
+export {
+  DEFAULT_LANGUAGE_PATH,
+  formatTranslation,
+  parseLanguage,
+  translate,
+} from './i18n/format.ts';
+export type { TranslationArg, TranslationTable } from './i18n/format.ts';
+
 export { composeSprite } from './render/blit.ts';
 export type { RgbaImage, Sprite as SpriteData } from './render/blit.ts';
 export { decodePng } from './render/png.ts';

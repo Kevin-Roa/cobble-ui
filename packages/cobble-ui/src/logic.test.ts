@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { formatTranslation, parseLanguage, translate } from './i18n/format.ts';
 import { parseSpriteAnimation } from './render/animation.ts';
 import {
   scrollerHeight,
@@ -278,5 +279,37 @@ describe('parseSpriteAnimation', () => {
     });
     expect(parseSpriteAnimation({ gui: {} }, 16, 16)).toBeUndefined();
     expect(parseSpriteAnimation(undefined, 16, 16)).toBeUndefined();
+  });
+});
+
+describe('translations', () => {
+  it('substitutes %s, %d and positional arguments', () => {
+    expect(formatTranslation('Hello %s and %s', ['a', 'b'])).toBe('Hello a and b');
+    expect(formatTranslation('%2$s before %1$s', ['a', 'b'])).toBe('b before a');
+    expect(formatTranslation('%1$s %s %s', ['a', 'b'])).toBe('a a b');
+    expect(formatTranslation('%d%% done', [50])).toBe('50% done');
+    expect(formatTranslation('plain', [])).toBe('plain');
+  });
+
+  it('throws on bad templates like vanilla', () => {
+    expect(() => formatTranslation('%s', [])).toThrow('Missing argument');
+    expect(() => formatTranslation('%x', ['a'])).toThrow('Unsupported format');
+    expect(() => formatTranslation('100%', [])).toThrow('Unsupported format');
+  });
+
+  it('parses language files and rewrites %d/%f formats', () => {
+    expect(parseLanguage({ a: 'x %d', b: '%1$.2f y', c: 3 })).toEqual({
+      a: 'x %s',
+      b: '%1$s y',
+    });
+    expect(parseLanguage(null)).toEqual({});
+  });
+
+  it('falls back to the fallback template, then the key', () => {
+    const table = { ok: 'Hi %s', bad: '%s %s' };
+    expect(translate(table, 'ok', ['you'])).toBe('Hi you');
+    expect(translate(table, 'missing')).toBe('missing');
+    expect(translate(table, 'missing', ['x'], 'Fallback %s')).toBe('Fallback x');
+    expect(translate(table, 'bad', ['x'])).toBe('%s %s');
   });
 });

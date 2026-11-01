@@ -1,4 +1,5 @@
 import { useEffect, useState, type JSX } from 'react';
+import { cx } from '../components/shared.ts';
 import type { SlotProps } from '../internal/polymorphic.ts';
 
 /** `LoadingDotsText#get`: a dot that bounces across three positions every 300 ms. */
@@ -27,11 +28,7 @@ export function LoadingDots(props: LoadingDotsProps): JSX.Element {
     <span
       aria-hidden
       {...rest}
-      className={
-        className === undefined
-          ? 'cobble-text cobble-loading-dots'
-          : `cobble-text cobble-loading-dots ${className}`
-      }
+      className={cx('cobble-text cobble-loading-dots', className)}
       data-shadow=""
     >
       {loadingDotsText(step * 300)}
