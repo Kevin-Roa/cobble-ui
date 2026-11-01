@@ -149,6 +149,9 @@ import {
   ToastProvider,
   Tooltip,
   TooltipPanel,
+  WorldSelectionList,
+  CreateWorldScreen,
+  DEFAULT_CREATE_WORLD_VALUES,
 } from './index.ts';
 
 async function violations(container: HTMLElement): Promise<string[]> {
@@ -481,6 +484,22 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
     </ToastProvider>,
   ],
   ['AssetLoadingOverlay', <AssetLoadingOverlay key="a" />],
+  [
+    'WorldSelectionList',
+    <WorldSelectionList
+      key="a"
+      defaultValue="a"
+      formatDate={() => 'today'}
+      worlds={[
+        { id: 'a', name: 'New World', gameMode: 'survival', version: '26.3' },
+        { id: 'b', name: '', gameMode: 'creative', hardcore: true, cheats: true },
+      ]}
+    />,
+  ],
+  [
+    'CreateWorldScreen',
+    <CreateWorldScreen key="a" values={DEFAULT_CREATE_WORLD_VALUES} onValuesChange={() => {}} />,
+  ],
   ['Text', <Text key="a">Hello</Text>],
   ['FormattedText', <FormattedText key="a" value="§eYellow §lBold" />],
 ];

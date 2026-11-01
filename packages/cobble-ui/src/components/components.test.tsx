@@ -14,6 +14,13 @@ import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
 import {
+  CreateWorldScreen,
+  DEFAULT_CREATE_WORLD_VALUES,
+  WorldSelectionList,
+  canCreateWorld,
+  updateCreateWorldValues,
+  worldDisplayName,
+  worldIdLine,
   ArmorStand,
   BlockModel,
   ChestPanel,
@@ -3777,5 +3784,87 @@ describe('RecipeBook', () => {
     expect(root).toHaveAttribute('data-recipe-book-open');
     expect(screen.getByRole('group', { name: 'Recipe Book' })).toBeInTheDocument();
     expect(onOpenChange).toHaveBeenCalledWith(true);
+  });
+});
+
+describe('WorldSelectionList', () => {
+  const worlds = [
+    { id: 'one', name: 'One', gameMode: 'survival', version: '26.3', lastPlayed: 0 },
+    { id: 'two', name: '', gameMode: 'creative', cheats: true },
+  ] as const;
+
+  it('names and describes worlds', () => {
+    expect(worldDisplayName({ name: ' ' }, 1)).toBe('Unnamed World 2');
+    expect(worldIdLine({ id: 'one', lastPlayed: 0 }, () => 'then')).toBe('one (then)');
+    expect(worldIdLine({ id: 'one' })).toBe('one');
+  });
+
+  it('renders rows, moves the selection with the keyboard and plays on Enter', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn<(value: string) => void>();
+    const onPlay = vi.fn<(id: string) => void>();
+    renderWithProvider(
+      <WorldSelectionList
+        worlds={worlds}
+        defaultValue="one"
+        onValueChange={onValueChange}
+        onPlay={onPlay}
+        formatDate={() => 'then'}
+      />,
+    );
+    expect(screen.getByText('one (then)')).toBeInTheDocument();
+    expect(screen.getByText('Survival Mode, Version: 26.3')).toBeInTheDocument();
+    expect(screen.getByText('Unnamed World 2')).toBeInTheDocument();
+    expect(screen.getByText('Creative Mode, Cheats')).toBeInTheDocument();
+    await user.tab();
+    await user.keyboard('{ArrowDown}');
+    expect(onValueChange).toHaveBeenCalledWith('two');
+    await user.keyboard('{Enter}');
+    expect(onPlay).toHaveBeenCalledWith('two');
+  });
+});
+
+describe('CreateWorldScreen', () => {
+  it('forces hardcore to hard difficulty without commands', () => {
+    const next = updateCreateWorldValues(
+      { ...DEFAULT_CREATE_WORLD_VALUES, allowCommands: true },
+      { gameMode: 'hardcore' },
+    );
+    expect(next).toMatchObject({ difficulty: 'hard', allowCommands: false });
+    expect(canCreateWorld({ name: '  ' })).toBe(false);
+  });
+
+  it('cycles the game mode, edits the name, switches tabs and creates', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn<(values: unknown) => void>();
+    const onCreate = vi.fn<() => void>();
+    renderWithProvider(
+      <CreateWorldScreen
+        values={DEFAULT_CREATE_WORLD_VALUES}
+        onValuesChange={onValuesChange}
+        onCreate={onCreate}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /Game Mode: Survival/ }));
+    expect(onValuesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ gameMode: 'hardcore', difficulty: 'hard' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Create New World' }));
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('tab', { name: 'World' }));
+    expect(screen.getByRole('button', { name: /World Type: Default/ })).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'More' }));
+    expect(screen.getByRole('button', { name: 'Data Packs' })).toBeInTheDocument();
+  });
+
+  it('disables creating without a name and locks difficulty in hardcore', () => {
+    renderWithProvider(
+      <CreateWorldScreen
+        values={{ ...DEFAULT_CREATE_WORLD_VALUES, name: '', gameMode: 'hardcore' }}
+        onValuesChange={() => {}}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Create New World' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Difficulty/ })).toBeDisabled();
   });
 });

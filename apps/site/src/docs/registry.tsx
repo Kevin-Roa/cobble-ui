@@ -5,6 +5,7 @@ import {
   PlayerRendererPage,
 } from './components/players.tsx';
 import { ItemsPage } from './components/explorers.tsx';
+import { CreateWorldScreenPage, WorldSelectionListPage } from './components/world-select.tsx';
 import { BlockModelPage, ModelViewportPage } from './components/model3d.tsx';
 import { ArmorStandPage } from './components/armor-stand.tsx';
 import { CustomAssetSourcesPage } from './components/asset-sources.tsx';
@@ -245,6 +246,8 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('server-list-entry', 'ServerListEntry', 'Lists & entries', ServerListEntryPage),
   entry('social-player-entry', 'SocialPlayerEntry', 'Lists & entries', SocialPlayerEntryPage),
   entry('world-list-entry', 'WorldListEntry', 'Lists & entries', WorldListEntryPage),
+  entry('world-selection-list', 'WorldSelectionList', 'Lists & entries', WorldSelectionListPage),
+  entry('create-world-screen', 'CreateWorldScreen', 'Screens & layout', CreateWorldScreenPage),
   entry('pack-list-entry', 'PackListEntry', 'Lists & entries', PackListEntryPage),
   entry('ping-icon', 'PingIcon', 'Lists & entries', PingIconPage),
   entry('player-ping-icon', 'PlayerPingIcon', 'Lists & entries', PlayerPingIconPage),
