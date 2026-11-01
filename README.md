@@ -77,6 +77,22 @@ pnpm format     # oxfmt
 pnpm build      # library + site
 ```
 
+## Visual regression tests
+
+Playwright drives the docs site (`apps/site/e2e`). It is separate from `pnpm test` and never runs by default.
+
+```sh
+pnpm --filter cobble-ui build              # once: the site needs dist/cli.js to fetch fonts
+pnpm --filter site test:visual:install   # once: downloads Chromium
+pnpm test:visual                         # everything
+pnpm --filter site exec playwright test --project=deterministic   # asset-free checks only
+```
+
+- `deterministic` reads computed CSS only (text shadow, underline and strikethrough offsets, `--cobble-scale` snapping to whole device pixels). It needs no Mojang assets.
+- `visual` screenshots the button, slider, text-field, tooltip, tabs, scroll-area and progress-bar pages. The pages render Mojang textures that the browser downloads at runtime (needs network; the first run fetches the ≈41 MB client), so **baselines are gitignored and must never be committed**. They live in `apps/site/e2e/__screenshots__`.
+
+To generate baselines, check out the revision to compare against and run `pnpm --filter site test:visual:update`. Then switch to your change and run `pnpm test:visual`; differences fail with a diff image in `apps/site/test-results`. Baselines depend on OS and browser version, so regenerate them on the machine you compare on.
+
 ## Fonts
 
 Text uses [minecraft-ttf](https://github.com/tryashtar/minecraft-ttf) by tryashtar. The fonts are not

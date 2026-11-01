@@ -6,6 +6,7 @@
     "build": "pnpm -r --filter cobble-ui build && pnpm --filter site build",
     "dev": "pnpm --filter cobble-ui build && pnpm --parallel --filter cobble-ui --filter site dev",
     "test": "pnpm -r test",
+    "test:visual": "pnpm --filter site test:visual",
     "typecheck": "pnpm -r typecheck",
     "lint": "oxlint",
     "format": "oxfmt",
