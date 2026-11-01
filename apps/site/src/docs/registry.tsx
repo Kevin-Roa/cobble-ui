@@ -7,6 +7,8 @@ import {
 import { ItemsPage } from './components/explorers.tsx';
 import { BlockModelPage, ModelViewportPage } from './components/model3d.tsx';
 import { ArmorStandPage } from './components/armor-stand.tsx';
+import { CustomAssetSourcesPage } from './components/asset-sources.tsx';
+import { OptionsMenuRecipePage } from './components/recipes.tsx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
 import AssetsGuide from './guides/assets.mdx';
@@ -167,7 +169,8 @@ export type DocCategory =
   | 'Containers & trading'
   | 'Crafting'
   | 'Advancements'
-  | 'Text & sprites';
+  | 'Text & sprites'
+  | 'Recipes';
 
 /** Order of the sections in the page list. */
 export const DOC_CATEGORIES: readonly DocCategory[] = [
@@ -182,6 +185,7 @@ export const DOC_CATEGORIES: readonly DocCategory[] = [
   'Crafting',
   'Advancements',
   'Text & sprites',
+  'Recipes',
 ];
 
 export interface DocPage {
@@ -200,6 +204,7 @@ export const GUIDE_PAGES: readonly DocPage[] = [
   { slug: 'provider', title: 'Provider', mdx: true, Page: ProviderGuide },
   { slug: 'styling', title: 'Styling', mdx: true, Page: StylingGuide },
   { slug: 'assets', title: 'Assets & Legal', mdx: true, Page: AssetsGuide },
+  { slug: 'custom-asset-sources', title: 'Custom asset sources', Page: CustomAssetSourcesPage },
 ];
 
 function entry(slug: string, title: string, category: DocCategory, Page: DocPage['Page']): DocPage {
@@ -375,6 +380,8 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('armor-stand', 'ArmorStand', 'Text & sprites', ArmorStandPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),
+
+  entry('options-menu', 'Options menu', 'Recipes', OptionsMenuRecipePage),
 ];
 
 /** Every page: the guides, then the components. */
