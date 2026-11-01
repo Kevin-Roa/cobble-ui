@@ -2,6 +2,7 @@ import axe from 'axe-core';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { renderWithProvider } from '../test/utils.tsx';
+import { ConfirmScreen, KeybindRow, OptionsScreen, PauseScreen, TitleScreen } from './index.ts';
 import {
   AdvancementFrame,
   AdvancementTab,
@@ -414,6 +415,18 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
     <ArmorStand key="a" showArms small rotatable={false} />,
   ],
   ['GrindstonePanel', <GrindstonePanel key="a" error />],
+  ['PauseScreen', <PauseScreen key="a" />],
+  ['TitleScreen', <TitleScreen key="a" logo="Logo" versionText="1.0" />],
+  [
+    'OptionsScreen',
+    <OptionsScreen key="a" title="Video Settings" onDone={() => undefined}>
+      <OptionsListRow>
+        <Button width={310}>Fancy</Button>
+      </OptionsListRow>
+    </OptionsScreen>,
+  ],
+  ['ConfirmScreen', <ConfirmScreen key="a" title="Sure?" message="Really?" />],
+  ['KeybindRow', <KeybindRow key="a" name="Jump" keyLabel="Space" listening />],
   ['Text', <Text key="a">Hello</Text>],
   ['FormattedText', <FormattedText key="a" value="§eYellow §lBold" />],
 ];

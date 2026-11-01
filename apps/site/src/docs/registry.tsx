@@ -97,6 +97,13 @@ import {
   OptionsListPage,
 } from './components/layouts.tsx';
 import { ChatInputPage, ChatLogPage } from './components/chat.tsx';
+import {
+  ConfirmScreenPage,
+  KeybindButtonPage,
+  OptionsScreenPage,
+  PauseScreenPage,
+  TitleScreenPage,
+} from './components/menus.tsx';
 import { DialogPage } from './components/dialog.tsx';
 import {
   AdvancementBoxPage,
@@ -252,6 +259,11 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('options-list', 'OptionsList', 'Lists & entries', OptionsListPage),
   entry('screen', 'Screen', 'Screens & layout', ScreenPage),
   entry('panorama', 'Panorama', 'Screens & layout', PanoramaPage),
+  entry('pause-screen', 'PauseScreen', 'Screens & layout', PauseScreenPage),
+  entry('title-screen', 'TitleScreen', 'Screens & layout', TitleScreenPage),
+  entry('options-screen', 'OptionsScreen', 'Screens & layout', OptionsScreenPage),
+  entry('confirm-screen', 'ConfirmScreen', 'Screens & layout', ConfirmScreenPage),
+  entry('keybind-button', 'KeybindButton', 'Buttons', KeybindButtonPage),
   entry('tabs', 'Tabs', 'Screens & layout', TabsPage),
   entry('separator', 'Separator', 'Screens & layout', SeparatorPage),
 
