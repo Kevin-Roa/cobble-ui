@@ -9,6 +9,7 @@ import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Text } from '../../text/Text.tsx';
 import { Button } from '../button/Button.tsx';
 import { cx } from '../shared.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `KeyBindsList.KeyEntry`: the change button is 75 wide. */
 export const KEYBIND_BUTTON_WIDTH = 75;
@@ -106,12 +107,14 @@ export function KeybindRow<E extends ElementType = 'div'>(props: KeybindRowProps
     isDefault = false,
     onChange,
     onReset,
-    resetLabel = 'Reset',
+    resetLabel: resetLabelProp,
     className,
     ...rest
   } = props as KeybindRowProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const id = useId();
+  const { tOr } = useTranslation();
+  const resetLabel = resetLabelProp ?? tOr('controls.reset', 'Reset');
   return (
     <Component {...rest} className={cx('cobble-keybind-row', className)}>
       <Text className="cobble-keybind-name" id={id}>

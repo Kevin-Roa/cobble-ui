@@ -3,6 +3,7 @@ import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Button } from '../button/Button.tsx';
 import { VillagerScroller } from '../trade/VillagerScroller.tsx';
 import { TradeArrow, VillagerXpBar } from '../trade/Trade.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { placeAt } from '../shared.ts';
 import { SlotGrid, type SlotGridItem } from './SlotGrid.tsx';
 import {
@@ -86,8 +87,8 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
     result,
     levelProgress,
     onSlotClick,
-    tradesTitle = 'Trades',
-    title = 'Villager',
+    tradesTitle: tradesTitleProp,
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -98,6 +99,10 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as VillagerTradePanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const tradesTitle =
+    tradesTitleProp === undefined ? tOr('merchant.trades', 'Trades') : tradesTitleProp;
+  const title = titleProp === undefined ? tOr('entity.minecraft.villager', 'Villager') : titleProp;
   const { Component, props: root } = usePanelRoot(as, 'trade-panel', 240, 158, className, style, {
     ...rest,
     background,
@@ -163,7 +168,7 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={136}
         y={37}
-        label="First payment"
+        label={tOr('cobble.trade.first_payment', 'First payment')}
         item={payment[0]}
         bare={background}
         {...click('payment-1')}
@@ -171,7 +176,7 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={162}
         y={37}
-        label="Second payment"
+        label={tOr('cobble.trade.second_payment', 'Second payment')}
         item={payment[1]}
         bare={background}
         {...click('payment-2')}
@@ -179,7 +184,7 @@ export function VillagerTradePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={220}
         y={37}
-        label="Trade result"
+        label={tOr('cobble.trade.result', 'Trade result')}
         item={result}
         bare={background}
         {...click('result')}
@@ -227,7 +232,7 @@ export function HopperPanel<E extends ElementType = 'div'>(
     as,
     items,
     onSlotClick,
-    title = 'Item Hopper',
+    title: titleProp,
     inventoryTitle,
     isolate = false,
     inventory,
@@ -238,6 +243,8 @@ export function HopperPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as HopperPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.hopper', 'Item Hopper') : titleProp;
   const { Component, props: root } = usePanelRoot(
     as,
     'hopper-panel',
@@ -257,7 +264,7 @@ export function HopperPanel<E extends ElementType = 'div'>(
         bare={background}
         columns={5}
         rows={1}
-        label="Hopper"
+        label={tOr('cobble.hopper.slots', 'Hopper')}
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />
@@ -279,7 +286,7 @@ export function DispenserPanel<E extends ElementType = 'div'>(
     as,
     items,
     onSlotClick,
-    title = 'Dispenser',
+    title: titleProp,
     inventoryTitle,
     isolate = false,
     inventory,
@@ -290,6 +297,8 @@ export function DispenserPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as DispenserPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.dispenser', 'Dispenser') : titleProp;
   const { Component, props: root } = usePanelRoot(
     as,
     'dispenser-panel',
@@ -309,7 +318,7 @@ export function DispenserPanel<E extends ElementType = 'div'>(
         bare={background}
         columns={3}
         rows={3}
-        label="Dispenser"
+        label={tOr('cobble.dispenser.slots', 'Dispenser')}
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined ? {} : { onSlotClick })}
       />

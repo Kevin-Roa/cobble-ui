@@ -9,6 +9,7 @@ import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { ContainerError } from '../sprite/ContainerError.tsx';
 import { AnvilTextField } from '../text-field/AnvilTextField.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { Text } from '../../text/Text.tsx';
 import { textWidth, useCharWidth } from '../../text/metrics.ts';
 import { InventorySlot, type EmptySlotIcon } from './InventorySlot.tsx';
@@ -88,7 +89,7 @@ export function ContainerChrome(
 ): JSX.Element {
   const {
     title,
-    inventoryTitle = 'Inventory',
+    inventoryTitle,
     isolate = false,
     inventory,
     hotbar,
@@ -102,6 +103,9 @@ export function ContainerChrome(
     inventoryX = 7,
     inventoryY = 83,
   } = props;
+  const { tOr } = useTranslation();
+  const inventoryLabel =
+    inventoryTitle === undefined ? tOr('container.inventory', 'Inventory') : inventoryTitle;
   return (
     <>
       <PanelLabel x={titleX} y={titleY} center={titleCenter}>
@@ -110,7 +114,7 @@ export function ContainerChrome(
       {isolate ? null : (
         <>
           <PanelLabel x={inventoryLabelX} y={inventoryLabelY}>
-            {inventoryTitle}
+            {inventoryLabel}
           </PanelLabel>
           <PlayerInventoryGrid
             className="cobble-placed"
@@ -338,7 +342,7 @@ export function AnvilPanel<E extends ElementType = 'div'>(props: AnvilPanelProps
     onSlotClick,
     className,
     style,
-    title = 'Repair & Name',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -347,6 +351,8 @@ export function AnvilPanel<E extends ElementType = 'div'>(props: AnvilPanelProps
     background = true,
     ...rest
   } = props as AnvilPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.repair', 'Repair & Name') : titleProp;
   const { Component, props: root } = usePanelRoot(as, 'anvil-panel', 169, 66, className, style, {
     ...rest,
     background,
@@ -357,15 +363,33 @@ export function AnvilPanel<E extends ElementType = 'div'>(props: AnvilPanelProps
     <Component {...root}>
       <AnvilTextField
         className="cobble-placed"
-        aria-label="Item name"
+        aria-label={tOr('cobble.anvil.item_name', 'Item name')}
         style={placeAt(59, 20)}
         value={name}
         disabled={left === undefined}
         {...(onNameChange === undefined ? {} : { onValueChange: onNameChange })}
       />
-      <StationSlot x={27} y={47} label="Anvil first input" item={left} {...click('left')} />
-      <StationSlot x={76} y={47} label="Anvil second input" item={right} {...click('right')} />
-      <StationSlot x={134} y={47} label="Anvil result" item={result} {...click('result')} />
+      <StationSlot
+        x={27}
+        y={47}
+        label={tOr('cobble.anvil.first_input', 'Anvil first input')}
+        item={left}
+        {...click('left')}
+      />
+      <StationSlot
+        x={76}
+        y={47}
+        label={tOr('cobble.anvil.second_input', 'Anvil second input')}
+        item={right}
+        {...click('right')}
+      />
+      <StationSlot
+        x={134}
+        y={47}
+        label={tOr('cobble.anvil.result', 'Anvil result')}
+        item={result}
+        {...click('result')}
+      />
       {error ? (
         <ContainerError className="cobble-placed" kind="anvil" style={placeAt(99, 45)} />
       ) : null}
@@ -428,7 +452,7 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
     onSlotClick,
     className,
     style,
-    title = 'Brewing Stand',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -437,6 +461,8 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as BrewingStandPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.brewing', 'Brewing Stand') : titleProp;
   const { Component, props: root } = usePanelRoot(as, 'brewing-panel', 119, 76, className, style, {
     ...rest,
     background,
@@ -460,7 +486,7 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
       <StationSlot
         x={17}
         y={17}
-        label="Blaze powder"
+        label={tOr('cobble.brewing.fuel', 'Blaze powder')}
         item={fuel}
         emptyIcon="brewing_fuel"
         {...click('fuel')}
@@ -468,7 +494,7 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
       <StationSlot
         x={79}
         y={17}
-        label="Brewing ingredient"
+        label={tOr('cobble.brewing.ingredient', 'Brewing ingredient')}
         item={ingredient}
         {...click('ingredient')}
       />
@@ -477,7 +503,7 @@ export function BrewingStandPanel<E extends ElementType = 'div'>(
           key={slot}
           x={x}
           y={y}
-          label={`Potion bottle ${String(index + 1)}`}
+          label={tOr('cobble.brewing.bottle', 'Potion bottle %s', index + 1)}
           item={bottles[index]}
           emptyIcon="potion"
           {...click(slot)}
@@ -535,7 +561,7 @@ export function FurnacePanel<E extends ElementType = 'div'>(
     onSlotClick,
     className,
     style,
-    title,
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -544,6 +570,15 @@ export function FurnacePanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as FurnacePanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title =
+    titleProp !== undefined
+      ? titleProp
+      : station === 'furnace'
+        ? tOr('container.furnace', 'Furnace')
+        : station === 'smoker'
+          ? tOr('container.smoker', 'Smoker')
+          : tOr('container.blast_furnace', 'Blast Furnace');
   const { Component, props: root } = usePanelRoot(
     as,
     'furnace-panel',
@@ -570,21 +605,31 @@ export function FurnacePanel<E extends ElementType = 'div'>(
         progress={cookProgress}
         station={station}
       />
-      <StationSlot x={56} y={17} label="Furnace input" item={input} {...click('input')} />
-      <StationSlot x={56} y={53} label="Furnace fuel" item={fuel} {...click('fuel')} />
-      <StationSlot x={116} y={35} label="Furnace output" item={output} {...click('output')} bare />
+      <StationSlot
+        x={56}
+        y={17}
+        label={tOr('cobble.furnace.input', 'Furnace input')}
+        item={input}
+        {...click('input')}
+      />
+      <StationSlot
+        x={56}
+        y={53}
+        label={tOr('cobble.furnace.fuel', 'Furnace fuel')}
+        item={fuel}
+        {...click('fuel')}
+      />
+      <StationSlot
+        x={116}
+        y={35}
+        label={tOr('cobble.furnace.output', 'Furnace output')}
+        item={output}
+        {...click('output')}
+        bare
+      />
       <ContainerChrome
         background={background}
         {...{ title, inventoryTitle, isolate, inventory, hotbar, onInventoryClick }}
-        title={
-          title === undefined
-            ? station === 'furnace'
-              ? 'Furnace'
-              : station === 'smoker'
-                ? 'Smoker'
-                : 'Blast Furnace'
-            : title
-        }
         titleX={88}
         titleCenter
       />
@@ -654,7 +699,7 @@ export function StonecutterPanel<E extends ElementType = 'div'>(
     onSlotClick,
     className,
     style,
-    title = 'Stonecutter',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -663,6 +708,8 @@ export function StonecutterPanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as StonecutterPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.stonecutter', 'Stonecutter') : titleProp;
   const { Component, props: root } = usePanelRoot(
     as,
     'stonecutter-panel',
@@ -680,14 +727,14 @@ export function StonecutterPanel<E extends ElementType = 'div'>(
       <StationSlot
         x={20}
         y={33}
-        label="Stonecutter input"
+        label={tOr('cobble.stonecutter.input', 'Stonecutter input')}
         item={input}
         {...(onSlotClick === undefined ? {} : { onClick: () => onSlotClick('input') })}
       />
       <StationSlot
         x={143}
         y={33}
-        label="Stonecutter result"
+        label={tOr('cobble.stonecutter.result', 'Stonecutter result')}
         item={result}
         {...(onSlotClick === undefined ? {} : { onClick: () => onSlotClick('result') })}
         bare

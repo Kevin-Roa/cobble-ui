@@ -1,6 +1,7 @@
 import type { CSSProperties, ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { Text } from '../../text/Text.tsx';
 import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
@@ -49,8 +50,8 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
     as,
     background = true,
     rows: requested = 3,
-    title = 'Chest',
-    inventoryTitle = 'Inventory',
+    title: titleProp,
+    inventoryTitle: inventoryTitleProp,
     items,
     isolate = false,
     inventory,
@@ -60,6 +61,10 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
     style,
     ...rest
   } = props as ChestPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.chest', 'Chest') : titleProp;
+  const inventoryTitle =
+    inventoryTitleProp === undefined ? tOr('container.inventory', 'Inventory') : inventoryTitleProp;
   const Component: ElementType = as ?? 'div';
   const rows = Math.min(Math.max(Math.trunc(requested), 1), CHEST_MAX_ROWS);
   const url = useTextureUrl('gui/container/generic_54');
@@ -118,7 +123,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
         style={placeAt(7, 17)}
         columns={9}
         rows={rows}
-        label="Container"
+        label={tOr('cobble.chest.slots', 'Container')}
         {...(items === undefined ? {} : { items })}
         {...click('chest')}
       />
@@ -139,7 +144,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
             style={placeAt(7, rows * 18 + 31)}
             columns={9}
             rows={3}
-            label="Inventory"
+            label={tOr('container.inventory', 'Inventory')}
             {...(inventory === undefined ? {} : { items: inventory })}
             {...click('main')}
           />
@@ -148,7 +153,7 @@ export function ChestPanel<E extends ElementType = 'div'>(props: ChestPanelProps
             style={placeAt(7, rows * 18 + 31 + 54 + INVENTORY_HOTBAR_GAP)}
             columns={9}
             rows={1}
-            label="Hotbar"
+            label={tOr('cobble.inventory.hotbar', 'Hotbar')}
             {...(hotbar === undefined ? {} : { items: hotbar })}
             {...click('hotbar')}
           />

@@ -3,6 +3,7 @@ import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Size of the attack indicator sprites. */
 export const ATTACK_INDICATOR_SIZE = 18;
@@ -37,6 +38,7 @@ export function AttackIndicator<E extends ElementType = 'div'>(
   const { as, strength, className, style, ...rest } = props as AttackIndicatorProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const fill = attackIndicatorFill(strength);
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': ATTACK_INDICATOR_SIZE,
     '--cobble-height': ATTACK_INDICATOR_SIZE,
@@ -50,7 +52,7 @@ export function AttackIndicator<E extends ElementType = 'div'>(
           className: cx('cobble-attack-indicator', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Attack strength',
+          'aria-label': tOr('cobble.hotbar.attack_strength', 'Attack strength'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(strength, 0), 1) * 100),

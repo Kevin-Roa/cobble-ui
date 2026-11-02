@@ -10,6 +10,7 @@ import {
 import { StrictMode, type JSX } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
+import { LanguageProvider } from './language.tsx';
 import { router } from './router.tsx';
 import { SettingsProvider, useSettings } from './settings.tsx';
 
@@ -31,7 +32,9 @@ function App(): JSX.Element {
       backgroundPreloadItems
     >
       <ToastProvider>
-        <RouterProvider router={router} />
+        <LanguageProvider>
+          <RouterProvider router={router} />
+        </LanguageProvider>
       </ToastProvider>
       <AssetLoadingOverlay note="(first visit only)" />
     </CobbleProvider>

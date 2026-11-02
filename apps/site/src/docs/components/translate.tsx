@@ -61,6 +61,9 @@ export function TranslationProviderPage(): JSX.Element {
           Adds or replaces translation keys below it, on top of the game&apos;s <Code>en_us</Code>{' '}
           strings. Other languages live in the asset index, which has no CORS headers, so supply
           them yourself through <Code>translations</Code>. Providers nest; inner keys win.
+          Components use these keys for their default labels, titles and aria-labels, with the
+          English strings when no provider is present (vanilla keys such as <Code>gui.yes</Code>,
+          otherwise <Code>cobble.*</Code> keys); a prop you pass always wins.
         </>
       }
       demo={

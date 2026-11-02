@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import type { SpriteId } from '../../assets/sprite-id.ts';
 import { Sprite, type SpriteProps } from './Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Which screen's red "cannot do this" mark to draw (`container/<kind>/error`). */
 export type ContainerErrorKind = 'anvil' | 'cartography_table' | 'grindstone' | 'smithing' | 'loom';
@@ -39,11 +40,12 @@ export interface ContainerErrorProps extends Omit<SpriteProps, 'sprite' | 'width
 export function ContainerError(props: ContainerErrorProps): JSX.Element {
   const { kind, ...rest } = props;
   const { sprite, width, height } = ERROR_SPRITES[kind];
+  const { tOr } = useTranslation();
   return (
     <Sprite
       role="img"
       aria-hidden={undefined}
-      aria-label="Error"
+      aria-label={tOr('cobble.container.error', 'Error')}
       {...rest}
       sprite={sprite}
       width={width}

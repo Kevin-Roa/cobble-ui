@@ -1,6 +1,5 @@
 import {
   Button,
-  CycleButton,
   ScreenLayout,
   Screen,
   ScrollArea,
@@ -20,10 +19,7 @@ import {
   pageMatches,
   type DocPage,
 } from '../docs/registry.tsx';
-import { useSettings } from '../settings.tsx';
 import { Disclaimer } from './Disclaimer.tsx';
-
-const PLAYGROUND_SCALES = ['auto', 1, 2, 3, 4, 5, 6] as const;
 
 export interface DocsScreenProps {
   readonly title: string;
@@ -48,7 +44,6 @@ export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Elem
   const navigate = useNavigate();
   const location = useLocation();
   const [query, setQuery] = useState('');
-  const { settings, update } = useSettings();
 
   const guides = GUIDE_PAGES.filter((page) => pageMatches(page, query));
   const components = COMPONENT_PAGES.filter((page) => pageMatches(page, query));
@@ -130,22 +125,7 @@ export function DocsScreen({ title, slug, children }: DocsScreenProps): JSX.Elem
             </SelectionList>
           </div>
           <ScrollArea key={slug} className="site-content" scrollRate={18}>
-            <article className="site-article">
-              <div className="site-row site-playground" role="group" aria-label="Playground">
-                <CycleButton
-                  width={150}
-                  label="Playground GUI Scale"
-                  values={PLAYGROUND_SCALES}
-                  value={settings.guiScale}
-                  onValueChange={(guiScale) => update({ guiScale })}
-                  formatValue={(value) => (value === 'auto' ? 'Auto' : String(value))}
-                />
-                <Text color="gray">
-                  Applies to every demo. Unicode font and language are not available yet.
-                </Text>
-              </div>
-              {children}
-            </article>
+            <article className="site-article">{children}</article>
           </ScrollArea>
         </div>
       </ScreenLayout>

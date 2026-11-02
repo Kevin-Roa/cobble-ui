@@ -1,5 +1,6 @@
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { Text } from '../../text/Text.tsx';
 import { RecipeBookButton } from '../button/RecipeBookButton.tsx';
 import {
@@ -25,11 +26,11 @@ const ARMOR_ICONS: Readonly<Record<ArmorSlot, EmptySlotIcon>> = {
   feet: 'boots',
 };
 
-const ARMOR_LABELS: Readonly<Record<ArmorSlot, string>> = {
-  head: 'Helmet',
-  chest: 'Chestplate',
-  legs: 'Leggings',
-  feet: 'Boots',
+const ARMOR_LABELS: Readonly<Record<ArmorSlot, readonly [key: string, fallback: string]>> = {
+  head: ['cobble.armor.head', 'Helmet'],
+  chest: ['cobble.armor.chest', 'Chestplate'],
+  legs: ['cobble.armor.legs', 'Leggings'],
+  feet: ['cobble.armor.feet', 'Boots'],
 };
 
 export type PlayerInventoryArea = 'armor' | 'offhand' | 'crafting' | 'result' | 'main' | 'hotbar';
@@ -94,6 +95,7 @@ export function PlayerInventory<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as PlayerInventoryProps<'div'>;
+  const { tOr } = useTranslation();
   const book: PlayerInventoryRecipeBook | undefined =
     recipeBook === true ? {} : recipeBook === false ? undefined : recipeBook;
   const [bookOpen, setBookOpen] = useControllable(
@@ -127,7 +129,7 @@ export function PlayerInventory<E extends ElementType = 'div'>(
           key={slot}
           x={8}
           y={8 + index * 18}
-          label={ARMOR_LABELS[slot]}
+          label={tOr(...ARMOR_LABELS[slot])}
           item={armor[slot]}
           emptyIcon={ARMOR_ICONS[slot]}
           {...click('armor', index)}
@@ -141,20 +143,20 @@ export function PlayerInventory<E extends ElementType = 'div'>(
       <StationSlot
         x={77}
         y={62}
-        label="Offhand"
+        label={tOr('cobble.inventory.offhand', 'Offhand')}
         item={offhand}
         emptyIcon="shield"
         {...click('offhand')}
       />
       <Text className="cobble-placed" color="#404040" shadow={false} style={placeAt(97, 8)}>
-        Crafting
+        {tOr('container.crafting', 'Crafting')}
       </Text>
       {[0, 1, 2, 3].map((index) => (
         <StationSlot
           key={index}
           x={98 + (index % 2) * 18}
           y={18 + Math.floor(index / 2) * 18}
-          label={`Crafting slot ${String(index + 1)}`}
+          label={tOr('cobble.inventory.crafting_slot', 'Crafting slot %s', index + 1)}
           item={crafting[index]}
           {...click('crafting', index)}
         />
@@ -175,13 +177,19 @@ export function PlayerInventory<E extends ElementType = 'div'>(
           />
         </>
       )}
-      <StationSlot x={154} y={28} label="Crafting result" item={result} {...click('result')} />
+      <StationSlot
+        x={154}
+        y={28}
+        label={tOr('cobble.inventory.crafting_result', 'Crafting result')}
+        item={result}
+        {...click('result')}
+      />
       <SlotGrid
         className="cobble-placed"
         style={placeAt(7, 83)}
         columns={9}
         rows={3}
-        label="Inventory"
+        label={tOr('container.inventory', 'Inventory')}
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined
           ? {}
@@ -192,7 +200,7 @@ export function PlayerInventory<E extends ElementType = 'div'>(
         style={placeAt(7, 83 + 3 * 18 + INVENTORY_HOTBAR_GAP)}
         columns={9}
         rows={1}
-        label="Hotbar"
+        label={tOr('cobble.inventory.hotbar', 'Hotbar')}
         {...(hotbar === undefined ? {} : { items: hotbar })}
         {...(onSlotClick === undefined
           ? {}

@@ -3,16 +3,17 @@ import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
 import { Button, type ButtonOwnProps } from './Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 type SpriteButtonOwnProps = Omit<ButtonOwnProps, 'icon' | 'sprites' | 'children'>;
 
 /** An action in the player list's context buttons (`player_list/*`). */
 export type PlayerAction = 'make_operator' | 'remove_operator' | 'remove_player';
 
-const PLAYER_ACTION_LABELS: Record<PlayerAction, string> = {
-  make_operator: 'Make operator',
-  remove_operator: 'Remove operator',
-  remove_player: 'Remove player',
+const PLAYER_ACTION_LABELS: Record<PlayerAction, readonly [key: string, fallback: string]> = {
+  make_operator: ['cobble.player_action.make_operator', 'Make operator'],
+  remove_operator: ['cobble.player_action.remove_operator', 'Remove operator'],
+  remove_player: ['cobble.player_action.remove_player', 'Remove player'],
 };
 
 const PLAYER_ACTION_SPRITES: Record<PlayerAction, SpriteId> = {
@@ -41,11 +42,13 @@ export function PlayerActionButton<E extends ElementType = 'button'>(
 ): JSX.Element {
   const {
     action,
-    label = PLAYER_ACTION_LABELS[action],
+    label: labelProp,
     width = 8,
     height = 7,
     ...rest
   } = props as PlayerActionButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr(...PLAYER_ACTION_LABELS[action]);
   const sprites: WidgetSprites = { enabled: PLAYER_ACTION_SPRITES[action] };
   return <Button aria-label={label} {...rest} width={width} height={height} sprites={sprites} />;
 }
@@ -72,11 +75,13 @@ export function WarningButton<E extends ElementType = 'button'>(
   props: WarningButtonProps<E>,
 ): JSX.Element {
   const {
-    label = 'Warning',
+    label: labelProp,
     width = 20,
     height = 20,
     ...rest
   } = props as WarningButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.button.warning', 'Warning');
   return (
     <Button
       aria-label={label}

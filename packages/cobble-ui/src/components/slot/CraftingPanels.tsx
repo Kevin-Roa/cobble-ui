@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/Translation.tsx';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { LoomPatternButton, LoomScroller } from '../button/ContainerButtons.tsx';
@@ -83,7 +84,7 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
     onSlotClick,
     className,
     style,
-    title = 'Loom',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -92,6 +93,8 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
     background = true,
     ...rest
   } = props as LoomPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.loom', 'Loom') : titleProp;
   const { Component, props: root } = usePanelRoot(as, 'loom-panel', 161, 76, className, style, {
     ...rest,
     background,
@@ -104,16 +107,35 @@ export function LoomPanel<E extends ElementType = 'div'>(props: LoomPanelProps<E
   const visible = patterns.slice(start, start + LOOM_COLUMNS * LOOM_VISIBLE_ROWS);
   return (
     <Component {...root}>
-      <StationSlot x={13} y={26} label="Banner" item={banner} {...click('banner')} />
-      <StationSlot x={33} y={26} label="Dye" item={dye} {...click('dye')} />
+      <StationSlot
+        x={13}
+        y={26}
+        label={tOr('cobble.slot.banner', 'Banner')}
+        item={banner}
+        {...click('banner')}
+      />
+      <StationSlot
+        x={33}
+        y={26}
+        label={tOr('cobble.slot.dye', 'Dye')}
+        item={dye}
+        {...click('dye')}
+      />
       <StationSlot
         x={23}
         y={45}
-        label="Banner pattern"
+        label={tOr('cobble.slot.banner_pattern', 'Banner pattern')}
         item={patternItem}
         {...click('patternItem')}
       />
-      <StationSlot x={143} y={57} label="Loom result" item={result} {...click('result')} bare />
+      <StationSlot
+        x={143}
+        y={57}
+        label={tOr('cobble.loom.result', 'Loom result')}
+        item={result}
+        {...click('result')}
+        bare
+      />
       {visible.map((pattern, offset) => {
         const index = start + offset;
         return (
@@ -256,7 +278,7 @@ export function CartographyPanel<E extends ElementType = 'div'>(
     onSlotClick,
     className,
     style,
-    title = 'Cartography Table',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -265,6 +287,9 @@ export function CartographyPanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as CartographyPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title =
+    titleProp === undefined ? tOr('container.cartography_table', 'Cartography Table') : titleProp;
   const mapImage = image ?? children;
   const { Component, props: root } = usePanelRoot(
     as,
@@ -279,12 +304,24 @@ export function CartographyPanel<E extends ElementType = 'div'>(
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   return (
     <Component {...root}>
-      <StationSlot x={15} y={15} label="Map" item={map} {...click('map')} />
-      <StationSlot x={15} y={52} label="Material" item={material} {...click('material')} />
+      <StationSlot
+        x={15}
+        y={15}
+        label={tOr('cobble.slot.map', 'Map')}
+        item={map}
+        {...click('map')}
+      />
+      <StationSlot
+        x={15}
+        y={52}
+        label={tOr('cobble.slot.material', 'Material')}
+        item={material}
+        {...click('material')}
+      />
       <StationSlot
         x={145}
         y={39}
-        label="Cartography result"
+        label={tOr('cobble.cartography.result', 'Cartography result')}
         item={result}
         {...click('result')}
         bare
@@ -377,7 +414,7 @@ export function GrindstonePanel<E extends ElementType = 'div'>(
     onSlotClick,
     className,
     style,
-    title = 'Repair & Disenchant',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -386,6 +423,9 @@ export function GrindstonePanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as GrindstonePanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title =
+    titleProp === undefined ? tOr('container.grindstone_title', 'Repair & Disenchant') : titleProp;
   const { Component, props: root } = usePanelRoot(
     as,
     'grindstone-panel',
@@ -399,15 +439,27 @@ export function GrindstonePanel<E extends ElementType = 'div'>(
     onSlotClick === undefined ? {} : { onClick: () => onSlotClick(slot) };
   return (
     <Component {...root}>
-      <StationSlot x={49} y={19} label="Grindstone top input" item={top} {...click('top')} />
+      <StationSlot
+        x={49}
+        y={19}
+        label={tOr('cobble.grindstone.top_input', 'Grindstone top input')}
+        item={top}
+        {...click('top')}
+      />
       <StationSlot
         x={49}
         y={40}
-        label="Grindstone bottom input"
+        label={tOr('cobble.grindstone.bottom_input', 'Grindstone bottom input')}
         item={bottom}
         {...click('bottom')}
       />
-      <StationSlot x={129} y={34} label="Grindstone result" item={result} {...click('result')} />
+      <StationSlot
+        x={129}
+        y={34}
+        label={tOr('cobble.grindstone.result', 'Grindstone result')}
+        item={result}
+        {...click('result')}
+      />
       {error ? (
         <ContainerError className="cobble-placed" kind="grindstone" style={placeAt(92, 31)} />
       ) : null}
@@ -460,7 +512,7 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
     onSlotClick,
     className,
     style,
-    title = 'Upgrade Gear',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -468,6 +520,8 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
     onInventoryClick,
     ...rest
   } = props as SmithingTablePanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.upgrade', 'Upgrade Gear') : titleProp;
   const { Component, props: root } = usePanelRoot(as, 'smithing-panel', 116, 67, className, style, {
     ...rest,
     background,
@@ -481,7 +535,7 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={8}
         y={48}
-        label="Smithing template"
+        label={tOr('cobble.smithing.template', 'Smithing template')}
         item={template}
         emptyIcon="smithing_template_armor_trim"
         {...click('template')}
@@ -489,7 +543,7 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={26}
         y={48}
-        label="Smithing base"
+        label={tOr('cobble.smithing.base', 'Smithing base')}
         item={base}
         emptyIcon="chestplate"
         {...click('base')}
@@ -497,12 +551,18 @@ export function SmithingTablePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={44}
         y={48}
-        label="Smithing addition"
+        label={tOr('cobble.smithing.addition', 'Smithing addition')}
         item={addition}
         emptyIcon="ingot"
         {...click('addition')}
       />
-      <StationSlot x={98} y={48} label="Smithing result" item={result} {...click('result')} />
+      <StationSlot
+        x={98}
+        y={48}
+        label={tOr('cobble.smithing.result', 'Smithing result')}
+        item={result}
+        {...click('result')}
+      />
       {armorStand ? (
         <ArmorStand
           className="cobble-placed"
@@ -614,6 +674,7 @@ export function BeaconPanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as BeaconPanelProps<'div'>;
+  const { tOr } = useTranslation();
   const { Component, props: root } = usePanelRoot(as, 'beacon-panel', 212, 134, className, style, {
     ...rest,
     background,
@@ -646,7 +707,7 @@ export function BeaconPanel<E extends ElementType = 'div'>(
       <StationSlot
         x={136}
         y={110}
-        label="Beacon payment"
+        label={tOr('cobble.beacon.payment', 'Beacon payment')}
         item={payment}
         {...(onPaymentClick === undefined ? {} : { onClick: onPaymentClick })}
       />
@@ -654,7 +715,7 @@ export function BeaconPanel<E extends ElementType = 'div'>(
         className="cobble-placed"
         style={placeAt(164, 107)}
         kind="confirm"
-        label="Confirm"
+        label={tOr('cobble.beacon.confirm', 'Confirm')}
         disabled={confirmDisabled}
         {...(onConfirm === undefined ? {} : { onClick: onConfirm })}
       />
@@ -662,7 +723,7 @@ export function BeaconPanel<E extends ElementType = 'div'>(
         className="cobble-placed"
         style={placeAt(190, 107)}
         kind="cancel"
-        label="Cancel"
+        label={tOr('cobble.beacon.cancel', 'Cancel')}
         {...(onCancel === undefined ? {} : { onClick: onCancel })}
       />
       <ContainerChrome
@@ -709,7 +770,7 @@ export function CraftingTablePanel<E extends ElementType = 'div'>(
     onResultClick,
     className,
     style,
-    title = 'Crafting',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -718,6 +779,8 @@ export function CraftingTablePanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as CraftingTablePanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.crafting', 'Crafting') : titleProp;
   const { Component, props: root } = usePanelRoot(
     as,
     'crafting-table-panel',
@@ -736,7 +799,7 @@ export function CraftingTablePanel<E extends ElementType = 'div'>(
           key={index}
           x={30 + (index % 3) * SLOT_SIZE}
           y={17 + Math.floor(index / 3) * SLOT_SIZE}
-          label={`Crafting slot ${String(index + 1)}`}
+          label={tOr('cobble.crafting.slot', 'Crafting slot %s', index + 1)}
           item={ingredients[index]}
           bare={background}
           {...(onIngredientClick === undefined ? {} : { onClick: () => onIngredientClick(index) })}
@@ -745,7 +808,7 @@ export function CraftingTablePanel<E extends ElementType = 'div'>(
       <StationSlot
         x={124}
         y={35}
-        label="Crafting result"
+        label={tOr('cobble.crafting.result', 'Crafting result')}
         item={result}
         bare={background}
         {...(onResultClick === undefined ? {} : { onClick: onResultClick })}
@@ -797,7 +860,7 @@ export function CrafterPanel<E extends ElementType = 'div'>(
     onResultClick,
     className,
     style,
-    title = 'Crafter',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -806,6 +869,8 @@ export function CrafterPanel<E extends ElementType = 'div'>(
     background = true,
     ...rest
   } = props as CrafterPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.crafter', 'Crafter') : titleProp;
   const { Component, props: root } = usePanelRoot(as, 'crafter-panel', 152, 71, className, style, {
     ...rest,
     background,
@@ -820,7 +885,7 @@ export function CrafterPanel<E extends ElementType = 'div'>(
             key={index}
             className="cobble-placed"
             style={placeAt(26 + (index % 3) * 18, 17 + Math.floor(index / 3) * 18)}
-            label={item?.label ?? `Crafter slot ${String(index + 1)}`}
+            label={item?.label ?? tOr('cobble.crafter.slot', 'Crafter slot %s', index + 1)}
             slotDisabled={disabledSlots[index] === true}
             {...(onSlotClick === undefined ? {} : { onClick: () => onSlotClick(index) })}
           >
@@ -832,7 +897,7 @@ export function CrafterPanel<E extends ElementType = 'div'>(
       <StationSlot
         x={134}
         y={35}
-        label="Crafter result"
+        label={tOr('cobble.crafter.result', 'Crafter result')}
         item={result}
         {...(onResultClick === undefined ? {} : { onClick: onResultClick })}
       />

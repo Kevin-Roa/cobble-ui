@@ -1,4 +1,5 @@
 import type { JSX, KeyboardEvent, ReactNode } from 'react';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { Text } from '../../text/Text.tsx';
 import {
   SelectionList,
@@ -17,6 +18,22 @@ export const GAME_MODE_NAMES: Readonly<Record<WorldGameMode, string>> = {
   creative: 'Creative Mode',
   adventure: 'Adventure Mode',
   spectator: 'Spectator Mode',
+};
+
+/** `GameType#getLongDisplayName` translation keys. */
+const GAME_MODE_KEYS: Readonly<Record<WorldGameMode, string>> = {
+  survival: 'gameMode.survival',
+  creative: 'gameMode.creative',
+  adventure: 'gameMode.adventure',
+  spectator: 'gameMode.spectator',
+};
+
+/** Translates `key`, falling back to the given English text. Matches `Translator#tOr`. */
+type TranslateOr = (key: string, fallback: string, ...args: readonly (string | number)[]) => string;
+
+const ENGLISH: TranslateOr = (_key, fallback, ...args) => {
+  let next = 0;
+  return fallback.replace(/%s/g, () => String(args[next++] ?? ''));
 };
 
 /** What the list needs to know about one save (`LevelSummary`). */
@@ -42,8 +59,14 @@ export interface WorldSummary {
  * The name line of an entry (`WorldSelectionList.WorldListEntry` constructor): an empty level
  * name becomes `"Unnamed World <n>"` with a 1-based `index`.
  */
-export function worldDisplayName(world: Pick<WorldSummary, 'name'>, index: number): string {
-  return world.name.trim() === '' ? `Unnamed World ${index + 1}` : world.name;
+export function worldDisplayName(
+  world: Pick<WorldSummary, 'name'>,
+  index: number,
+  tOr: TranslateOr = ENGLISH,
+): string {
+  return world.name.trim() === ''
+    ? tOr('cobble.world_select.unnamed', 'Unnamed World %s', index + 1)
+    : world.name;
 }
 
 /** Default date format; the game uses the locale's date and time (`DateFormat`). */
@@ -70,16 +93,19 @@ export function worldIdLine(
  */
 export function worldInfoLine(
   world: Pick<WorldSummary, 'gameMode' | 'hardcore' | 'cheats' | 'version'>,
+  tOr: TranslateOr = ENGLISH,
 ): ReactNode {
   return (
     <>
       {world.hardcore === true ? (
-        <Text color="dark_red">Hardcore Mode</Text>
+        <Text color="dark_red">{tOr('gameMode.hardcore', 'Hardcore Mode')}</Text>
       ) : (
-        GAME_MODE_NAMES[world.gameMode]
+        tOr(GAME_MODE_KEYS[world.gameMode], GAME_MODE_NAMES[world.gameMode])
       )}
-      {world.cheats === true ? ', Cheats' : null}
-      {world.version === undefined ? null : `, Version: ${world.version}`}
+      {world.cheats === true ? `, ${tOr('selectWorld.cheats', 'Cheats')}` : null}
+      {world.version === undefined
+        ? null
+        : `, ${tOr('cobble.world_select.version', 'Version: %s', world.version)}`}
     </>
   );
 }
@@ -109,9 +135,11 @@ export function WorldSelectionList(props: WorldSelectionListOwnProps): JSX.Eleme
     onPlay,
     formatDate = formatWorldDate,
     slotProps,
-    'aria-label': ariaLabel = 'Select World',
+    'aria-label': ariaLabelProp,
     ...rest
   } = props;
+  const { tOr } = useTranslation();
+  const ariaLabel = ariaLabelProp ?? tOr('cobble.world_select.list', 'Select World');
   const viewport = slotProps?.viewport;
   return (
     <SelectionList
@@ -143,8 +171,8 @@ export function WorldSelectionList(props: WorldSelectionListOwnProps): JSX.Eleme
       {worlds.map((world, index) => (
         <SelectionListItem key={world.id} value={world.id}>
           <WorldListEntry
-            name={worldDisplayName(world, index)}
-            details={[worldIdLine(world, formatDate), worldInfoLine(world)]}
+            name={worldDisplayName(world, index, tOr)}
+            details={[worldIdLine(world, formatDate), worldInfoLine(world, tOr)]}
             {...(world.icon === undefined ? {} : { icon: world.icon })}
             {...(world.status === undefined ? {} : { status: world.status })}
             onJoin={() => onPlay?.(world.id)}

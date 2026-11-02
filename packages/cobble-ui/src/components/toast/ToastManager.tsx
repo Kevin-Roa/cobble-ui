@@ -12,6 +12,7 @@ import {
 import { useLatest } from '../../internal/hooks.ts';
 import { useSound } from '../../provider/hooks.ts';
 import { Toast, type ToastVariant } from './Toast.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** How long a toast takes to slide in or out (`Toast.SLIDE_ANIMATION_DURATION_MS`). */
 export const TOAST_SLIDE_MS = 600;
@@ -149,12 +150,17 @@ export function ToastProvider(props: ToastProviderProps): JSX.Element {
     [show, dismiss, dismissAll],
   );
 
+  const { tOr } = useTranslation();
   const visible = records.slice(0, Math.max(maxVisible, 1));
 
   return (
     <ToastContext value={controller}>
       {children}
-      <div className="cobble-toast-viewport" role="region" aria-label="Notifications">
+      <div
+        className="cobble-toast-viewport"
+        role="region"
+        aria-label={tOr('cobble.toast.notifications', 'Notifications')}
+      >
         {visible.map((record) => (
           <ToastItem key={record.id} record={record} onGone={remove} />
         ))}

@@ -2,6 +2,7 @@ import type { ElementType, JSX } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
 import { Button, type ButtonOwnProps } from './Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `RecipeBookComponent.RECIPE_BUTTON_SPRITES`. */
 export const RECIPE_BOOK_BUTTON_SPRITES: WidgetSprites = {
@@ -27,11 +28,13 @@ export function RecipeBookButton<E extends ElementType = 'button'>(
   props: RecipeBookButtonProps<E>,
 ): JSX.Element {
   const {
-    label = 'Recipe Book',
+    label: labelProp,
     width = 20,
     height = 18,
     ...rest
   } = props as RecipeBookButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.recipe_book.title', 'Recipe Book');
   return (
     <Button
       aria-label={label}

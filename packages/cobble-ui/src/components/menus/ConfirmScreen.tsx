@@ -3,6 +3,7 @@ import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Text } from '../../text/Text.tsx';
 import { Button } from '../button/Button.tsx';
 import { Screen, type ScreenBackground } from '../screen/Screen.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 export interface ConfirmScreenOwnProps {
   /** Title (`ConfirmScreen#title`), centred in white. */
@@ -35,13 +36,16 @@ export function ConfirmScreen<E extends ElementType = 'div'>(
   const {
     title,
     message,
-    yesLabel = 'Yes',
-    noLabel = 'No',
+    yesLabel: yesLabelProp,
+    noLabel: noLabelProp,
     onConfirm,
     onCancel,
     background = 'menu',
     ...rest
   } = props as ConfirmScreenProps<'div'>;
+  const { tOr } = useTranslation();
+  const yesLabel = yesLabelProp ?? tOr('gui.yes', 'Yes');
+  const noLabel = noLabelProp ?? tOr('gui.no', 'No');
   const titleId = useId();
   const messageId = useId();
   return (

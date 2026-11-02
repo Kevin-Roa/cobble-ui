@@ -4,6 +4,7 @@ import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** The block the progress belongs to: each has its own sprites. */
 export type CookingStation = 'furnace' | 'smoker' | 'blast_furnace';
@@ -65,6 +66,7 @@ export function CookingArrow<E extends ElementType = 'div'>(
   } = props as CookingArrowProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const fill = cookingArrowFill(progress);
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': COOKING_ARROW_WIDTH,
     '--cobble-height': COOKING_ARROW_HEIGHT,
@@ -78,7 +80,7 @@ export function CookingArrow<E extends ElementType = 'div'>(
           className: cx('cobble-stat-bar', 'cobble-cooking-arrow', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Cooking progress',
+          'aria-label': tOr('cobble.bar.cooking_progress', 'Cooking progress'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),
@@ -123,6 +125,7 @@ export function FuelFlame<E extends ElementType = 'div'>(props: FuelFlameProps<E
   } = props as FuelFlameProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const fill = fuelFlameFill(lit);
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': FUEL_FLAME_SIZE,
     '--cobble-height': FUEL_FLAME_SIZE,
@@ -136,7 +139,7 @@ export function FuelFlame<E extends ElementType = 'div'>(props: FuelFlameProps<E
           className: cx('cobble-stat-bar', 'cobble-fuel-flame', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Fuel remaining',
+          'aria-label': tOr('cobble.bar.fuel_remaining', 'Fuel remaining'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(lit, 0), 1) * 100),

@@ -5,6 +5,7 @@ import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
 import { PingIcon, type PingIconProps } from './PingIcon.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `ServerSelectionList#getRowWidth`. */
 export const SERVER_ENTRY_WIDTH = 305;
@@ -69,6 +70,7 @@ export function ServerListEntry<E extends ElementType = 'div'>(
     ...rest
   } = props as ServerListEntryProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const { tOr } = useTranslation();
   const fallbackIcon = useTextureUrl('misc/unknown_server');
   const iconUrl = icon ?? fallbackIcon;
   const [hovered, setHovered] = useState(false);
@@ -108,7 +110,7 @@ export function ServerListEntry<E extends ElementType = 'div'>(
       {hovered ? (
         <button
           type="button"
-          aria-label="Join server"
+          aria-label={tOr('cobble.server_list.join', 'Join server')}
           className="cobble-server-entry-join"
           style={placeAt(0, 0)}
           onPointerEnter={() => setOverIcon(true)}

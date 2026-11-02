@@ -7,6 +7,7 @@ import { Text } from '../../text/Text.tsx';
 import { Button } from '../button/Button.tsx';
 import { cx } from '../shared.ts';
 import { ProgressBar } from './ProgressBar.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Default wording for each phase of loading the game assets. */
 export const ASSET_PHASE_LABELS: Readonly<Record<AssetLoadProgress['phase'], string>> = {
@@ -61,9 +62,17 @@ export function AssetLoadingOverlay(props: AssetLoadingOverlayProps): JSX.Elemen
     ...rest
   } = props;
   const { status, progress, error, reload } = useAssets();
+  const { tOr } = useTranslation();
   if (status === 'ready') return null;
 
-  const labels = { ...ASSET_PHASE_LABELS, ...phaseLabels };
+  const labels = {
+    cache: tOr('cobble.assets.phase.cache', ASSET_PHASE_LABELS.cache),
+    manifest: tOr('cobble.assets.phase.manifest', ASSET_PHASE_LABELS.manifest),
+    download: tOr('cobble.assets.phase.download', ASSET_PHASE_LABELS.download),
+    verify: tOr('cobble.assets.phase.verify', ASSET_PHASE_LABELS.verify),
+    extract: tOr('cobble.assets.phase.extract', ASSET_PHASE_LABELS.extract),
+    ...phaseLabels,
+  };
   const root = mergeProps<'div'>(
     { className: cx('cobble-asset-overlay', className) },
     rest as SlotProps<'div'>,
@@ -72,10 +81,10 @@ export function AssetLoadingOverlay(props: AssetLoadingOverlayProps): JSX.Elemen
   if (status === 'error') {
     return (
       <div {...root} role="alert" data-variant={variant} data-status="error">
-        <Text color="red">Could not load the game assets.</Text>
+        <Text color="red">{tOr('cobble.assets.error', 'Could not load the game assets.')}</Text>
         <Text color="gray">{error instanceof Error ? error.message : String(error)}</Text>
         <Button width={100} onClick={reload}>
-          Retry
+          {tOr('cobble.assets.retry', 'Retry')}
         </Button>
       </div>
     );
@@ -84,7 +93,7 @@ export function AssetLoadingOverlay(props: AssetLoadingOverlayProps): JSX.Elemen
   const fraction = assetProgressFraction(progress);
   return (
     <div {...root} role="status" aria-live="polite" data-variant={variant} data-status={status}>
-      <Text>{progress ? labels[progress.phase] : 'Starting'}…</Text>
+      <Text>{progress ? labels[progress.phase] : tOr('cobble.assets.starting', 'Starting')}…</Text>
       {progress?.phase === 'download' && progress.total > 0 ? (
         <Text color="gray">
           {formatMegabytes(progress.loaded)} / {formatMegabytes(progress.total)} MB
@@ -94,7 +103,7 @@ export function AssetLoadingOverlay(props: AssetLoadingOverlayProps): JSX.Elemen
       <ProgressBar
         {...slotProps?.bar}
         width={barWidth}
-        label="Loading game assets"
+        label={tOr('cobble.assets.loading', 'Loading game assets')}
         {...(fraction === undefined ? {} : { progress: fraction })}
       />
     </div>

@@ -3,6 +3,7 @@ import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Text } from '../../text/Text.tsx';
 import { Button } from '../button/Button.tsx';
 import { Screen } from '../screen/Screen.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Width of the title screen's main buttons (`TitleScreen#createNormalMenuOptions`). */
 export const TITLE_SCREEN_BUTTON_WIDTH = 200;
@@ -65,6 +66,7 @@ export function TitleScreen<E extends ElementType = 'div'>(
     onClose,
     ...rest
   } = props as TitleScreenProps<'div'>;
+  const { tOr } = useTranslation();
   return (
     <Screen
       {...rest}
@@ -75,23 +77,23 @@ export function TitleScreen<E extends ElementType = 'div'>(
       <div className="cobble-title-screen">
         <div className="cobble-title-screen-logo">{logo}</div>
         <div className="cobble-title-screen-buttons">
-          {full('Singleplayer', onSingleplayer)}
-          {full('Multiplayer', onMultiplayer)}
+          {full(tOr('menu.singleplayer', 'Singleplayer'), onSingleplayer)}
+          {full(tOr('menu.multiplayer', 'Multiplayer'), onMultiplayer)}
           {onRealms !== undefined || realmsLabel !== undefined
-            ? full(realmsLabel ?? 'Realms', onRealms)
+            ? full(realmsLabel ?? tOr('cobble.title.realms', 'Realms'), onRealms)
             : null}
           <div className="cobble-title-screen-pair">
             <Button
               width={TITLE_SCREEN_HALF_WIDTH}
               {...(onOptions === undefined ? {} : { onClick: onOptions })}
             >
-              Options...
+              {tOr('menu.options', 'Options...')}
             </Button>
             <Button
               width={TITLE_SCREEN_HALF_WIDTH}
               {...(onQuit === undefined ? {} : { onClick: onQuit })}
             >
-              Quit Game
+              {tOr('menu.quit', 'Quit Game')}
             </Button>
           </div>
         </div>

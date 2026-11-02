@@ -1811,9 +1811,16 @@
   /* KeybindRow: name left, key button and reset right (KeyBindsList.KeyEntry). */
   :where(.cobble-keybind-row) {
     display: flex;
+    box-sizing: border-box;
+    width: 100%;
     align-items: center;
     gap: calc(5 * var(--cobble-px));
     height: calc(20 * var(--cobble-px));
+  }
+
+  /* The name takes the free space (text left); the buttons keep their size and sit at the right. */
+  :where(.cobble-keybind-row > :not(.cobble-keybind-name)) {
+    flex: none;
   }
 
   :where(.cobble-keybind-name) {

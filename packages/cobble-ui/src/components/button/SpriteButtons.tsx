@@ -2,6 +2,7 @@ import type { ElementType, JSX } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
 import { Button, type ButtonOwnProps } from './Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 type SpriteButtonOwnProps = Omit<ButtonOwnProps, 'icon' | 'sprites' | 'children'>;
 
@@ -25,7 +26,14 @@ export type CrossButtonProps<E extends ElementType = 'button'> = PolymorphicProp
 export function CrossButton<E extends ElementType = 'button'>(
   props: CrossButtonProps<E>,
 ): JSX.Element {
-  const { label = 'Close', width = 14, height = 14, ...rest } = props as CrossButtonProps<'button'>;
+  const {
+    label: labelProp,
+    width = 14,
+    height = 14,
+    ...rest
+  } = props as CrossButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.button.close', 'Close');
   return (
     <Button
       aria-label={label}

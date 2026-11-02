@@ -3,6 +3,7 @@ import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Default width of the bundle fill bar. */
 export const BUNDLE_BAR_WIDTH = 94;
@@ -51,6 +52,7 @@ export function BundleProgressBar<E extends ElementType = 'div'>(
   const Component: ElementType = as ?? 'div';
   const fill = bundleBarFill(progress, width);
   const full = progress >= 1;
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': width,
     '--cobble-height': height,
@@ -63,7 +65,7 @@ export function BundleProgressBar<E extends ElementType = 'div'>(
           className: cx('cobble-stat-bar', 'cobble-bundle-bar', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Bundle fullness',
+          'aria-label': tOr('cobble.bar.bundle_fullness', 'Bundle fullness'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),

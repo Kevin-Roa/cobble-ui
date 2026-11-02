@@ -27,6 +27,7 @@ const files = {
   DocPage: 'src/pages/DocPage.tsx',
   Home: 'src/pages/Home.tsx',
   Settings: 'src/pages/Settings.tsx',
+  Language: 'src/pages/Language.tsx',
 };
 for (const name of elements) {
   const file = files[name];

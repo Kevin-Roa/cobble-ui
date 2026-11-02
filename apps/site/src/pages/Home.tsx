@@ -1,4 +1,4 @@
-import { Button, IconButton, Screen, SplashText, Text, Tooltip } from 'cobble-ui';
+import { Button, IconButton, Screen, SplashText, Text } from 'cobble-ui';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 import { DISCLAIMER } from '../components/Disclaimer.tsx';
@@ -24,9 +24,14 @@ export function Home(): JSX.Element {
           Assets &amp; Legal
         </Button>
         <div className="site-title-row">
-          <Tooltip content="Only English is available for now.">
-            <IconButton icon="icon/language" label="Language" disabled className="site-side-left" />
-          </Tooltip>
+          <IconButton
+            as={Link}
+            to="/language"
+            state={{ from: '/' }}
+            icon="icon/language"
+            label="Language"
+            className="site-side-left"
+          />
           <Button as={Link} to="/settings" width={98}>
             Settings...
           </Button>

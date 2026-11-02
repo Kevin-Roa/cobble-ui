@@ -1,6 +1,7 @@
 import type { SpriteId } from '../../assets/sprite-id.ts';
 import type { JSX } from 'react';
 import { Sprite, type SpriteProps } from './Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Size of the notification badge sprites. */
 export const NOTIFICATION_BADGE_SIZE = 8;
@@ -28,13 +29,14 @@ export interface NotificationBadgeProps extends Omit<SpriteProps, 'sprite' | 'wi
 /** The small red count badge shown on menu buttons (`notification/*`), 8×8. */
 export function NotificationBadge(props: NotificationBadgeProps): JSX.Element | null {
   const { count, ...rest } = props;
+  const { tOr } = useTranslation();
   const sprite = notificationSprite(count);
   if (sprite === undefined) return null;
   return (
     <Sprite
       role="img"
       aria-hidden={undefined}
-      aria-label={`${String(count)} notifications`}
+      aria-label={tOr('cobble.notification.count', '%s notifications', count)}
       {...rest}
       sprite={sprite}
       width={NOTIFICATION_BADGE_SIZE}

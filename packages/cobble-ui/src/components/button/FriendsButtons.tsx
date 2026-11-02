@@ -2,6 +2,7 @@ import type { ElementType, JSX } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
 import { Button, type ButtonOwnProps } from './Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Which screen's artwork a {@link ResponseButton} uses: the friends list or the pending-invite popup. */
 export type ResponseContext = 'friends' | 'invite';
@@ -39,11 +40,17 @@ export function ResponseButton<E extends ElementType = 'button'>(
   const {
     kind,
     context = 'friends',
-    label = kind === 'accept' ? 'Accept' : 'Reject',
+    label: labelProp,
     width = 18,
     height = 18,
     ...rest
   } = props as ResponseButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label =
+    labelProp ??
+    (kind === 'accept'
+      ? tOr('cobble.friends.accept', 'Accept')
+      : tOr('cobble.friends.reject', 'Reject'));
   return (
     <Button
       aria-label={label}

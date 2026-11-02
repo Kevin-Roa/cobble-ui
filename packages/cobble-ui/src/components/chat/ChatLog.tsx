@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx } from '../shared.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `ChatComponent.getWidth(1.0)`: the default chat width in GUI units. */
 export const CHAT_WIDTH = 320;
@@ -85,6 +86,7 @@ export function ChatLog<E extends ElementType = 'div'>(props: ChatLogProps<E>): 
     ...rest
   } = props as ChatLogProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const { tOr } = useTranslation();
   const [scroll, setScroll] = useState(0);
   const lines = open ? CHAT_LINES_OPEN : CHAT_LINES_CLOSED;
 
@@ -118,7 +120,7 @@ export function ChatLog<E extends ElementType = 'div'>(props: ChatLogProps<E>): 
           className: cx('cobble-chat-log', className),
           style: rootStyle,
           role: 'log',
-          'aria-label': 'Chat',
+          'aria-label': tOr('cobble.chat.log', 'Chat'),
           'aria-live': 'polite',
           onWheel,
         },

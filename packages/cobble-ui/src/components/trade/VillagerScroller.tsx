@@ -1,6 +1,7 @@
 import type { ElementType, JSX } from 'react';
 import { CreativeScroller, type CreativeScrollerOwnProps } from '../creative/CreativeScroller.tsx';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Size of the villager trade list scroller thumb. */
 export const VILLAGER_SCROLLER_WIDTH = 6;
@@ -25,9 +26,10 @@ export function VillagerScroller<E extends ElementType = 'div'>(
   props: VillagerScrollerProps<E>,
 ): JSX.Element {
   const { height = 139, ...rest } = props as VillagerScrollerProps<'div'>;
+  const { tOr } = useTranslation();
   return (
     <CreativeScroller
-      aria-label="Trades"
+      aria-label={tOr('cobble.trade.trades', 'Trades')}
       {...rest}
       height={height}
       sprite="container/villager/scroller"

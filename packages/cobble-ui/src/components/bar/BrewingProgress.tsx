@@ -3,6 +3,7 @@ import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 export const BREW_ARROW_WIDTH = 9;
 export const BREW_ARROW_HEIGHT = 28;
@@ -36,6 +37,7 @@ export function BrewArrow<E extends ElementType = 'div'>(props: BrewArrowProps<E
   const { as, progress, className, style, ...rest } = props as BrewArrowProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const fill = brewArrowFill(progress);
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': BREW_ARROW_WIDTH,
     '--cobble-height': BREW_ARROW_HEIGHT,
@@ -49,7 +51,7 @@ export function BrewArrow<E extends ElementType = 'div'>(props: BrewArrowProps<E
           className: cx('cobble-stat-bar', 'cobble-brew-arrow', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Brewing progress',
+          'aria-label': tOr('cobble.bar.brewing_progress', 'Brewing progress'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),
@@ -82,6 +84,7 @@ export function FuelBar<E extends ElementType = 'div'>(props: FuelBarProps<E>): 
   const { as, fuel, className, style, ...rest } = props as FuelBarProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const fill = fuelBarFill(fuel);
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': FUEL_BAR_WIDTH,
     '--cobble-height': FUEL_BAR_HEIGHT,
@@ -95,7 +98,7 @@ export function FuelBar<E extends ElementType = 'div'>(props: FuelBarProps<E>): 
           className: cx('cobble-stat-bar', 'cobble-fuel-bar', className),
           style: rootStyle,
           role: 'meter',
-          'aria-label': 'Blaze powder',
+          'aria-label': tOr('cobble.bar.blaze_powder', 'Blaze powder'),
           'aria-valuemin': 0,
           'aria-valuemax': 20,
           'aria-valuenow': Math.min(Math.max(Math.trunc(fuel), 0), 20),

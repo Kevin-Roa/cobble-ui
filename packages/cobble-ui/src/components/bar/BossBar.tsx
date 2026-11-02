@@ -10,6 +10,7 @@ import {
   statBarFill,
   type StatBarLayers,
 } from './StatBar.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `BossEvent.BossBarColor`. */
 export type BossBarColor = 'pink' | 'blue' | 'red' | 'green' | 'yellow' | 'purple' | 'white';
@@ -62,6 +63,7 @@ export function BossBar<E extends ElementType = 'div'>(props: BossBarProps<E>): 
   } = props as BossBarProps<'div'>;
   const Component: ElementType = as ?? 'div';
   const nameId = useId();
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': STAT_BAR_WIDTH,
     '--cobble-height': STAT_BAR_HEIGHT,
@@ -75,7 +77,8 @@ export function BossBar<E extends ElementType = 'div'>(props: BossBarProps<E>): 
           style: rootStyle,
           role: 'progressbar',
           // The boss's name labels the bar; a bar without one is still a boss health bar.
-          'aria-label': children === undefined ? 'Boss health' : undefined,
+          'aria-label':
+            children === undefined ? tOr('cobble.bar.boss_health', 'Boss health') : undefined,
           'aria-labelledby': children === undefined ? undefined : nameId,
           'aria-valuemin': 0,
           'aria-valuemax': 100,

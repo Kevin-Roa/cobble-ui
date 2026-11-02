@@ -3,6 +3,7 @@ import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Button } from '../button/Button.tsx';
 import { OptionsList, type OptionsListProps } from '../options-list/OptionsList.tsx';
 import { Screen, ScreenLayout, type ScreenBackground } from '../screen/Screen.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 export interface OptionsScreenOwnProps {
   /** Header title (`OptionsSubScreen#title`). */
@@ -36,7 +37,7 @@ export function OptionsScreen<E extends ElementType = 'div'>(
   const {
     title,
     children,
-    doneLabel = 'Done',
+    doneLabel: doneLabelProp,
     onDone,
     footer,
     listLabel,
@@ -44,6 +45,8 @@ export function OptionsScreen<E extends ElementType = 'div'>(
     listProps,
     ...rest
   } = props as OptionsScreenProps<'div'>;
+  const { tOr } = useTranslation();
+  const doneLabel = doneLabelProp ?? tOr('gui.done', 'Done');
   const label = listLabel ?? (typeof title === 'string' ? title : undefined);
   return (
     <Screen

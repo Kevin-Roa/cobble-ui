@@ -2,6 +2,7 @@ import { useState, type ElementType, type JSX, type MouseEvent } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
 import { Button, type ButtonOwnProps } from './Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 type SocialButtonOwnProps = Omit<ButtonOwnProps, 'icon' | 'sprites' | 'children'>;
 
@@ -45,11 +46,14 @@ export function MuteButton<E extends ElementType = 'button'>(
     onClick,
     ...rest
   } = props as MuteButtonProps<'button'>;
+  const { tOr } = useTranslation();
   const [uncontrolled, setUncontrolled] = useState(defaultMuted);
   const isMuted = muted ?? uncontrolled;
   return (
     <Button
-      aria-label={isMuted ? 'Unmute' : 'Mute'}
+      aria-label={
+        isMuted ? tOr('cobble.social.unmute', 'Unmute') : tOr('cobble.social.mute', 'Mute')
+      }
       {...rest}
       width={width}
       height={height}
@@ -79,11 +83,13 @@ export function ReportButton<E extends ElementType = 'button'>(
   props: ReportButtonProps<E>,
 ): JSX.Element {
   const {
-    label = 'Report',
+    label: labelProp,
     width = 20,
     height = 20,
     ...rest
   } = props as ReportButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.social.report', 'Report');
   return (
     <Button
       aria-label={label}

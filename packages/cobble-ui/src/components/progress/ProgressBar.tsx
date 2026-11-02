@@ -2,6 +2,7 @@ import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx } from '../shared.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Border thickness plus the gap inside it, before the fill starts (`LoadingOverlay#drawProgressBar`). */
 export const PROGRESS_BAR_INSET = 2;
@@ -41,11 +42,12 @@ export function ProgressBar<E extends ElementType = 'div'>(
     progress,
     width = 200,
     height = 10,
-    label = 'Progress',
+    label,
     className,
     style,
     ...rest
   } = props as ProgressBarProps<'div'>;
+  const { tOr } = useTranslation();
   const Component: ElementType = as ?? 'div';
   const determinate = progress !== undefined;
   const fill = determinate ? progressBarFill(progress, width) : 0;
@@ -62,7 +64,7 @@ export function ProgressBar<E extends ElementType = 'div'>(
           className: cx('cobble-progress-bar', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': label,
+          'aria-label': label ?? tOr('cobble.progress.label', 'Progress'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': determinate

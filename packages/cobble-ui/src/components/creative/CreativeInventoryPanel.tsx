@@ -9,6 +9,7 @@ import { TextField } from '../text-field/TextField.tsx';
 import { Tooltip } from '../tooltip/Tooltip.tsx';
 import { CreativeScroller } from './CreativeScroller.tsx';
 import { CreativeTab, type CreativeTabColumn } from './CreativeTab.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Size of the creative inventory window itself, without its tabs. */
 export const CREATIVE_WINDOW_WIDTH = 195;
@@ -33,6 +34,24 @@ export interface CreativeInventoryTab {
  * spawn eggs, operator utilities and survival inventory along the bottom. The seventh tab of each
  * row is aligned right.
  */
+/** Vanilla `itemGroup.*` keys of {@link CREATIVE_INVENTORY_TABS}, in the same order. */
+const CREATIVE_TAB_KEYS: readonly string[] = [
+  'itemGroup.buildingBlocks',
+  'itemGroup.coloredBlocks',
+  'itemGroup.natural',
+  'itemGroup.functional',
+  'itemGroup.redstone',
+  'itemGroup.hotbar',
+  'itemGroup.search',
+  'itemGroup.tools',
+  'itemGroup.combat',
+  'itemGroup.foodAndDrink',
+  'itemGroup.ingredients',
+  'itemGroup.spawnEggs',
+  'itemGroup.op',
+  'itemGroup.inventory',
+];
+
 export const CREATIVE_INVENTORY_TABS: readonly CreativeInventoryTab[] = [
   { label: 'Building Blocks', item: 'bricks' },
   { label: 'Colored Blocks', item: 'cyan_wool' },
@@ -102,7 +121,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
   const {
     as,
     background = true,
-    tabs = CREATIVE_INVENTORY_TABS,
+    tabs: tabsProp,
     selectedTab = 0,
     onTabClick,
     items,
@@ -117,6 +136,13 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as CreativeInventoryPanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const tabs =
+    tabsProp ??
+    CREATIVE_INVENTORY_TABS.map((tab, index) => {
+      const key = CREATIVE_TAB_KEYS[index];
+      return key === undefined ? tab : { ...tab, label: tOr(key, tab.label) };
+    });
   const visibleTabs = tabs.slice(0, 14);
   const current = visibleTabs[selectedTab];
   const searching = current?.search === true;
@@ -174,7 +200,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         <TextField
           className="cobble-placed"
           style={placeAt(82, TAB_MARGIN + 6)}
-          aria-label="Search Items"
+          aria-label={tOr('itemGroup.search', 'Search Items')}
           width={80}
           height={9}
           maxLength={50}
@@ -191,7 +217,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         bare={background}
         columns={9}
         rows={5}
-        label="Items"
+        label={tOr('cobble.creative.items', 'Items')}
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined
           ? {}
@@ -200,7 +226,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
       <CreativeScroller
         className="cobble-placed"
         style={placeAt(175, TAB_MARGIN + 18)}
-        aria-label="Scroll items"
+        aria-label={tOr('cobble.creative.scroll_items', 'Scroll items')}
         disabled={!scrollable}
         value={scroll}
         {...(onScrollChange === undefined ? {} : { onValueChange: onScrollChange })}
@@ -211,7 +237,7 @@ export function CreativeInventoryPanel<E extends ElementType = 'div'>(
         bare={background}
         columns={9}
         rows={1}
-        label="Hotbar"
+        label={tOr('cobble.creative.hotbar', 'Hotbar')}
         {...(hotbar === undefined ? {} : { items: hotbar })}
         {...(onSlotClick === undefined
           ? {}
