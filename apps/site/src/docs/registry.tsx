@@ -5,8 +5,12 @@ import {
   PlayerRendererPage,
 } from './components/players.tsx';
 import { ItemsPage } from './components/explorers.tsx';
+import { CreateWorldScreenPage, WorldSelectionListPage } from './components/world-select.tsx';
 import { BlockModelPage, ModelViewportPage } from './components/model3d.tsx';
+import { TranslatePage, TranslationProviderPage } from './components/translate.tsx';
 import { ArmorStandPage } from './components/armor-stand.tsx';
+import { CustomAssetSourcesPage } from './components/asset-sources.tsx';
+import { OptionsMenuRecipePage } from './components/recipes.tsx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentType } from 'react';
 import AssetsGuide from './guides/assets.mdx';
@@ -97,6 +101,13 @@ import {
   OptionsListPage,
 } from './components/layouts.tsx';
 import { ChatInputPage, ChatLogPage } from './components/chat.tsx';
+import {
+  ConfirmScreenPage,
+  KeybindButtonPage,
+  OptionsScreenPage,
+  PauseScreenPage,
+  TitleScreenPage,
+} from './components/menus.tsx';
 import { DialogPage } from './components/dialog.tsx';
 import {
   AdvancementBoxPage,
@@ -167,7 +178,8 @@ export type DocCategory =
   | 'Containers & trading'
   | 'Crafting'
   | 'Advancements'
-  | 'Text & sprites';
+  | 'Text & sprites'
+  | 'Recipes';
 
 /** Order of the sections in the page list. */
 export const DOC_CATEGORIES: readonly DocCategory[] = [
@@ -182,6 +194,7 @@ export const DOC_CATEGORIES: readonly DocCategory[] = [
   'Crafting',
   'Advancements',
   'Text & sprites',
+  'Recipes',
 ];
 
 export interface DocPage {
@@ -200,6 +213,7 @@ export const GUIDE_PAGES: readonly DocPage[] = [
   { slug: 'provider', title: 'Provider', mdx: true, Page: ProviderGuide },
   { slug: 'styling', title: 'Styling', mdx: true, Page: StylingGuide },
   { slug: 'assets', title: 'Assets & Legal', mdx: true, Page: AssetsGuide },
+  { slug: 'custom-asset-sources', title: 'Custom asset sources', Page: CustomAssetSourcesPage },
 ];
 
 function entry(slug: string, title: string, category: DocCategory, Page: DocPage['Page']): DocPage {
@@ -240,6 +254,8 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('server-list-entry', 'ServerListEntry', 'Lists & entries', ServerListEntryPage),
   entry('social-player-entry', 'SocialPlayerEntry', 'Lists & entries', SocialPlayerEntryPage),
   entry('world-list-entry', 'WorldListEntry', 'Lists & entries', WorldListEntryPage),
+  entry('world-selection-list', 'WorldSelectionList', 'Lists & entries', WorldSelectionListPage),
+  entry('create-world-screen', 'CreateWorldScreen', 'Screens & layout', CreateWorldScreenPage),
   entry('pack-list-entry', 'PackListEntry', 'Lists & entries', PackListEntryPage),
   entry('ping-icon', 'PingIcon', 'Lists & entries', PingIconPage),
   entry('player-ping-icon', 'PlayerPingIcon', 'Lists & entries', PlayerPingIconPage),
@@ -252,6 +268,11 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('options-list', 'OptionsList', 'Lists & entries', OptionsListPage),
   entry('screen', 'Screen', 'Screens & layout', ScreenPage),
   entry('panorama', 'Panorama', 'Screens & layout', PanoramaPage),
+  entry('pause-screen', 'PauseScreen', 'Screens & layout', PauseScreenPage),
+  entry('title-screen', 'TitleScreen', 'Screens & layout', TitleScreenPage),
+  entry('options-screen', 'OptionsScreen', 'Screens & layout', OptionsScreenPage),
+  entry('confirm-screen', 'ConfirmScreen', 'Screens & layout', ConfirmScreenPage),
+  entry('keybind-button', 'KeybindButton', 'Buttons', KeybindButtonPage),
   entry('tabs', 'Tabs', 'Screens & layout', TabsPage),
   entry('separator', 'Separator', 'Screens & layout', SeparatorPage),
 
@@ -373,8 +394,12 @@ export const COMPONENT_PAGES: readonly DocPage[] = [
   entry('block-model', 'BlockModel', 'Text & sprites', BlockModelPage),
   entry('model-viewport', 'ModelViewport', 'Text & sprites', ModelViewportPage),
   entry('armor-stand', 'ArmorStand', 'Text & sprites', ArmorStandPage),
+  entry('translate', 'Translate', 'Text & sprites', TranslatePage),
+  entry('translation-provider', 'TranslationProvider', 'Text & sprites', TranslationProviderPage),
   entry('sprite', 'Sprite', 'Text & sprites', SpritePage),
   entry('animated-sprite', 'AnimatedSprite', 'Text & sprites', AnimatedSpritePage),
+
+  entry('options-menu', 'Options menu', 'Recipes', OptionsMenuRecipePage),
 ];
 
 /** Every page: the guides, then the components. */

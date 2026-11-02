@@ -8,6 +8,7 @@ import {
   type StateSpriteButtonOwnProps,
   type StateSprites,
 } from './StateSpriteButton.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 type Wrapped = Omit<StateSpriteButtonOwnProps, 'label'> & {
   readonly label?: string;
@@ -66,9 +67,12 @@ export type StonecutterRecipeButtonProps<E extends ElementType = 'button'> = Pol
 export function StonecutterRecipeButton<E extends ElementType = 'button'>(
   props: StonecutterRecipeButtonProps<E>,
 ): JSX.Element {
-  const { label = 'Recipe', slotProps, ...rest } = props as StonecutterRecipeButtonProps<'button'>;
+  const { label: labelProp, slotProps, ...rest } = props as StonecutterRecipeButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.stonecutter.recipe', 'Recipe');
   return (
     <StateSpriteButton
+      sound="ui.stonecutter.select_recipe"
       {...rest}
       label={label}
       name="stonecutter-button"
@@ -105,9 +109,12 @@ export type LoomPatternButtonProps<E extends ElementType = 'button'> = Polymorph
 export function LoomPatternButton<E extends ElementType = 'button'>(
   props: LoomPatternButtonProps<E>,
 ): JSX.Element {
-  const { label = 'Pattern', slotProps, ...rest } = props as LoomPatternButtonProps<'button'>;
+  const { label: labelProp, slotProps, ...rest } = props as LoomPatternButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.loom.pattern', 'Pattern');
   return (
     <StateSpriteButton
+      sound="ui.loom.select_pattern"
       {...rest}
       label={label}
       name="loom-button"
@@ -143,9 +150,10 @@ export function StonecutterScroller<E extends ElementType = 'div'>(
   props: StonecutterScrollerProps<E>,
 ): JSX.Element {
   const { height = CONTAINER_SCROLLER_HEIGHT, ...rest } = props as StonecutterScrollerProps<'div'>;
+  const { tOr } = useTranslation();
   return (
     <CreativeScroller
-      aria-label="Recipes"
+      aria-label={tOr('cobble.stonecutter.recipes', 'Recipes')}
       {...rest}
       height={height}
       sprite="container/stonecutter/scroller"
@@ -159,9 +167,10 @@ export function LoomScroller<E extends ElementType = 'div'>(
   props: LoomScrollerProps<E>,
 ): JSX.Element {
   const { height = CONTAINER_SCROLLER_HEIGHT, ...rest } = props as LoomScrollerProps<'div'>;
+  const { tOr } = useTranslation();
   return (
     <CreativeScroller
-      aria-label="Patterns"
+      aria-label={tOr('cobble.loom.patterns', 'Patterns')}
       {...rest}
       height={height}
       sprite="container/loom/scroller"
@@ -251,9 +260,11 @@ export function RecipeBookFilterButton<E extends ElementType = 'button'>(
   const {
     enabled = false,
     furnace = false,
-    label = 'Show craftable recipes only',
+    label: labelProp,
     ...rest
   } = props as RecipeBookFilterButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.recipe_book.filter', 'Show craftable recipes only');
   return (
     <StateSpriteButton
       {...rest}
@@ -283,11 +294,13 @@ export type RecipeBookPageButtonProps<E extends ElementType = 'button'> = Polymo
 export function RecipeBookPageButton<E extends ElementType = 'button'>(
   props: RecipeBookPageButtonProps<E>,
 ): JSX.Element {
-  const {
-    direction,
-    label = direction === 'forward' ? 'Next Page' : 'Previous Page',
-    ...rest
-  } = props as RecipeBookPageButtonProps<'button'>;
+  const { direction, label: labelProp, ...rest } = props as RecipeBookPageButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label =
+    labelProp ??
+    (direction === 'forward'
+      ? tOr('cobble.recipe_book.next_page', 'Next Page')
+      : tOr('cobble.recipe_book.previous_page', 'Previous Page'));
   const sprites: StateSprites =
     direction === 'forward'
       ? {

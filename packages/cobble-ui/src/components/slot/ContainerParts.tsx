@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useInteraction } from '../../internal/hooks.ts';
 import type { ElementType, JSX, ReactNode } from 'react';
@@ -192,11 +193,16 @@ export interface CrafterRedstoneProps extends Omit<SpriteProps, 'sprite' | 'widt
 /** The redstone indicator of the crafter (`container/crafter/powered_redstone`, 16×16). */
 export function CrafterRedstone(props: CrafterRedstoneProps): JSX.Element {
   const { powered, ...rest } = props;
+  const { tOr } = useTranslation();
   return (
     <Sprite
       role="img"
       aria-hidden={undefined}
-      aria-label={powered ? 'Powered' : 'Not powered'}
+      aria-label={
+        powered
+          ? tOr('cobble.crafter.powered', 'Powered')
+          : tOr('cobble.crafter.not_powered', 'Not powered')
+      }
       {...rest}
       sprite={
         powered ? 'container/crafter/powered_redstone' : 'container/crafter/unpowered_redstone'

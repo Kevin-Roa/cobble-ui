@@ -2,6 +2,7 @@ import axe from 'axe-core';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { renderWithProvider } from '../test/utils.tsx';
+import { ConfirmScreen, KeybindRow, OptionsScreen, PauseScreen, TitleScreen } from './index.ts';
 import {
   AdvancementFrame,
   AdvancementTab,
@@ -73,6 +74,7 @@ import {
   TextArea,
   TextField,
   Toast,
+  Translate,
   ToggleButton,
   VehicleHearts,
   VillagerScroller,
@@ -132,6 +134,26 @@ import {
   GrindstonePanel,
   Text,
   FormattedText,
+  AdvancementBox,
+  AssetLoadingOverlay,
+  BrewingStandPanel,
+  FurnacePanel,
+  LoadingDots,
+  MenuBackground,
+  PanelLabel,
+  Panorama,
+  Screen,
+  ScreenLayout,
+  ScrollingText,
+  Sprite,
+  SplashText,
+  TiledTexture,
+  ToastProvider,
+  Tooltip,
+  TooltipPanel,
+  WorldSelectionList,
+  CreateWorldScreen,
+  DEFAULT_CREATE_WORLD_VALUES,
 } from './index.ts';
 
 async function violations(container: HTMLElement): Promise<string[]> {
@@ -247,6 +269,7 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
   ['FuelFlame', <FuelFlame key="a" lit={0.5} />],
   ['ProgressBar', <ProgressBar key="a" progress={0.5} />],
   ['VillagerXpBar', <VillagerXpBar key="a" progress={0.5} />],
+  ['Translate', <Translate key="a" translate="menu.singleplayer" fallback="Singleplayer" />],
   ['Toast', <Toast key="a" title="Saved" />],
   ['NotificationBadge', <NotificationBadge key="a" count={3} />],
   ['Icon (decorative)', <Icon key="a" name="info" />],
@@ -414,6 +437,84 @@ const CASES: readonly (readonly [string, ReactElement])[] = [
     <ArmorStand key="a" showArms small rotatable={false} />,
   ],
   ['GrindstonePanel', <GrindstonePanel key="a" error />],
+  ['Sprite', <Sprite key="a" sprite="widget/button" width={200} height={20} aria-hidden />],
+  [
+    'TiledTexture',
+    <TiledTexture key="a" texture="gui/menu_background" tileWidth={32} tileHeight={32} />,
+  ],
+  ['MenuBackground', <MenuBackground key="a" />],
+  [
+    'Screen',
+    <Screen key="a" background="none" onClose={() => undefined}>
+      <Button>Back</Button>
+    </Screen>,
+  ],
+  [
+    'ScreenLayout',
+    <ScreenLayout key="a" title="Options" footer={<Button>Done</Button>}>
+      <Text>Content</Text>
+    </ScreenLayout>,
+  ],
+  ['Panorama', <Panorama key="a" />],
+  ['SplashText', <SplashText key="a">Also try Terraria!</SplashText>],
+  ['LoadingDots', <LoadingDots key="a" aria-hidden />],
+  [
+    'ScrollingText',
+    <ScrollingText key="a" left={0} right={100} top={0} bottom={20}>
+      Long label
+    </ScrollingText>,
+  ],
+  ['AdvancementBox', <AdvancementBox key="a">Title</AdvancementBox>],
+  [
+    'PanelLabel',
+    <PanelLabel key="a" x={8} y={6}>
+      Furnace
+    </PanelLabel>,
+  ],
+  ['BrewingStandPanel', <BrewingStandPanel key="a" />],
+  ['FurnacePanel', <FurnacePanel key="a" />],
+  ['TooltipPanel', <TooltipPanel key="a">Tooltip text</TooltipPanel>],
+  [
+    'Tooltip',
+    <Tooltip key="a" content="Does a thing">
+      <Button>Hover me</Button>
+    </Tooltip>,
+  ],
+  [
+    'ToastProvider',
+    <ToastProvider key="a">
+      <Button>App</Button>
+    </ToastProvider>,
+  ],
+  ['AssetLoadingOverlay', <AssetLoadingOverlay key="a" />],
+  [
+    'WorldSelectionList',
+    <WorldSelectionList
+      key="a"
+      defaultValue="a"
+      formatDate={() => 'today'}
+      worlds={[
+        { id: 'a', name: 'New World', gameMode: 'survival', version: '26.3' },
+        { id: 'b', name: '', gameMode: 'creative', hardcore: true, cheats: true },
+      ]}
+    />,
+  ],
+  [
+    'CreateWorldScreen',
+    <CreateWorldScreen key="a" values={DEFAULT_CREATE_WORLD_VALUES} onValuesChange={() => {}} />,
+  ],
+  ['PauseScreen', <PauseScreen key="a" />],
+  ['TitleScreen', <TitleScreen key="a" logo="Logo" versionText="1.0" />],
+  [
+    'OptionsScreen',
+    <OptionsScreen key="a" title="Video Settings" onDone={() => undefined}>
+      <OptionsListRow>
+        <Button width={310}>Fancy</Button>
+      </OptionsListRow>
+    </OptionsScreen>,
+  ],
+  ['ConfirmScreen', <ConfirmScreen key="a" title="Sure?" message="Really?" />],
+  ['KeybindRow', <KeybindRow key="a" name="Jump" keyLabel="Space" listening />],
   ['Text', <Text key="a">Hello</Text>],
   ['FormattedText', <FormattedText key="a" value="§eYellow §lBold" />],
 ];

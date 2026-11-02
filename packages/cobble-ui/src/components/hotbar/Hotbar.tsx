@@ -10,6 +10,7 @@ import {
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `Inventory.SELECTION_HOTBAR_SIZE`. */
 export const HOTBAR_SLOTS = 9;
@@ -115,6 +116,7 @@ export function Hotbar<E extends ElementType = 'div'>(props: HotbarProps<E>): JS
     if (wheel) select(scrollHotbar(current, event.deltaY === 0 ? -event.deltaX : -event.deltaY));
   };
 
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': HOTBAR_WIDTH,
     '--cobble-height': HOTBAR_HEIGHT,
@@ -128,7 +130,7 @@ export function Hotbar<E extends ElementType = 'div'>(props: HotbarProps<E>): JS
           className: cx('cobble-hotbar', className),
           style: rootStyle,
           role: 'radiogroup',
-          'aria-label': 'Hotbar',
+          'aria-label': tOr('cobble.hotbar.label', 'Hotbar'),
           onKeyDown,
           onWheel,
         },
@@ -169,7 +171,7 @@ export function Hotbar<E extends ElementType = 'div'>(props: HotbarProps<E>): JS
           className={cx('cobble-hotbar-slot', slotProps?.slot?.className)}
           role="radio"
           aria-checked={index === current}
-          aria-label={`Slot ${String(index + 1)}`}
+          aria-label={tOr('cobble.hotbar.slot', 'Slot %s', index + 1)}
           tabIndex={index === current ? 0 : -1}
           data-selected={index === current ? '' : undefined}
           onClick={(event) => {

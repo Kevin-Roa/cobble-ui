@@ -13,7 +13,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { asSpriteId } from '../assets/sprite-id.ts';
 import { png, renderWithProvider, testAssets } from '../../test/utils.tsx';
 import type { AssetBundle, AssetSource } from '../index.ts';
+import { ConfirmScreen, KeybindRow, OptionsScreen, PauseScreen, TitleScreen } from '../index.ts';
 import {
+  CreateWorldScreen,
+  DEFAULT_CREATE_WORLD_VALUES,
+  WorldSelectionList,
+  canCreateWorld,
+  updateCreateWorldValues,
+  worldDisplayName,
+  worldIdLine,
+  Translate,
+  TranslationProvider,
+  useTranslation,
   ArmorStand,
   BlockModel,
   ChestPanel,
@@ -3777,5 +3788,227 @@ describe('RecipeBook', () => {
     expect(root).toHaveAttribute('data-recipe-book-open');
     expect(screen.getByRole('group', { name: 'Recipe Book' })).toBeInTheDocument();
     expect(onOpenChange).toHaveBeenCalledWith(true);
+  });
+});
+
+describe('WorldSelectionList', () => {
+  const worlds = [
+    { id: 'one', name: 'One', gameMode: 'survival', version: '26.3', lastPlayed: 0 },
+    { id: 'two', name: '', gameMode: 'creative', cheats: true },
+  ] as const;
+
+  it('names and describes worlds', () => {
+    expect(worldDisplayName({ name: ' ' }, 1)).toBe('Unnamed World 2');
+    expect(worldIdLine({ id: 'one', lastPlayed: 0 }, () => 'then')).toBe('one (then)');
+    expect(worldIdLine({ id: 'one' })).toBe('one');
+  });
+
+  it('renders rows, moves the selection with the keyboard and plays on Enter', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn<(value: string) => void>();
+    const onPlay = vi.fn<(id: string) => void>();
+    renderWithProvider(
+      <WorldSelectionList
+        worlds={worlds}
+        defaultValue="one"
+        onValueChange={onValueChange}
+        onPlay={onPlay}
+        formatDate={() => 'then'}
+      />,
+    );
+    expect(screen.getByText('one (then)')).toBeInTheDocument();
+    expect(screen.getByText('Survival Mode, Version: 26.3')).toBeInTheDocument();
+    expect(screen.getByText('Unnamed World 2')).toBeInTheDocument();
+    expect(screen.getByText('Creative Mode, Cheats')).toBeInTheDocument();
+    await user.tab();
+    await user.keyboard('{ArrowDown}');
+    expect(onValueChange).toHaveBeenCalledWith('two');
+    await user.keyboard('{Enter}');
+    expect(onPlay).toHaveBeenCalledWith('two');
+  });
+});
+
+describe('CreateWorldScreen', () => {
+  it('forces hardcore to hard difficulty without commands', () => {
+    const next = updateCreateWorldValues(
+      { ...DEFAULT_CREATE_WORLD_VALUES, allowCommands: true },
+      { gameMode: 'hardcore' },
+    );
+    expect(next).toMatchObject({ difficulty: 'hard', allowCommands: false });
+    expect(canCreateWorld({ name: '  ' })).toBe(false);
+  });
+
+  it('cycles the game mode, edits the name, switches tabs and creates', async () => {
+    const user = userEvent.setup();
+    const onValuesChange = vi.fn<(values: unknown) => void>();
+    const onCreate = vi.fn<() => void>();
+    renderWithProvider(
+      <CreateWorldScreen
+        values={DEFAULT_CREATE_WORLD_VALUES}
+        onValuesChange={onValuesChange}
+        onCreate={onCreate}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /Game Mode: Survival/ }));
+    expect(onValuesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ gameMode: 'hardcore', difficulty: 'hard' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Create New World' }));
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('tab', { name: 'World' }));
+    expect(screen.getByRole('button', { name: /World Type: Default/ })).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'More' }));
+    expect(screen.getByRole('button', { name: 'Data Packs' })).toBeInTheDocument();
+  });
+
+  it('disables creating without a name and locks difficulty in hardcore', () => {
+    renderWithProvider(
+      <CreateWorldScreen
+        values={{ ...DEFAULT_CREATE_WORLD_VALUES, name: '', gameMode: 'hardcore' }}
+        onValuesChange={() => {}}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Create New World' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Difficulty/ })).toBeDisabled();
+  });
+});
+
+describe('menu screens', () => {
+  it('PauseScreen calls its handlers and disables LAN on request', async () => {
+    const user = userEvent.setup();
+    const onBackToGame = vi.fn<() => void>();
+    const onOptions = vi.fn<() => void>();
+    const onOpenToLan = vi.fn<() => void>();
+    renderWithProvider(
+      <PauseScreen
+        onBackToGame={onBackToGame}
+        onOptions={onOptions}
+        onOpenToLan={onOpenToLan}
+        lanDisabled
+      />,
+    );
+    expect(screen.getByText('Game Menu')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to Game' }));
+    await user.click(screen.getByRole('button', { name: 'Options...' }));
+    await user.click(screen.getByRole('button', { name: 'Open to LAN' }));
+    expect(onBackToGame).toHaveBeenCalledTimes(1);
+    expect(onOptions).toHaveBeenCalledTimes(1);
+    expect(onOpenToLan).not.toHaveBeenCalled();
+  });
+
+  it('TitleScreen renders the logo slot and hides the third button by default', async () => {
+    const user = userEvent.setup();
+    const onQuit = vi.fn<() => void>();
+    renderWithProvider(<TitleScreen logo={<span>My Logo</span>} onQuit={onQuit} />);
+    expect(screen.getByText('My Logo')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Realms' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Quit Game' }));
+    expect(onQuit).toHaveBeenCalledTimes(1);
+  });
+
+  it('TitleScreen shows the third button when labelled', () => {
+    renderWithProvider(<TitleScreen realmsLabel="Online" />);
+    expect(screen.getByRole('button', { name: 'Online' })).toBeInTheDocument();
+  });
+
+  it('OptionsScreen shows rows and Done fires onDone', async () => {
+    const user = userEvent.setup();
+    const onDone = vi.fn<() => void>();
+    renderWithProvider(
+      <OptionsScreen title="Sound" onDone={onDone}>
+        <span>row content</span>
+      </OptionsScreen>,
+    );
+    expect(screen.getByText('row content')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it('ConfirmScreen confirms, cancels and cancels on Escape', async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn<() => void>();
+    const onCancel = vi.fn<() => void>();
+    renderWithProvider(
+      <ConfirmScreen title="Delete?" message="Sure?" onConfirm={onConfirm} onCancel={onCancel} />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Yes' }));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'No' }));
+    await user.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledTimes(2);
+  });
+
+  it('KeybindRow decorates listening and conflicts, and Reset follows isDefault', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn<() => void>();
+    const onReset = vi.fn<() => void>();
+    const first = renderWithProvider(
+      <KeybindRow name="Jump" keyLabel="Space" isDefault onChange={onChange} onReset={onReset} />,
+    );
+    const key = screen.getByRole('button', { name: 'Jump' });
+    expect(key).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled();
+    await user.click(key);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    first.unmount();
+    const second = renderWithProvider(
+      <KeybindRow name="Jump" keyLabel="Space" listening onReset={onReset} />,
+    );
+    expect(screen.getByRole('button', { name: 'Jump' })).toHaveTextContent('> Space <');
+    expect(screen.getByRole('button', { name: 'Jump' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(onReset).toHaveBeenCalledTimes(1);
+    second.unmount();
+    renderWithProvider(<KeybindRow name="Jump" keyLabel="Space" conflict />);
+    expect(screen.getByRole('button', { name: 'Jump' })).toHaveTextContent('[ Space ]');
+  });
+});
+
+function Probe(): ReactElement {
+  const { t, ready } = useTranslation();
+  return (
+    <p data-ready={ready}>
+      {t('commands.give.success.single', 2, 'Stone', 'Steve')}|{t('nope.key')}
+    </p>
+  );
+}
+
+describe('translations', () => {
+  const lang = new TextEncoder().encode(
+    JSON.stringify({
+      'menu.singleplayer': 'Singleplayer',
+      'commands.give.success.single': 'Gave %1$s %2$s to %3$s',
+    }),
+  );
+  const assets = (): AssetSource =>
+    memoryAssets({ files: { 'assets/minecraft/lang/en_us.json': lang } });
+
+  it('loads en_us through the asset pipeline and substitutes arguments', async () => {
+    renderPlain(
+      <CobbleProvider assets={assets()} guiScale={2} sound={{ enabled: false }}>
+        <Translate translate="menu.singleplayer" />
+        <Probe />
+      </CobbleProvider>,
+    );
+    expect(await screen.findByText('Singleplayer')).toBeInTheDocument();
+    expect(await screen.findByText('Gave 2 Stone to Steve|nope.key')).toHaveAttribute(
+      'data-ready',
+      'true',
+    );
+  });
+
+  it('lets a TranslationProvider override keys and Translate use fallbacks', async () => {
+    renderPlain(
+      <CobbleProvider assets={assets()} guiScale={2} sound={{ enabled: false }}>
+        <TranslationProvider translations={{ 'menu.singleplayer': 'Solo', 'my.key': 'Hi %s' }}>
+          <Translate translate="menu.singleplayer" className="a" />
+          <Translate translate="my.key" args={['you']} as="strong" />
+          <Translate translate="absent" fallback="Fallback %s" args={[1]} />
+        </TranslationProvider>
+      </CobbleProvider>,
+    );
+    expect(await screen.findByText('Solo')).toHaveClass('a');
+    expect(screen.getByText('Hi you').tagName).toBe('STRONG');
+    expect(screen.getByText('Fallback 1')).toBeInTheDocument();
   });
 });

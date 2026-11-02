@@ -6,6 +6,7 @@ import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
 import { SERVER_ENTRY_HEIGHT, SERVER_ENTRY_WIDTH, SERVER_ICON_SIZE } from './ServerListEntry.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** What the join arrow over a world's icon looks like (`world_list/*`). */
 export type WorldEntryStatus = 'normal' | 'marked' | 'warning' | 'error';
@@ -64,6 +65,7 @@ export function WorldListEntry<E extends ElementType = 'div'>(
     ...rest
   } = props as WorldListEntryProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const { tOr } = useTranslation();
   const fallbackIcon = useTextureUrl('misc/unknown_server');
   const iconUrl = icon ?? fallbackIcon;
   const [hovered, setHovered] = useState(false);
@@ -103,7 +105,11 @@ export function WorldListEntry<E extends ElementType = 'div'>(
       {hovered ? (
         <button
           type="button"
-          aria-label={status === 'normal' || status === 'marked' ? 'Play world' : 'Open world'}
+          aria-label={
+            status === 'normal' || status === 'marked'
+              ? tOr('cobble.server_list.play_world', 'Play world')
+              : tOr('cobble.server_list.open_world', 'Open world')
+          }
           className="cobble-server-entry-join"
           style={placeAt(0, 0)}
           onPointerEnter={() => setOverIcon(true)}

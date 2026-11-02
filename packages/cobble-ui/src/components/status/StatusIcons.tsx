@@ -4,6 +4,7 @@ import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Size of every status icon sprite. */
 export const STATUS_ICON_SIZE = 9;
@@ -55,7 +56,9 @@ interface StatusRowOwnProps {
 function StatusRow(
   props: StatusRowOwnProps & {
     readonly as: ElementType | undefined;
+    /** English name, used when `labelKey` has no translation. */
     readonly label: string;
+    readonly labelKey: string;
     readonly rest: Record<string, unknown>;
     readonly className: string;
     readonly style: CssVariables | undefined;
@@ -66,6 +69,7 @@ function StatusRow(
   const {
     as,
     label,
+    labelKey,
     rest,
     className,
     style,
@@ -76,6 +80,7 @@ function StatusRow(
     reverse,
     slots = Math.min(count, STATUS_ICONS_PER_ROW),
   } = props;
+  const { tOr } = useTranslation();
   const Component: ElementType = as ?? 'div';
   const width = slots === 0 ? 0 : (slots - 1) * STATUS_ICON_STRIDE + STATUS_ICON_SIZE;
   const rows = Math.max(Math.ceil(count / STATUS_ICONS_PER_ROW), 1);
@@ -92,7 +97,7 @@ function StatusRow(
           className: cx('cobble-status-row', className),
           style: rootStyle,
           role: 'meter',
-          'aria-label': label,
+          'aria-label': tOr(labelKey, label),
           'aria-valuemin': 0,
           'aria-valuemax': max,
           'aria-valuenow': value,
@@ -194,6 +199,7 @@ export function Hearts<E extends ElementType = 'div'>(props: HeartsProps<E>): JS
     <StatusRow
       {...split}
       label="Health"
+      labelKey="cobble.status.health"
       value={health}
       max={max}
       count={hearts + absorbed}
@@ -233,6 +239,7 @@ export function Hunger<E extends ElementType = 'div'>(props: HungerProps<E>): JS
     <StatusRow
       {...split}
       label="Food"
+      labelKey="cobble.status.food"
       value={food}
       max={20}
       count={10}
@@ -265,6 +272,7 @@ export function Armor<E extends ElementType = 'div'>(props: ArmorProps<E>): JSX.
     <StatusRow
       {...split}
       label="Armor"
+      labelKey="cobble.status.armor"
       value={armor}
       max={20}
       count={10}
@@ -303,6 +311,7 @@ export function Air<E extends ElementType = 'div'>(props: AirProps<E>): JSX.Elem
     <StatusRow
       {...split}
       label="Air"
+      labelKey="cobble.status.air"
       value={value}
       max={max}
       count={full + popping}
@@ -347,6 +356,7 @@ export function VehicleHearts<E extends ElementType = 'div'>(
     <StatusRow
       {...split}
       label="Mount health"
+      labelKey="cobble.status.mount_health"
       value={health}
       max={max}
       count={Math.ceil(max / 2)}

@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
@@ -79,7 +80,7 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
     onLapisClick,
     onOptionClick,
     background = true,
-    title = 'Enchant',
+    title: titleProp,
     inventoryTitle,
     isolate,
     inventory,
@@ -89,6 +90,8 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as EnchantingTablePanelProps<'div'>;
+  const { tOr } = useTranslation();
+  const title = titleProp === undefined ? tOr('container.enchant', 'Enchant') : titleProp;
   const Component: ElementType = as ?? 'div';
   const { itemSlot, lapisSlot, optionsX, optionsY } = ENCHANTING_LAYOUT;
   const container = useContainerBackground(
@@ -116,7 +119,7 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
     >
       <InventorySlot
         className="cobble-enchanting-slot"
-        aria-label={item?.label ?? 'Item to enchant'}
+        aria-label={item?.label ?? tOr('cobble.enchanting.item', 'Item to enchant')}
         style={placeAt(itemSlot.x - 1, itemSlot.y - 1)}
         {...(item?.count === undefined ? {} : { count: item.count })}
         {...(onItemClick === undefined ? {} : { onClick: onItemClick })}
@@ -125,7 +128,7 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
       </InventorySlot>
       <InventorySlot
         className="cobble-enchanting-slot"
-        aria-label={lapis?.label ?? 'Lapis Lazuli'}
+        aria-label={lapis?.label ?? tOr('item.minecraft.lapis_lazuli', 'Lapis Lazuli')}
         emptyIcon="lapis_lazuli"
         style={placeAt(lapisSlot.x - 1, lapisSlot.y - 1)}
         {...(lapis?.count === undefined ? {} : { count: lapis.count })}
@@ -140,7 +143,7 @@ export function EnchantingTablePanel<E extends ElementType = 'div'>(
             key={option}
             className="cobble-enchanting-slot"
             option={option}
-            label={entry?.label ?? `Enchantment option ${String(option)}`}
+            label={entry?.label ?? tOr('cobble.enchanting.option', 'Enchantment option %s', option)}
             disabled={entry === undefined || entry.disabled === true}
             style={placeAt(optionsX, optionsY + (option - 1) * ENCHANTMENT_SLOT_HEIGHT)}
             {...(entry?.cost === undefined ? {} : { cost: entry.cost })}

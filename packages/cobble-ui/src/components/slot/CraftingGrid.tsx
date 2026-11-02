@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
@@ -46,6 +47,7 @@ export function CraftingGrid<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as CraftingGridProps<'div'>;
+  const { tOr } = useTranslation();
   const Component: ElementType = as ?? 'div';
   const gridSize = size * SLOT_SIZE;
   const resultY = Math.trunc((gridSize - SLOT_SIZE) / 2);
@@ -65,13 +67,13 @@ export function CraftingGrid<E extends ElementType = 'div'>(
       <SlotGrid
         columns={size}
         rows={size}
-        label="Crafting"
+        label={tOr('container.crafting', 'Crafting')}
         {...(ingredients === undefined ? {} : { items: ingredients })}
         {...(onIngredientClick === undefined ? {} : { onSlotClick: onIngredientClick })}
       />
       <InventorySlot
         className="cobble-crafting-result"
-        aria-label={result?.label ?? 'Crafting result'}
+        aria-label={result?.label ?? tOr('cobble.crafting.result', 'Crafting result')}
         style={placeAt(resultX, resultY)}
         {...(result?.count === undefined ? {} : { count: result.count })}
         {...(onResultClick === undefined ? {} : { onClick: onResultClick })}

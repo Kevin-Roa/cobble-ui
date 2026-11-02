@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/Translation.tsx';
 import type { JSX } from 'react';
 import { createBoxQuads } from '../../render/model3d/box.ts';
 import { Node3D, type Lighting } from '../../render/model3d/engine.ts';
@@ -193,7 +194,7 @@ export function ArmorStand(props: ArmorStandProps): JSX.Element {
   const {
     scale = 1.5,
     texture = 'entity/armorstand/armorstand',
-    'aria-label': label = 'Armor stand',
+    'aria-label': labelProp,
     rotatable = true,
     showBasePlate = true,
     small = false,
@@ -201,6 +202,8 @@ export function ArmorStand(props: ArmorStandProps): JSX.Element {
     className,
     ...rest
   } = props;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.armor_stand', 'Armor stand');
   const options: BuildOptions = { texture, showBasePlate, small, showArms };
   return (
     <ModelViewport

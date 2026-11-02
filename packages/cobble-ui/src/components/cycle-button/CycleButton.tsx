@@ -1,6 +1,7 @@
 import { useState, type ElementType, type JSX, type MouseEvent, type ReactNode } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import { Button, type ButtonOwnProps } from '../button/Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 export interface CycleButtonOwnProps<T> extends Omit<ButtonOwnProps, 'children'> {
   /** The values to cycle through, in order. */
@@ -94,13 +95,16 @@ export function ToggleButton<E extends ElementType = 'button'>(
     checked,
     defaultChecked = false,
     onCheckedChange,
-    onText = 'ON',
-    offText = 'OFF',
+    onText: onTextProp,
+    offText: offTextProp,
     // The native `value`/`defaultValue` attributes make no sense on a toggle.
     value: _value,
     defaultValue: _defaultValue,
     ...rest
   } = props as ToggleButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const onText = onTextProp ?? tOr('options.on', 'ON');
+  const offText = offTextProp ?? tOr('options.off', 'OFF');
   const [uncontrolled, setUncontrolled] = useState(defaultChecked);
   const value = checked ?? uncontrolled;
   return (

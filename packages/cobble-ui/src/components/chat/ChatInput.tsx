@@ -6,6 +6,7 @@ import {
   type TextFieldOwnProps,
   type TextFieldProps,
 } from '../text-field/TextField.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `ChatScreen`'s limit on a message (`SharedConstants.MAX_CHAT_LENGTH`). */
 export const CHAT_MAX_LENGTH = 256;
@@ -39,6 +40,7 @@ export function ChatInput<E extends ElementType = 'div'>(props: ChatInputProps<E
     onKeyDown,
     ...rest
   } = props as ChatInputProps<'div'> & { readonly onKeyDown?: (event: KeyboardEvent) => void };
+  const { tOr } = useTranslation();
   const [text, setText] = useState('');
   const [ownHistory, setOwnHistory] = useState<readonly string[]>([]);
   // Position in the history; one past the end means the line being typed.
@@ -82,7 +84,7 @@ export function ChatInput<E extends ElementType = 'div'>(props: ChatInputProps<E
   return (
     <TextField
       {...(rest as Omit<TextFieldProps<'div'>, 'onKeyDown'>)}
-      aria-label="Chat message"
+      aria-label={tOr('cobble.chat.message', 'Chat message')}
       className={cx('cobble-chat-input', className)}
       bordered={false}
       height={12}

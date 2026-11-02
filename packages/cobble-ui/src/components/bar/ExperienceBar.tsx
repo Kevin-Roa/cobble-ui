@@ -9,6 +9,7 @@ import {
   statBarFill,
   type StatBarLayers,
 } from './StatBar.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 const LAYERS: StatBarLayers = {
   background: ['hud/experience_bar_background'],
@@ -43,6 +44,7 @@ export function ExperienceBar<E extends ElementType = 'div'>(
   const { as, progress, level, slotProps, className, style, ...rest } =
     props as ExperienceBarProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': STAT_BAR_WIDTH,
     '--cobble-height': STAT_BAR_HEIGHT,
@@ -55,7 +57,7 @@ export function ExperienceBar<E extends ElementType = 'div'>(
           className: cx('cobble-stat-bar', 'cobble-experience-bar', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Experience',
+          'aria-label': tOr('cobble.bar.experience', 'Experience'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),

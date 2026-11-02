@@ -6,5 +6,5 @@
       "cobble-ui": ["../../packages/cobble-ui/src/index.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "e2e", "playwright.config.ts"]
 }

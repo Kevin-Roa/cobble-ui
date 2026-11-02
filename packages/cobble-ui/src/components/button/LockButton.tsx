@@ -2,6 +2,7 @@ import { useState, type ElementType, type JSX, type MouseEvent } from 'react';
 import type { PolymorphicProps } from '../../internal/polymorphic.ts';
 import type { WidgetSprites } from '../shared.ts';
 import { Button, type ButtonOwnProps } from './Button.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** `LockIconButton.Icon#LOCKED` sprites. */
 export const LOCKED_SPRITES: WidgetSprites = {
@@ -41,12 +42,14 @@ export function LockButton<E extends ElementType = 'button'>(
     locked,
     defaultLocked = false,
     onLockedChange,
-    label = 'Lock',
+    label: labelProp,
     width = 20,
     height = 20,
     onClick,
     ...rest
   } = props as LockButtonProps<'button'>;
+  const { tOr } = useTranslation();
+  const label = labelProp ?? tOr('cobble.button.lock', 'Lock');
   const [uncontrolled, setUncontrolled] = useState(defaultLocked);
   const isLocked = locked ?? uncontrolled;
   return (

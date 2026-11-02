@@ -8,7 +8,7 @@ export const MOJANG_VERSION_MANIFEST_URL =
   'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 export const MOJANG_RESOURCES_URL = 'https://resources.download.minecraft.net';
 
-const CACHE_NAME = 'cobble-ui-assets-v7';
+const CACHE_NAME = 'cobble-ui-assets-v8';
 const CACHE_ORIGIN = 'https://cobble-ui.invalid';
 
 /** Client files kept after the jar is downloaded. Everything else is discarded. */
@@ -42,7 +42,9 @@ const DEFAULT_INCLUDE = (path: string): boolean =>
   path.startsWith('assets/minecraft/textures/entity/conduit/') ||
   path.startsWith('assets/minecraft/textures/entity/shield/') ||
   path.startsWith('assets/minecraft/textures/entity/trident/') ||
-  path === 'assets/minecraft/textures/font/ascii.png';
+  path === 'assets/minecraft/textures/font/ascii.png' ||
+  // The default language (`en_us`) for `useTranslation`.
+  path === 'assets/minecraft/lang/en_us.json';
 
 /** Asset index objects that are kept (for sounds and the title panorama). */
 const DEFAULT_INCLUDE_OBJECT = (name: string): boolean =>

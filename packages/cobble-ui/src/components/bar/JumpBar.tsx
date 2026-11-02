@@ -9,6 +9,7 @@ import {
   statBarFill,
   type StatBarLayers,
 } from './StatBar.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 const CHARGE: StatBarLayers = {
   background: ['hud/jump_bar_background'],
@@ -39,6 +40,7 @@ export function JumpBar<E extends ElementType = 'div'>(props: JumpBarProps<E>): 
     ...rest
   } = props as JumpBarProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': STAT_BAR_WIDTH,
     '--cobble-height': STAT_BAR_HEIGHT,
@@ -51,7 +53,7 @@ export function JumpBar<E extends ElementType = 'div'>(props: JumpBarProps<E>): 
           className: cx('cobble-stat-bar', 'cobble-jump-bar', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Jump',
+          'aria-label': tOr('cobble.bar.jump', 'Jump'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': cooldown ? 0 : Math.round(Math.min(Math.max(progress, 0), 1) * 100),

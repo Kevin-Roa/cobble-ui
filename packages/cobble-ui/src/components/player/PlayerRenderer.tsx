@@ -2,6 +2,7 @@ import { mergeProps } from '@base-ui/react/merge-props';
 import { useEffect, useRef, useState, type ElementType, type JSX } from 'react';
 import { useLatest, usePrefersReducedMotion } from '../../internal/hooks.ts';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { useTexture } from '../../provider/hooks.ts';
 import type { RgbaImage } from '../../render/blit.ts';
 import { projectNodePoint, type Camera3D } from '../../render/model3d/engine.ts';
@@ -197,6 +198,7 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as PlayerRendererProps<'div'>;
+  const { tOr } = useTranslation();
   const Component: ElementType = as ?? 'div';
   const name = player?.trim() === '' ? undefined : player?.trim();
   const resolved = useMojangSkin(name);
@@ -242,7 +244,9 @@ export function PlayerRenderer<E extends ElementType = 'div'>(
   const latest = useLatest({ pose, followMouse, reducedMotion, fit });
   const tag =
     typeof nameTag === 'string' ? nameTag : nameTag ? (resolved?.name ?? name) : undefined;
-  const accessibleName = label ?? `${name ?? 'Player'} skin`;
+  const accessibleName =
+    label ??
+    tOr('cobble.player.skin', '%s skin', name ?? tOr('cobble.player.default_name', 'Player'));
   const rootStyle: CssVariables = {
     '--cobble-width': width,
     '--cobble-height': height,

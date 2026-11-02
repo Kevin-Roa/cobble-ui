@@ -4,6 +4,7 @@ import type { ElementType, JSX } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
 import { cx } from '../shared.ts';
 import { Sprite, type SpriteProps } from '../sprite/Sprite.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Width of the villager experience bar sprites. */
 export const VILLAGER_XP_BAR_WIDTH = 102;
@@ -71,6 +72,7 @@ export function VillagerXpBar<E extends ElementType = 'div'>(
   const Component: ElementType = as ?? 'div';
   const current = villagerXpFill(progress);
   const result = villagerXpFill(progress + gain);
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': VILLAGER_XP_BAR_WIDTH,
     '--cobble-height': VILLAGER_XP_BAR_HEIGHT,
@@ -83,7 +85,7 @@ export function VillagerXpBar<E extends ElementType = 'div'>(
           className: cx('cobble-stat-bar', 'cobble-villager-xp-bar', className),
           style: rootStyle,
           role: 'progressbar',
-          'aria-label': 'Villager experience',
+          'aria-label': tOr('cobble.trade.villager_experience', 'Villager experience'),
           'aria-valuemin': 0,
           'aria-valuemax': 100,
           'aria-valuenow': Math.round(Math.min(Math.max(progress, 0), 1) * 100),

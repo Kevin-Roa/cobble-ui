@@ -5,8 +5,14 @@
  * @param width  Available width (CSS pixels).
  * @param height Available height (CSS pixels).
  * @param max    Upper bound, or `0` for no limit (vanilla's "Auto").
+ * @param enforceUnicode Vanilla's "Force Unicode Font": an odd scale is bumped to the next even one.
  */
-export function calculateAutoGuiScale(width: number, height: number, max = 0): number {
+export function calculateAutoGuiScale(
+  width: number,
+  height: number,
+  max = 0,
+  enforceUnicode = false,
+): number {
   let scale = 1;
   while (
     scale !== max &&
@@ -17,6 +23,7 @@ export function calculateAutoGuiScale(width: number, height: number, max = 0): n
   ) {
     scale++;
   }
+  if (enforceUnicode && scale % 2 !== 0) scale++;
   return scale;
 }
 

@@ -11,6 +11,7 @@ import type { AssetStore } from '../../assets/store.ts';
 import { drawItem, firstFrame, tintedCanvas, type Region } from '../../render/item-raster.ts';
 import { useAssetRevision, useTexture } from '../../provider/hooks.ts';
 import { cx } from '../shared.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Size of an item in a slot, in GUI units. */
 export const ITEM_ICON_SIZE = 16;
@@ -212,6 +213,7 @@ function SolidPlayerHead(props: Omit<PlayerHeadProps, 'flat'>): JSX.Element {
   const name = player?.trim() === '' ? undefined : player?.trim();
   const resolved = useMojangSkin(name);
   const pixels = resolved?.image;
+  const { tOr } = useTranslation();
   const flat = <FlatPlayerHead skin={skin} size={size} />;
   return (
     <ModelViewport
@@ -220,7 +222,11 @@ function SolidPlayerHead(props: Omit<PlayerHeadProps, 'flat'>): JSX.Element {
       key={name ?? skin}
       // The default skin shows until the player's own has loaded, then the scene is rebuilt.
       sceneKey={pixels ? 'own' : 'local'}
-      aria-label={`${name ?? 'Player'} head`}
+      aria-label={tOr(
+        'cobble.sprite.player_head',
+        '%s head',
+        name ?? tOr('cobble.sprite.player', 'Player'),
+      )}
       className={cx('cobble-player-head-3d', className)}
       style={{ display: 'inline-block', ...(style as CSSProperties | undefined) }}
       width={size}

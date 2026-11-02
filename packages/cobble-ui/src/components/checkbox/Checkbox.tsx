@@ -1,6 +1,13 @@
 import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox';
 import { mergeProps } from '@base-ui/react/merge-props';
-import { useRef, useState, type ElementType, type JSX, type ReactNode } from 'react';
+import {
+  useRef,
+  useState,
+  type ElementType,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import { useInteraction, useIsomorphicLayoutEffect } from '../../internal/hooks.ts';
 import type { CssVariables, PolymorphicProps, SlotProps } from '../../internal/polymorphic.ts';
 import { useCobble } from '../../provider/context.ts';
@@ -138,7 +145,15 @@ export function Checkbox<E extends ElementType = 'label'>(props: CheckboxProps<E
             className: 'cobble-checkbox-box',
             onFocus: interactionHandlers.onFocus,
             onBlur: interactionHandlers.onBlur,
-            onKeyDown: clickSound.onKeyDown,
+            onKeyDown: (event: KeyboardEvent<HTMLSpanElement>) => {
+              clickSound.onKeyDown(event);
+              // `AbstractButton#keyPressed` selects with Enter as well as Space; Base UI only
+              // toggles on Space.
+              if (event.key === 'Enter' && !event.defaultPrevented && !disabled && !readOnly) {
+                event.preventDefault();
+                event.currentTarget.click();
+              }
+            },
           },
           slotProps?.box as SlotProps<'span'> | undefined,
         )}

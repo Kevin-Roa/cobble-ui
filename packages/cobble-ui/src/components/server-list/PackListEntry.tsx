@@ -6,6 +6,7 @@ import { useTextureUrl } from '../../provider/hooks.ts';
 import { cx, placeAt } from '../shared.ts';
 import { Sprite } from '../sprite/Sprite.tsx';
 import { SERVER_ENTRY_HEIGHT, SERVER_ICON_SIZE } from './ServerListEntry.tsx';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** Width of a pack entry. */
 export const PACK_ENTRY_WIDTH = 157;
@@ -63,11 +64,11 @@ export function packOverlaySprites(actions: PackActions, over: PackAction | unde
   );
 }
 
-const PACK_ACTION_LABELS: Record<PackAction, string> = {
-  select: 'Enable pack',
-  unselect: 'Disable pack',
-  move_up: 'Move up',
-  move_down: 'Move down',
+const PACK_ACTION_LABELS: Record<PackAction, readonly [key: string, fallback: string]> = {
+  select: ['cobble.pack.enable', 'Enable pack'],
+  unselect: ['cobble.pack.disable', 'Disable pack'],
+  move_up: ['cobble.pack.move_up', 'Move up'],
+  move_down: ['cobble.pack.move_down', 'Move down'],
 };
 
 export interface PackListEntrySlotProps {
@@ -121,6 +122,7 @@ export function PackListEntry<E extends ElementType = 'div'>(
     ...rest
   } = props as PackListEntryProps<'div'>;
   const Component: ElementType = as ?? 'div';
+  const { tOr } = useTranslation();
   const fallbackIcon = useTextureUrl('misc/unknown_pack');
   const iconUrl = icon ?? fallbackIcon;
   const actions: PackActions = {
@@ -178,7 +180,7 @@ export function PackListEntry<E extends ElementType = 'div'>(
             <button
               key={region.action}
               type="button"
-              aria-label={PACK_ACTION_LABELS[region.action]}
+              aria-label={tOr(...PACK_ACTION_LABELS[region.action])}
               className="cobble-pack-entry-action"
               style={
                 {

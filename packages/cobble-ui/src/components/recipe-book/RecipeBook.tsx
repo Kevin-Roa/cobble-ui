@@ -1,6 +1,7 @@
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useState, type ElementType, type JSX, type ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { useTextureUrl } from '../../provider/hooks.ts';
 import { Text } from '../../text/Text.tsx';
 import {
@@ -190,6 +191,7 @@ export function RecipeBook<E extends ElementType = 'div'>(
   );
   const [pageValue, setPage] = useControllable(pageProp, 0, onPageChange);
   const imageUrl = useTextureUrl('gui/recipe_book');
+  const { tOr } = useTranslation();
   if (!open) return null;
 
   const listed = filterRecipeBook(recipes, categories, category, search, craftableOnly);
@@ -216,7 +218,7 @@ export function RecipeBook<E extends ElementType = 'div'>(
           className: cx('cobble-station-panel', 'cobble-recipe-book', className),
           style: rootStyle,
           role: 'group',
-          'aria-label': 'Recipe Book',
+          'aria-label': tOr('cobble.recipe_book.title', 'Recipe Book'),
           ...(background ? { 'data-recipe-book-background': '' } : {}),
         },
         rest,
@@ -245,7 +247,7 @@ export function RecipeBook<E extends ElementType = 'div'>(
       <TextField
         className="cobble-placed cobble-recipe-book-search"
         style={placeAt(25, 13)}
-        aria-label="Search recipes"
+        aria-label={tOr('cobble.recipe_book.search', 'Search recipes')}
         width={81}
         height={14}
         bordered={false}
@@ -253,7 +255,7 @@ export function RecipeBook<E extends ElementType = 'div'>(
         textColor="#ffffff"
         placeholder={
           <Text italic color="#aaaaaa" shadow={false}>
-            Search...
+            {tOr('gui.recipebook.search_hint', 'Search...')}
           </Text>
         }
         value={search}

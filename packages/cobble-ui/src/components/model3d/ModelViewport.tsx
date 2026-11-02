@@ -24,6 +24,7 @@ import {
   type RenderTarget,
 } from '../../render/model3d/engine.ts';
 import { cx } from '../shared.ts';
+import { useTranslation } from '../../i18n/Translation.tsx';
 
 /** The rotation applied to {@link ModelSceneContext.root} each frame, in radians. */
 export interface ModelLook {
@@ -544,6 +545,7 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
     event.preventDefault();
   };
 
+  const { tOr } = useTranslation();
   const rootStyle: CssVariables = {
     '--cobble-width': width,
     '--cobble-height': height,
@@ -556,7 +558,7 @@ export function ModelViewport(props: ModelViewportProps): JSX.Element {
       role="img"
       // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={rotatable ? 0 : undefined}
-      aria-roledescription={rotatable ? '3D viewer' : undefined}
+      aria-roledescription={rotatable ? tOr('cobble.model.viewer', '3D viewer') : undefined}
       {...rest}
       className={cx('cobble-model3d-viewport', className)}
       data-rotatable={rotatable ? '' : undefined}

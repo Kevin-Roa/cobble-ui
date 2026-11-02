@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/Translation.tsx';
 import { mergeProps } from '@base-ui/react/merge-props';
 import type { ElementType, JSX, ReactNode } from 'react';
 import type { CssVariables, PolymorphicProps } from '../../internal/polymorphic.ts';
@@ -54,6 +55,7 @@ export function SlotGrid<E extends ElementType = 'div'>(props: SlotGridProps<E>)
     style,
     ...rest
   } = props as SlotGridProps<'div'>;
+  const { tOr } = useTranslation();
   const Component: ElementType = as ?? 'div';
   const total = Math.max(columns, 0) * Math.max(rows, 0);
   const rootStyle: CssVariables = {
@@ -77,7 +79,7 @@ export function SlotGrid<E extends ElementType = 'div'>(props: SlotGridProps<E>)
       {Array.from({ length: total }, (_, index) => {
         const item = items[index];
         const slotProps: Record<string, unknown> = {
-          'aria-label': item?.label ?? `Slot ${String(index + 1)}`,
+          'aria-label': item?.label ?? tOr('cobble.slot.numbered', 'Slot %s', index + 1),
           onClick: () => onSlotClick?.(index),
         };
         if (item?.count !== undefined) slotProps['count'] = item.count;
@@ -130,6 +132,7 @@ export function PlayerInventoryGrid<E extends ElementType = 'div'>(
     style,
     ...rest
   } = props as PlayerInventoryGridProps<'div'>;
+  const { tOr } = useTranslation();
   const Component: ElementType = as ?? 'div';
   const rootStyle: CssVariables = {
     '--cobble-width': slotGridWidth(9),
@@ -147,7 +150,7 @@ export function PlayerInventoryGrid<E extends ElementType = 'div'>(
         columns={9}
         rows={3}
         bare={bare}
-        label="Inventory"
+        label={tOr('container.inventory', 'Inventory')}
         {...(items === undefined ? {} : { items })}
         {...(onSlotClick === undefined
           ? {}
@@ -158,7 +161,7 @@ export function PlayerInventoryGrid<E extends ElementType = 'div'>(
         columns={9}
         rows={1}
         bare={bare}
-        label="Hotbar"
+        label={tOr('cobble.slot.hotbar', 'Hotbar')}
         {...(hotbar === undefined ? {} : { items: hotbar })}
         {...(onSlotClick === undefined
           ? {}

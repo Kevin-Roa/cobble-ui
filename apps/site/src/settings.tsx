@@ -17,6 +17,8 @@ export interface SiteSettings {
   readonly inWorld: boolean;
   /** Username or UUID the player docs examples render. */
   readonly defaultPlayer: string;
+  /** Game language code, e.g. `en_us`. Other languages are fetched from a CORS mirror. */
+  readonly language: string;
 }
 
 export const FALLBACK_PLAYER = 'steve';
@@ -30,6 +32,7 @@ const DEFAULTS: SiteSettings = {
   panoramaSpeed: 1,
   inWorld: false,
   defaultPlayer: DEFAULT_PLAYER,
+  language: 'en_us',
 };
 const STORAGE_KEY = 'cobble-ui-site-settings';
 
