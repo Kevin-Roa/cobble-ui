@@ -3870,6 +3870,9 @@ describe('CreateWorldScreen', () => {
     );
     expect(screen.getByRole('button', { name: 'Create New World' })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Difficulty/ })).toBeDisabled();
+  });
+});
+
 describe('menu screens', () => {
   it('PauseScreen calls its handlers and disables LAN on request', async () => {
     const user = userEvent.setup();
@@ -3958,6 +3961,9 @@ describe('menu screens', () => {
     second.unmount();
     renderWithProvider(<KeybindRow name="Jump" keyLabel="Space" conflict />);
     expect(screen.getByRole('button', { name: 'Jump' })).toHaveTextContent('[ Space ]');
+  });
+});
+
 function Probe(): ReactElement {
   const { t, ready } = useTranslation();
   return (
